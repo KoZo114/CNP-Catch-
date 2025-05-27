@@ -3,29 +3,121 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>キャラクター選択 - Reborn catch</title> 
+  <title>キャラクター選択 - Reborn catch</title>
   <style>
-    body { margin: 0; font-family: sans-serif; background-color: #f0f0e0; text-align: center; } /* 背景色を少し卵っぽく */
-    h1 { margin-top: 20px; color: #5a483c; } /* 文字色変更 */
-    .container { display: flex; flex-direction: row; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 20px; }
-    .character { border: 2px solid #c0c0a0; border-radius: 10px; overflow: hidden; cursor: pointer; transition: transform 0.3s ease; background-color: #fff8e1; }
-    .character:hover { transform: scale(1.05); border-color: #a08870;}
-    .character img { width: 200px; height: 200px; object-fit: cover; display: block; } /* サイズを正方形に近く */
-    .name { font-weight: bold; padding: 10px; background: #fff8dc; color: #5a483c;}
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap'); /* 可愛らしい丸ゴシック系フォント */
+
+    body {
+      margin: 0;
+      font-family: 'M PLUS Rounded 1c', 'Hiragino Sans', 'ヒラギノ角ゴシック', Meiryo, sans-serif; /* フォント変更 */
+      background-color: #fffacd; /* レモンシフォン (ソフトなパステルイエロー) */
+      text-align: center;
+      padding-top: 20px; /* 見出しの上のスペース */
+    }
+    h1 {
+      margin-top: 20px;
+      margin-bottom: 30px; /* コンテナとのスペース */
+      color: #8B4513; /* サドルブラウン (濃いめの茶色) */
+      font-size: 2.8em; /* 少し大きめに */
+      font-weight: 700;
+      position: relative;
+      display: inline-block; /* 飾り線のため */
+      padding-bottom: 10px;
+    }
+    /* 見出しの下の飾り線 */
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background-color: #FFB6C1; /* ライトピンク */
+      border-radius: 2px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 30px; /* 少し間隔を広げる */
+      flex-wrap: wrap;
+      padding: 20px;
+    }
+    .character {
+      border: 3px dotted #D2B48C; /* タン (点線の枠線) */
+      border-radius: 20px; /* 角をより丸く */
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      background-color: #FFF8DC; /* コーンシルク (優しいクリーム色) */
+      width: 220px; /* ボックスの幅を少し調整 */
+      padding: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      position: relative; /* ハートの位置基準 */
+    }
+    /* キャラクターボックス右上のハート */
+    .character::before {
+      content: '♥';
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      font-size: 1.8em;
+      color: #FFC0CB; /* ピンク */
+      opacity: 0.7;
+    }
+
+    .character:hover {
+      transform: translateY(-8px) scale(1.03); /* 少し浮き上がり、わずかに拡大 */
+      border-color: #A0522D; /* シエンナ (濃い茶色) */
+      box-shadow: 0 8px 20px rgba(210, 180, 140, 0.5); /* タン色の影 */
+    }
+    /* 画像を囲む円形のコンテナ */
+    .character-image-container {
+        width: 160px; /* 画像表示エリアのサイズ */
+        height: 160px;
+        border-radius: 50%; /* 円形に */
+        overflow: hidden;   /* 画像を円形にクリップ */
+        margin: 0 auto 15px; /* 上下のマージンと中央揃え */
+        border: 4px dashed #FFDAB9; /* ピーチパフ (破線) */
+        padding: 5px; /* 枠線と画像の間の余白 */
+        background-color: #fff; /* 画像背景が透過している場合のため */
+        box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+    }
+    .character img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* 画像をコンテナに合わせて調整 */
+      display: block;
+      border-radius: 50%; /* 画像自体も丸くクリップ (念のため) */
+    }
+    .name {
+      font-weight: 700; /* 太字 */
+      padding: 12px 10px;
+      background: #FFE4E1; /* ミスティローズ (薄いピンク) */
+      color: #774F38;    /* モカブラウン */
+      border-radius: 10px; /* 名前ラベルも角丸に */
+      font-size: 1.1em;
+    }
   </style>
 </head>
 <body>
   <h1>キャラクターを選んでね！</h1>
   <div class="container">
-    <div class="character" onclick="selectCharacter('hideya', 'hide.PNG')"> 
-      <img src="hide.PNG" alt="キャラクターH">
-      <div class="name">hideya</div> 
+    <div class="character" onclick="selectCharacter('hideya', 'hide.PNG')">
+      <div class="character-image-container"> {/* 画像を囲むコンテナを追加 */}
+        <img src="hide.PNG" alt="hideya">
+      </div>
+      <div class="name">hideya</div>
     </div>
-    <div class="character" onclick="selectCharacter('sho', 'sho.PNG')"> 
-      <img src="sho.PNG" alt="キャラクターS">
-      <div class="name">sho</div> 
+    <div class="character" onclick="selectCharacter('sho', 'sho.PNG')">
+      <div class="character-image-container"> {/* 画像を囲むコンテナを追加 */}
+        <img src="sho.PNG" alt="sho">
+      </div>
+      <div class="name">sho</div>
     </div>
-  </div>
+    </div>
 
   <script>
     function selectCharacter(name, image) {
