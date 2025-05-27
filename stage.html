@@ -3,44 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>卵キャッチゲーム - 究極版</title> {/* タイトル変更 */}
+  <title>Reborn catch - 究極版</title> {/* ★★★ ゲームタイトル変更 ★★★ */}
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
-    body { width: 100vw; height: 100vh; overflow: hidden; font-family: 'Noto Sans JP', sans-serif; touch-action: manipulation; -webkit-overflow-scrolling: touch; margin: 0; }
-    #page-wrapper { width: 100%; height: 100%; background-color: #3c2f2f; /* 少し茶色っぽい黒 */ display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; }
-    #game-container {
-      position: relative; width: 100%;
-      max-width: 400px;
-      height: 100%;
-      background: linear-gradient(135deg, #fffacd 0%, #f5deb3 50%, #ffe4b5 100%); /* 卵っぽい暖色系グラデーション */
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(255,235,205,0.5);
+    body {
+      width: 100vw; height: 100vh; overflow: hidden;
+      font-family: 'Noto Sans JP', sans-serif;
+      touch-action: manipulation; -webkit-overflow-scrolling: touch; margin: 0;
     }
-    .bg-particle { /* ゲームコンテナ内の背景エフェクト (卵の黄身や白身のイメージ？) */
+    #page-wrapper { /* ★★★ 画面全体ラッパー、黒背景 ★★★ */
+      width: 100%; height: 100%;
+      background-color: #1a1a1a; /* 少し濃いめの黒 */
+      display: flex; justify-content: center; align-items: center;
+      position: relative; overflow: hidden;
+    }
+    #game-container { /* ★★★ ゲームプレイエリア ★★★ */
+      position: relative; width: 100%;
+      max-width: 380px; /* PCでの表示幅 (320px～480px程度で調整) */
+      height: 100%;
+      background: linear-gradient(135deg, #fff8dc 0%, #ffefd5 70%, #ffe4b5 100%); /* コーニッシュホワイトからモカシンへ */
+      overflow: hidden;
+      box-shadow: 0 0 25px rgba(255,228,181,0.6); /* 薄い卵色のグロー */
+    }
+
+    /* ゲームコンテナ内の背景エフェクト (例: 卵の黄身や白身の泡) */
+    .bg-bubble-particle {
       position: absolute;
-      background: rgba(255, 215, 0, 0.15); /* 薄い黄色 */
       border-radius: 50%;
       pointer-events: none;
-      animation: float-bg linear infinite;
+      animation: float-bubble linear infinite;
       z-index: 1;
+      opacity: 0;
     }
-    .bg-particle.white { background: rgba(255, 250, 240, 0.1); } /* 白っぽいのも追加 */
+    @keyframes float-bubble {
+      0% { transform: translateY(105%) scale(0.3); opacity: 0; }
+      20% { opacity: 0.4; }
+      80% { opacity: 0.4; }
+      100% { transform: translateY(-10%) scale(1.2); opacity: 0; }
+    }
 
-    @keyframes float-bg { 0% { transform: translateY(100%) rotate(0deg) scale(0.5) opacity: 0; } 20% { opacity: 0.5; } 80% { opacity: 0.5; } 100% { transform: translateY(-100px) rotate(360deg) scale(1.5) opacity: 0; } }
-    
-    .outer-sakura-particle { /* 外側のエフェクトは「羽」や「藁」などテーマに合わせて変更も可 */
+    /* 外側に降るエフェクト (例: 小さな卵の殻の破片) */
+    .outer-shell-particle {
         position: absolute;
-        /* background-image: url('feather.png');  もし羽画像などあれば */
-        background-color: rgba(160, 82, 45, 0.4); /* 藁や木の枝のような茶色系 */
-        width: 3px; height: 20px; border-radius: 2px;
-        pointer-events: none; animation: fall-outer-sakura linear infinite; opacity: 0; z-index: 5;
+        background-color: rgba(245, 222, 179, 0.3); /* ウィート色 */
+        width: 5px; height: 8px;
+        border-radius: 30% 70% 20% 80% / 50% 40% 60% 50%; /* 不規則な形 */
+        pointer-events: none;
+        animation: fall-outer-shell linear infinite;
+        opacity: 0;
+        z-index: 5;
     }
-    @keyframes fall-outer-sakura {
-        0% { transform: translateY(-10vh) translateX(var(--outer-start-x)) rotateZ(var(--outer-rotate-z-start)); opacity: 0; }
-        10% { opacity: 0.7; }
-        90% { opacity: 0.7; }
-        100% { transform: translateY(110vh) translateX(var(--outer-end-x)) rotateZ(var(--outer-rotate-z-end)); opacity: 0; }
+    @keyframes fall-outer-shell {
+        0% { transform: translateY(-10vh) translateX(var(--outer-start-x)) rotateZ(0deg) rotateY(0deg); opacity: 0; }
+        10% { opacity: 0.5; }
+        90% { opacity: 0.5; }
+        100% { transform: translateY(110vh) translateX(var(--outer-end-x)) rotateZ(var(--outer-rotate-z-end)) rotateY(var(--outer-rotate-y-end)); opacity: 0; }
     }
 
     #character { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); max-height: 25vh; max-width: 120px; height: auto; z-index: 50; filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.2)); }
@@ -48,78 +66,30 @@
     #character.powerup { filter: drop-shadow(0 0 15px #FFD700) drop-shadow(2px 4px 8px rgba(0,0,0,0.2)); transform: translateX(-50%) scale(1.1); transition: transform 0.2s ease-out, filter 0.2s ease-out; }
     @keyframes jump { 0% { transform: translateX(-50%) translateY(0); } 30% { transform: translateX(-50%) translateY(-60px); } 60% { transform: translateX(-50%) translateY(-60px); } 100% { transform: translateX(-50%) translateY(0); } }
 
-    /* アイテム共通スタイル */
     .egg, .bomb, .power-up, .time-plus, .helper-mgchan { position: absolute; pointer-events: none; z-index: 40; }
-
-    /* ★★★ メインの卵アイテム ★★★ */
-    .egg { /* 旧 .petal */
-      width: 30px; height: 40px; /* 卵らしい縦横比 */
-      background-image: url('egg.png'); /* 卵の画像を指定 */
-      background-color: transparent;
-      background-repeat: no-repeat; background-position: center; background-size: contain;
-      animation: fall-egg linear; /* アニメーション名変更 */
-      filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.2));
-    }
-    .egg.special { /* 旧 .petal.special - 見た目は変更が必要なら */
-      width: 35px; height: 45px; background: radial-gradient(circle, #FFD700 0%, #FFA500 50%, #FF69B4 100%);
-      filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8)); animation: fall-special-egg linear; border-radius:40% 40% 35% 35%/50% 50% 45% 45%; /* 卵っぽい形 */
-    }
-    .egg.golden { /* 旧 .petal.golden - 見た目は変更が必要なら */
-      width: 40px; height: 50px; background: radial-gradient(circle, #FFD700 0%, #FFFF00 30%, #FFA500 70%, #FF4500 100%);
-      filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1)) drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));
-      animation: fall-golden-egg linear; border: 2px solid rgba(255, 218, 185, 0.9); border-radius:45% 45% 40% 40%/55% 55% 40% 40%; /* 卵っぽい形 */
-    }
-    /* ★★★ MG Chan 助っ人アイテム ★★★ */
-    .helper-mgchan {
-      width: 60px; height: 60px; /* 画像サイズに合わせて調整 */
-      background-image: url('MG Chan.jpg');
-      background-color: transparent;
-      background-repeat: no-repeat; background-position: center; background-size: contain;
-      animation: fall-helper linear;
-      border-radius: 50%; /* 丸く表示する場合 */
-      filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.3));
-    }
-
-    .bomb { width: 40px; height: 40px; background: radial-gradient(circle, #702010 0%, #401008 70%, #200804 100%); /* 茶色っぽい爆弾？ */ border-radius: 50%; filter: drop-shadow(0 0 10px rgba(80, 0, 0, 0.8)); animation: fall-bomb linear; }
-    .bomb::before { content: '💣'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25px; animation: bomb-pulse 0.5s infinite alternate; }
-    @keyframes bomb-pulse { 0% { transform: translate(-50%, -50%) scale(1); } 100% { transform: translate(-50%, -50%) scale(1.2); } }
+    /* ★★★ アイテムの見た目を卵テーマに ★★★ */
+    .egg { width: 30px; height: 40px; background-image: url('egg.png'); background-color: transparent; background-repeat: no-repeat; background-position: center; background-size: contain; animation: fall-egg linear; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.15)); }
+    .egg.special { width: 35px; height: 45px; /* background-image: url('special_egg.png'); */ background: radial-gradient(circle, #FFD700 30%, #FFA500 70%, #FF8C00 100%); border: 2px dotted #FFFACD; filter: drop-shadow(0 0 8px rgba(255,223,0,0.7)); animation: fall-special-egg linear; border-radius:45% 45% 38% 38%/55% 55% 40% 40%; box-shadow: inset 0 0 5px rgba(255,255,255,0.3); }
+    .egg.golden { width: 40px; height: 52px; /* background-image: url('golden_egg.png'); */ background: radial-gradient(ellipse at top, #FFFACD 0%, #FFD700 50%, #FFA500 100%); filter: drop-shadow(0 0 15px gold) drop-shadow(0 0 5px white); animation: fall-golden-egg linear; border: 2px solid gold; border-radius:48% 48% 42% 42%/60% 60% 35% 35%; }
+    .helper-mgchan { width: 60px; height: 60px; background-image: url('MG Chan.PNG'); background-color: transparent; background-repeat: no-repeat; background-position: center; background-size: contain; animation: fall-helper linear; border-radius: 15px; filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.3)); }
+    .bomb { width: 40px; height: 40px; background: radial-gradient(circle, #5a3d32 0%, #3e2723 70%, #2d1b17 100%); border-radius: 50%; filter: drop-shadow(0 0 10px rgba(40, 20, 10, 0.8)); animation: fall-bomb linear; } /* 焦げた卵や石のようなイメージ */
+    .bomb::before { content: '💥'; color: #FF4500; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; animation: bomb-pulse 0.5s infinite alternate; text-shadow: 0 0 5px #FF0000;}
     .power-up { width: 45px; height: 45px; background: linear-gradient(45deg, #FFD700, #FFA500, #FF8C00, #FF7F50, #FF6347); border-radius: 50%; filter: drop-shadow(0 0 15px rgba(255,165,0,0.8)); animation: fall-powerup linear; animation-name: fall-powerup, rainbow-rotate-warm; animation-duration: inherit, 1.5s; animation-iteration-count: 1, infinite; animation-timing-function: linear, ease-in-out; }
-    .power-up::before { content: '🔥'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25px; animation: star-spin 1.5s linear infinite; } /* アイコン変更 */
-    .time-plus { width: 40px; height: 40px; background: radial-gradient(circle, #ADD8E6 0%, #87CEEB 50%, #5F9EA0 100%); /* 水色系 */ border-radius: 50%; filter: drop-shadow(0 0 8px rgba(135,206,250,0.7)); animation: fall-time-plus linear; }
-    .time-plus::before { content: '⌛️'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25px; animation: time-pulse 1.5s ease-in-out infinite alternate; }
+    .power-up::before { content: '🔥'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25px; animation: star-spin 1.5s linear infinite; }
+    .time-plus { width: 40px; height: 40px; background: radial-gradient(circle, #F0E68C 0%, #EEE8AA 50%, #BDB76B 100%); /* カーキ系 */ border-radius: 50%; filter: drop-shadow(0 0 8px rgba(218,165,32,0.7)); animation: fall-time-plus linear; }
+    .time-plus::before { content: '⏱️'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25px; animation: time-pulse 1.5s ease-in-out infinite alternate; }
 
-    @keyframes time-pulse { 0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.7; } 50% { transform: translate(-50%, -50%) scale(1.1) rotate(10deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.7; } }
+    @keyframes time-pulse { 0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.8; } 50% { transform: translate(-50%, -50%) scale(1.15) rotate(5deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.8; } }
     @keyframes star-spin { 0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); } 50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.2); } 100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); } }
-    @keyframes rainbow-rotate-warm { /* 暖色系ローテーション */
-        0% { filter: drop-shadow(0 0 15px rgba(255,165,0,0.8)) hue-rotate(0deg); }
-        100% { filter: drop-shadow(0 0 15px rgba(255,165,0,0.8)) hue-rotate(60deg); } /* 赤～黄色系の範囲で */
-    }
+    @keyframes rainbow-rotate-warm { 0% { filter: drop-shadow(0 0 15px rgba(255,165,0,0.8)) hue-rotate(0deg); } 100% { filter: drop-shadow(0 0 15px rgba(255,165,0,0.8)) hue-rotate(45deg); } }
 
-    /* ★★★ 卵用の落下アニメーション ★★★ */
-    @keyframes fall-egg {
-      0% { transform: translateY(-60px) rotateZ(0deg); opacity: 0.7; }
-      100% { transform: translateY(105vh) rotateZ(calc(var(--random-rotate) * 1deg)); opacity: 1; } /* 少し回転 */
-    }
-    @keyframes fall-special-egg { /* 特殊な卵のアニメーション */
-      0% { transform: translateY(-50px) rotateZ(0deg) scale(0.9); opacity: 0.8; }
-      50% { transform: translateY(50vh) rotateZ(180deg) scale(1.1); }
-      100% { transform: translateY(105vh) rotateZ(360deg) scale(0.9); opacity: 1; }
-    }
-    @keyframes fall-golden-egg { /* 金色の卵のアニメーション */
-      0% { transform: translateY(-50px) rotateZ(0deg) scale(1); opacity: 0.9; }
-      25% { transform: translateY(25vh) rotateZ(var(--random-rotate-half) * 1deg) scale(1.1); }
-      100% { transform: translateY(105vh) rotateZ(var(--random-rotate) * 1deg) scale(1); opacity: 1; }
-    }
-    @keyframes fall-helper { /* MG Chan のアニメーション */
-      0% { transform: translateY(-70px) scale(0.8) rotate(-10deg); opacity: 0.7; }
-      50% { transform: translateY(40vh) scale(1.1) rotate(10deg); opacity: 1; }
-      100% { transform: translateY(105vh) scale(0.9) rotate(5deg); opacity: 0.8; }
-    }
-    /* 既存のfall-bomb, fall-powerup, fall-time-plus はそのまま利用 */
+    @keyframes fall-egg { 0% { transform: translateY(-70px) rotateZ(var(--start-rot-z)) scale(0.8); opacity: 0.6; } 100% { transform: translateY(105vh) rotateZ(var(--end-rot-z)); opacity: 1; } }
+    @keyframes fall-special-egg { 0% { transform: translateY(-60px) rotateZ(0deg) scale(0.9); opacity: 0.8; } 50% { transform: translateY(50vh) rotateZ(90deg) scale(1.1); } 100% { transform: translateY(105vh) rotateZ(180deg) scale(0.9); opacity: 1; } }
+    @keyframes fall-golden-egg { 0% { transform: translateY(-60px) rotateZ(0deg) scale(1); opacity: 0.9; } 25% { transform: translateY(25vh) rotateZ(30deg) scale(1.15); } 100% { transform: translateY(105vh) rotateZ(90deg) scale(1); opacity: 1; } }
+    @keyframes fall-helper { 0% { transform: translateY(-80px) scale(0.7) rotate(-15deg); opacity: 0.7; } 50% { transform: translateY(40vh) scale(1) rotate(15deg); opacity: 1; } 100% { transform: translateY(105vh) scale(0.8) rotate(5deg); opacity: 0.9; } }
     @keyframes fall-bomb { 0% { transform: translateY(-50px) rotate(0deg) scale(1); opacity: 1; } 30% { transform: translateY(30vh) rotate(-20deg) scale(1.05); } 60% { transform: translateY(60vh) rotate(15deg) scale(1.1); } 100% { transform: translateY(100vh) rotate(10deg) scale(1); opacity: 1; } }
     @keyframes fall-powerup { 0% { transform: translateY(-50px) scale(0.8); opacity: 0.8; } 25% { opacity: 1; transform: translateY(25vh) scale(1.1); } 50% { transform: translateY(50vh) scale(1.2); } 75% { transform: translateY(75vh) scale(1.1); } 100% { transform: translateY(100vh) scale(1); opacity: 1; } }
     @keyframes fall-time-plus { 0% { transform: translateY(-50px) translateX(0px) rotate(0deg) scale(0.9); opacity: 0.7;} 25% { opacity: 1; transform: translateY(25vh) translateX(10px) rotate(5deg) scale(1);} 50% { transform: translateY(50vh) translateX(-10px) rotate(-5deg) scale(1.1);} 75% { transform: translateY(75vh) translateX(5px) rotate(2deg) scale(1);} 100% { transform: translateY(100vh) translateX(0px) rotate(0deg) scale(0.9); opacity: 1;} }
-
 
     #scoreboard, #level-display, .control-btn, .power-effect, .combo-display, .level-up-effect { position: fixed; z-index: 200; }
     #scoreboard { top: 15px; right: 20px; font-size: 14px; font-weight: bold; color: #604020; background: linear-gradient(145deg, #fff8dc 0%, #ffefd5 100%); padding: 15px 20px; border-radius: 20px; line-height: 1.6; box-shadow: 0 8px 24px rgba(0,0,0,0.1), 0 4px 8px rgba(139,69,19,0.2); border: 2px solid rgba(210,180,140,0.5); backdrop-filter: blur(10px); min-width: 180px; }
@@ -168,8 +138,8 @@
     const highscoreDisplay = document.getElementById("highscore");
     const timerDisplay = document.getElementById("timer");
     const levelDisplay = document.getElementById("level");
-    const comboDisplay = document.getElementById("combo");
-    const comboPopup = document.getElementById("combo-display");
+    const comboDisplay = document.getElementById("combo"); // 正しく取得
+    const comboPopup = document.getElementById("combo-display"); // これは中央ポップアップ
     const powerEffect = document.getElementById("power-effect");
     const levelUpEffect = document.getElementById("level-up-effect");
     const gameover = document.getElementById("gameover");
@@ -184,21 +154,21 @@
       character.src = selectedImageFile;
       character.alt = selectedCharName;
     } else {
-      character.src = "hide.jpg"; // デフォルトキャラをhide.jpgに
+      character.src = "hide.jpg"; // デフォルトキャラ変更
       character.alt = "キャラクターH";
     }
 
     let score = 0; let highscore = 0; let timeLeft = 60;
     const MAX_TIME_LEFT = 90; const MAX_LEVEL = 5; let level = 1;
-    const levelThresholds = [0, 30, 80, 150, 250]; // この値でレベルアップ調整
+    const levelThresholds = [0, 30, 80, 150, 250];
     let combo = 0; let maxCombo = 0; let itemSpawnerId;
-    let gameBgParticleInterval; let outerEffectInterval; // 名前変更
+    let gameBgParticleInterval; let outerEffectInterval;
     let isPowerUpActive = false; let powerUpEndTime = 0;
     let characterX;
 
-    let seEggCollect, bgm, seTimePlus, seBomb, sePowerUp, seHelperMG; // 効果音変数名変更
+    let seEggCollect, bgm, seTimePlus, seBomb, sePowerUp, seHelperMG;
     try {
-      seEggCollect = new Audio("kirarin.mp3"); // 卵取得音 (仮にkirarin.mp3を流用)
+      seEggCollect = new Audio("kirarin.mp3"); // 卵取得音 (適切なものに変更推奨)
       bgm = new Audio("bgm.mp3");
       seTimePlus = new Audio("tm.mp3");
       seBomb = new Audio("bom.mp3");
@@ -213,118 +183,130 @@
       seTimePlus = { play: () => {}, currentTime: 0 }; seBomb = { play: () => {}, currentTime: 0 };
       sePowerUp = { play: () => {}, currentTime: 0 }; seHelperMG = { play: () => {}, currentTime: 0 };
     }
-    try { highscore = parseInt(localStorage.getItem("eggCatchGameHighscore")) || 0; } // キー名変更
+    try { highscore = parseInt(localStorage.getItem("rebornCatchHighscore")) || 0; } // ★★★ キー名変更 ★★★
     catch (error) { console.warn("ハイスコア読み込み失敗:", error); }
     highscoreDisplay.innerText = highscore;
 
-    function createBackgroundParticle() { /* ... (前回と同様、gameContainerに追加) ... */ }
-    function createOuterEffectParticle() { /* ... (前回 outerSakuraParticle と同様、pageWrapperに追加) ... */ }
-    // 上記2つのパーティクル関数は、見た目を卵テーマに合わせて調整してください。
-    // 以下は createOuterEffectParticle の例 (少し抽象的な光の粒など)
+    function createBackgroundParticle() {
+      if (!gameContainer) return;
+      const particle = document.createElement("div");
+      particle.className = `bg-bubble-particle ${Math.random() < 0.5 ? 'white': ''}`; //白と黄色を混ぜる
+      particle.style.left = Math.random() * gameContainer.offsetWidth + "px";
+      const size = Math.random() * 10 + 5; // 5px - 15px
+      particle.style.width = particle.style.height = `${size}px`;
+      particle.style.animationDuration = `${Math.random() * 8 + 7}s`; // 7-15秒
+      particle.style.animationDelay = `${Math.random() * 7}s`;
+      gameContainer.appendChild(particle);
+      setTimeout(() => { if (particle.parentNode) particle.remove(); }, 22000);
+    }
+
     function createOuterEffectParticle() {
         if(!pageWrapper) return;
         const particle = document.createElement('div');
-        // particle.className = 'outer-sakura-particle'; // 別のクラス名でも良い
-        particle.style.position = 'absolute';
-        particle.style.backgroundColor = `hsla(${Math.random() * 60 + 200}, 70%, 70%, 0.5)`; // 青～紫系の光
-        particle.style.width = `${Math.random() * 3 + 1}px`;
-        particle.style.height = particle.style.width;
-        particle.style.borderRadius = '50%';
-        particle.style.pointerEvents = 'none';
-        particle.style.zIndex = '5';
-        particle.style.opacity = '0';
+        particle.className = 'outer-shell-particle';
+        const size = Math.random() * 10 + 5; // 5px - 15px
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size * (Math.random() * 0.5 + 1)}px`; // 少し縦長にも
 
-        const startX = `${Math.random() * 100}vw`;
-        const duration = Math.random() * 8 + 7; // 7-15秒
-        particle.style.left = startX;
-        particle.style.top = '-5px';
+        const startXOuter = `${Math.random() * 100}vw`;
+        const endXOuterVariance = (Math.random() - 0.5) * 40; // -20vw から +20vw の揺れ
+        const rotateZStart = `${(Math.random() - 0.5) * 90}deg`; // 初期Z回転
+        const rotateYStart = `${(Math.random() - 0.5) * 180}deg`; // 初期Y回転 (裏返ったり)
+        const rotateZEnd = `${parseFloat(rotateZStart.replace('deg','')) + (Math.random() - 0.5) * 720}deg`;
+        const rotateYEnd = `${parseFloat(rotateYStart.replace('deg','')) + (Math.random() - 0.5) * 360}deg`;
 
-        particle.animate([
-            { transform: `translateY(-5vh) translateX(0vw) scale(0.5)`, opacity: 0 },
-            { opacity: 1, transform: `translateY(50vh) translateX(${(Math.random()-0.5)*20}vw) scale(1)`},
-            { transform: `translateY(105vh) translateX(${(Math.random()-0.5)*40}vw) scale(0.5)`, opacity: 0 }
-        ], {
-            duration: duration * 1000,
-            delay: Math.random() * 5000,
-            easing: 'linear',
-            iterations: 1 // 1回再生して消える
-        });
+        particle.style.setProperty('--outer-start-x', startXOuter);
+        particle.style.setProperty('--outer-end-x', `calc(${startXOuter} + ${endXOuterVariance}vw)`);
+        particle.style.setProperty('--outer-rotate-z-start', rotateZStart);
+        particle.style.setProperty('--outer-rotate-y-start', rotateYStart);
+        particle.style.setProperty('--outer-rotate-z-end', rotateZEnd);
+        particle.style.setProperty('--outer-rotate-y-end', rotateYEnd);
+
+        particle.style.animationDuration = `${Math.random() * 10 + 8}s`; // 8秒から18秒
+        particle.style.animationDelay = `${Math.random() * 10}s`;
         pageWrapper.appendChild(particle);
-        setTimeout(() => { if(particle.parentNode) particle.remove(); }, (duration * 1000) + (Math.random() * 5000) + 100);
-    }
 
+        const totalAnimationTime = (parseFloat(particle.style.animationDuration.replace('s','')) + parseFloat(particle.style.animationDelay.replace('s',''))) * 1000;
+        setTimeout(() => {
+            if (particle.parentNode) particle.remove();
+        }, totalAnimationTime + 1000);
+    }
 
     function updateCharacterPosition() { character.style.left = `${characterX}px`; }
     function calculateLevel() { let newLvl = 1; for (let i=0; i<levelThresholds.length; i++) { if (score >= levelThresholds[i]) newLvl = i + 1; else break; } return Math.min(newLvl, MAX_LEVEL); }
     function getSpawnRate() { return Math.max(150, 700 - (level * 40)); }
 
-    function updateScore(points = 1) {
+    function updateScore(points = 1, itemTypeForEffect) {
       const previousLevel = level;
       if (isPowerUpActive) points *= 2;
       score += points; combo++;
-      scoreDisplay.innerText = score; comboDisplay.innerText = combo;
+      scoreDisplay.innerText = score;
+      if (comboDisplay) comboDisplay.innerText = combo;
+
       level = calculateLevel(); levelDisplay.innerText = level;
       if (level > previousLevel) {
         if (level === MAX_LEVEL && previousLevel < MAX_LEVEL) { showLevelUp(`MAX LEVEL ${MAX_LEVEL} 到達!`); }
         else if (level < MAX_LEVEL) { showLevelUp(`LEVEL ${level}!`); }
       }
       if (combo > 1) showComboPopup(); if (combo > maxCombo) maxCombo = combo;
-      // 卵取得音は checkCollision 内で再生
-      if (points >= 5) showSpecialEffect(); // 金色の卵などの場合
+      if (points >= 5 && itemTypeForEffect === "goldenEgg") showSpecialEffect();
     }
 
-    function resetCombo() { combo = 0; comboDisplay.innerText = combo; }
+    function resetCombo() { combo = 0; if (comboDisplay) comboDisplay.innerText = combo; }
     function showComboPopup() { comboPopup.textContent = `${combo} COMBO!`; comboPopup.style.display = 'block'; setTimeout(() => { comboPopup.style.display = 'none'; }, 1000); }
     function showLevelUp(message = `LEVEL ${level}!`) { levelUpEffect.textContent = message; levelUpEffect.style.display = 'block'; setTimeout(() => { levelUpEffect.style.display = 'none'; }, 2000); }
-    function showSpecialEffect() { scoreDisplay.style.transform = 'scale(1.3)'; scoreDisplay.style.color = '#D4AF37'; /* 金色っぽく */ setTimeout(() => { scoreDisplay.style.transform = 'scale(1)'; scoreDisplay.style.color = '#604020'; }, 500); }
+    function showSpecialEffect() { scoreDisplay.style.transform = 'scale(1.3)'; scoreDisplay.style.color = '#D4AF37'; setTimeout(() => { scoreDisplay.style.transform = 'scale(1)'; scoreDisplay.style.color = '#604020'; }, 500); }
     let powerUpTimerId = null;
-    function activatePowerUp() { /* ... (前回と同様) ... */ }
-    function deactivatePowerUp() { /* ... (前回と同様) ... */ }
+    function activatePowerUp() { if (isPowerUpActive) { powerUpEndTime += 10000; if (powerUpTimerId) clearInterval(powerUpTimerId); } else { isPowerUpActive = true; powerUpEndTime = Date.now() + 10000; character.classList.add('powerup'); powerEffect.textContent = '✨スコア２倍！'; powerEffect.style.display = 'block'; } powerUpTimerId = setInterval(() => { const remaining = Math.ceil((powerUpEndTime - Date.now()) / 1000); if (remaining <= 0) { clearInterval(powerUpTimerId); powerUpTimerId = null; deactivatePowerUp(); } else { powerEffect.textContent = `✨スコア２倍！(${remaining}s)`; } }, 100); }
+    function deactivatePowerUp() { isPowerUpActive = false; character.classList.remove('powerup'); powerEffect.style.display = 'none'; if (powerUpTimerId) { clearInterval(powerUpTimerId); powerUpTimerId = null; } }
 
     function createItem() {
       if (timeLeft <= 0 || !gameContainer) return;
       const item = document.createElement("div");
       const rand = Math.random();
-      let itemTypeForCreation = "normalEgg"; // ★★★ タイプ名変更 ★★★
+      let itemTypeForCreation = "normalEgg";
 
-      // ★★★ 確率とアイテムタイプの再定義 ★★★
       let probBomb = 0; if (level >= 2) { probBomb = Math.min(0.05 + (level - 2) * 0.03, 0.14); }
       const probTimePlus = 0.08;
       let probPowerUp = 0; if (level >= 2) { probPowerUp = 0.07; }
-      const probHelperMG = 0.06; // MG Chan の出現確率 (6%)
-      const probGoldenEgg = 0.10; // 金の卵の確率 (旧golden petal)
-      const probSpecialEgg = 0.15; // 特殊な卵の確率 (旧special petal)
-      // 残りが通常の卵
+      const probHelperMG = 0.06;
+      const probGoldenEgg = 0.10;
+      const probSpecialEgg = 0.15;
 
       let cumulativeProb = 0;
       cumulativeProb += probBomb; if (rand < cumulativeProb && level >= 2) { itemTypeForCreation = "bomb"; }
       else { cumulativeProb += probTimePlus; if (rand < cumulativeProb) { itemTypeForCreation = "timePlus"; }
       else { cumulativeProb += probPowerUp; if (rand < cumulativeProb && level >= 2) { itemTypeForCreation = "powerup"; }
-      else { cumulativeProb += probHelperMG; if (rand < cumulativeProb ) { itemTypeForCreation = "helperMG"; } // MG Chan はレベル1から出現可
+      else { cumulativeProb += probHelperMG; if (rand < cumulativeProb ) { itemTypeForCreation = "helperMG"; }
       else { cumulativeProb += probGoldenEgg; if (rand < cumulativeProb) { itemTypeForCreation = "goldenEgg"; }
       else { cumulativeProb += probSpecialEgg; if (rand < cumulativeProb) { itemTypeForCreation = "specialEgg"; }
       else { itemTypeForCreation = "normalEgg"; }}}}}}}
 
       let itemWidth;
+      // CSSで定義された幅をJavaScriptでも把握（主にitem.style.leftの計算用）
       switch(itemTypeForCreation) {
         case "bomb": item.className = "bomb"; item.dataset.type = "bomb"; item.dataset.points = "-10"; itemWidth = 40; break;
         case "timePlus": item.className = "time-plus"; item.dataset.type = "timePlus"; itemWidth = 40; break;
         case "powerup": item.className = "power-up"; item.dataset.type = "powerup"; item.dataset.points = "0"; itemWidth = 45; break;
-        case "helperMG": item.className = "helper-mgchan"; item.dataset.type = "helperMG"; item.dataset.points = "25"; itemWidth = 60; break; // MG Chan は25点
-        case "goldenEgg": item.className = "egg golden"; item.dataset.type = "goldenEgg"; item.dataset.points = "5"; itemWidth = 40; break; // CSSクラス名も調整
-        case "specialEgg": item.className = "egg special"; item.dataset.type = "specialEgg"; item.dataset.points = "2"; itemWidth = 35; break; // CSSクラス名も調整
+        case "helperMG": item.className = "helper-mgchan"; item.dataset.type = "helperMG"; item.dataset.points = "25"; itemWidth = 60; break;
+        case "goldenEgg": item.className = "egg golden"; item.dataset.type = "goldenEgg"; item.dataset.points = "5"; itemWidth = 40; break;
+        case "specialEgg": item.className = "egg special"; item.dataset.type = "specialEgg"; item.dataset.points = "2"; itemWidth = 35; break;
         default: /* normalEgg */ item.className = "egg"; item.dataset.type = "normalEgg"; item.dataset.points = "1"; itemWidth = 30;
       }
 
       item.style.left = Math.random() * (gameContainer.offsetWidth - itemWidth) + "px";
-      let animationDuration = Math.max(1.5, (2.5 + Math.random() * 2) - (level * 0.15)); // 少し落下速度調整
+      let animationDuration = Math.max(1.5, (2.5 + Math.random() * 2) - (level * 0.15));
       item.style.animationDuration = animationDuration + "s";
-      // ★★★ 落下アニメーションをアイテムタイプごとに設定 ★★★
+
+      // CSSカスタムプロパティでランダムな回転値を設定（卵用）
+      item.style.setProperty('--random-rotate', (Math.random() - 0.5) * 90); // -45deg to 45deg
+      item.style.setProperty('--random-rotate-half', (Math.random() - 0.5) * 45);
+
       if (itemTypeForCreation === "normalEgg") item.style.animationName = "fall-egg";
       else if (itemTypeForCreation === "specialEgg") item.style.animationName = "fall-special-egg";
       else if (itemTypeForCreation === "goldenEgg") item.style.animationName = "fall-golden-egg";
       else if (itemTypeForCreation === "helperMG") item.style.animationName = "fall-helper";
-      // bomb, powerup, timePlus は既存の fall-bomb などを使用
+      // 他のアイテムはCSSで animation-name が直接指定されているか、汎用の 'fall' を使う想定（今回は個別に設定）
 
       gameContainer.appendChild(item);
 
@@ -346,19 +328,12 @@
             if (sePowerUp && typeof sePowerUp.play === 'function') { sePowerUp.currentTime = 0; sePowerUp.play().catch(err => console.warn("st.mp3 再生エラー:", err));}
             activatePowerUp();
           } else if (currentItemType === "helperMG") {
-            updateScore(points); // MG Chan取得で25点
+            updateScore(points, currentItemType); // ポイント加算
             if (seHelperMG && typeof seHelperMG.play === 'function') { seHelperMG.currentTime = 0; seHelperMG.play().catch(err => console.warn("MG Chan SE 再生エラー:", err));}
-            // MG Chan の効果: 例として、一時的にアイテム落下速度を遅くする、または高得点アイテムの出現率を上げるなど
-            // ここではシンプルに「画面上の爆弾をいくつか消す」効果にしてみます
-            const bombsOnScreen = gameContainer.querySelectorAll('.bomb');
-            bombsOnScreen.forEach((bomb, index) => {
-                if (index < 2 && bomb.parentNode) { // 最大2つまで
-                    bomb.remove(); // 衝突判定中のインターバルはクリアされないが、DOMから消える
-                }
-            });
-            // TODO: 爆弾を消した場合、その爆弾のcheckCollisionインターバルもクリアする必要があるが、ここでは省略
+            const bombsOnScreen = gameContainer.querySelectorAll('.bomb'); // 効果：画面上の爆弾を少し消す
+            bombsOnScreen.forEach((bombEl, index) => { if (index < 2 && bombEl.parentNode) { bombEl.remove(); /* TODO: この爆弾のインターバルもクリアしたい */ } });
           } else { // normalEgg, specialEgg, goldenEgg
-            updateScore(points);
+            updateScore(points, currentItemType);
             if (seEggCollect && typeof seEggCollect.play === 'function') {
                 seEggCollect.currentTime = 0;
                 seEggCollect.play().catch(err => console.warn("卵取得音 再生エラー:", err));
@@ -375,8 +350,8 @@
       characterX = gameContainer.offsetWidth / 2; updateCharacterPosition();
       if (bgm && typeof bgm.play === 'function' && bgm.paused) { bgm.play().catch(err => console.warn("BGM再生に失敗:", err)); }
       itemSpawnerId = setInterval(createItem, getSpawnRate());
-      gameBgParticleInterval = setInterval(createBackgroundParticle, 700); // ゲーム内パーティクル頻度調整
-      outerEffectInterval = setInterval(createOuterEffectParticle, 500); // 外側エフェクト頻度調整
+      gameBgParticleInterval = setInterval(createBackgroundParticle, 700);
+      outerEffectInterval = setInterval(createOuterEffectParticle, 500);
 
       gameTimerId = setInterval(() => {
         if (timeLeft <= 0) {
@@ -389,29 +364,29 @@
       }, 1000);
     }
 
-    function endGame() { /* ... (前回と同様、ただしlocalStorageキー名は適宜変更) ... */
+    function endGame() {
       if (bgm && typeof bgm.pause === 'function') bgm.pause();
       finalScore.innerText = score; finalLevel.innerText = level; gameover.style.display = "block";
-      if (score > highscore) { highscore = score; try { localStorage.setItem("eggCatchGameHighscore", highscore); highscoreDisplay.innerText = highscore; } catch (error) { } }
-      Array.from(gameContainer.children).forEach(child => {
+      if (score > highscore) { highscore = score; try { localStorage.setItem("rebornCatchHighscore", highscore); highscoreDisplay.innerText = highscore; } catch (error) { } }
+      Array.from(gameContainer.children).forEach(child => { // gameContainer 内の動的要素を削除
         if (child.id !== 'character' && child.id !== 'gameover' && !child.classList.contains('combo-display') && !child.classList.contains('level-up-effect') && !child.classList.contains('power-effect') ) {
-            if (child.classList.contains('egg') || child.classList.contains('bomb') || child.classList.contains('power-up') || child.classList.contains('time-plus') || child.classList.contains('helper-mgchan') || child.classList.contains('bg-particle')) {
+            if (child.classList.contains('egg') || child.classList.contains('bomb') || child.classList.contains('power-up') || child.classList.contains('time-plus') || child.classList.contains('helper-mgchan') || child.classList.contains('bg-bubble-particle') ) {
                 child.remove();
             }
         }
       });
-      if(pageWrapper) pageWrapper.querySelectorAll('.outer-sakura-particle').forEach(el => el.remove()); // outer-effect-particle にクラス名変更した場合はそちらも
+      if(pageWrapper) pageWrapper.querySelectorAll('.outer-shell-particle').forEach(el => el.remove()); // 外側エフェクトも削除
       if (returnToSelectBtn) { returnToSelectBtn.addEventListener("click", () => { window.location.href = "index.html"; }); }
     }
 
-    // キーボード、ボタン、スワイプ操作のロジックは前回から変更なし
-    // ただし、characterX の範囲チェックは gameContainer.offsetWidth を使う
     document.addEventListener("keydown", (e) => { if (timeLeft <= 0) return; let moved = false; const charWidth = character.offsetWidth || 120; if (e.key === "ArrowLeft") { characterX -= 30; moved = true; } else if (e.key === "ArrowRight") { characterX += 30; moved = true; } else if (e.key === " " || e.key === "ArrowUp") { e.preventDefault(); jump(); } if (moved) { characterX = Math.max(charWidth / 2, Math.min(gameContainer.offsetWidth - (charWidth / 2), characterX)); updateCharacterPosition(); } });
     function jump() { if (!character.classList.contains("jump") && timeLeft > 0) { character.classList.add("jump"); setTimeout(() => character.classList.remove("jump"), 600); } }
     character.addEventListener("click", (e) => { if (timeLeft <= 0) return; e.preventDefault(); jump(); }, { passive: false });
+
     const leftBtn = document.createElement("button"); leftBtn.innerText = "◀"; leftBtn.className = "control-btn"; leftBtn.style.left = "20px";
     const rightBtn = document.createElement("button"); rightBtn.innerText = "▶"; rightBtn.className = "control-btn"; rightBtn.style.right = "20px";
     pageWrapper.appendChild(leftBtn); pageWrapper.appendChild(rightBtn);
+
     let moveInterval = null;
     function startMove(direction) { if (moveInterval || timeLeft <= 0) return; const charWidth = character.offsetWidth || 120; moveInterval = setInterval(() => { if (direction === "left") characterX -= 15; else if (direction === "right") characterX += 15; characterX = Math.max(charWidth / 2, Math.min(gameContainer.offsetWidth - (charWidth / 2), characterX)); updateCharacterPosition(); }, 30); }
     function stopMove() { clearInterval(moveInterval); moveInterval = null; }
@@ -421,15 +396,18 @@
     leftBtn.addEventListener("mousedown", () => startMove("left"));
     rightBtn.addEventListener("mousedown", () => startMove("right"));
     document.addEventListener("mouseup", stopMove);
+
     let touchStartX = null; let touchStartY = null; const swipeThreshold = 30;
     function getTouchXInGameContainer(clientX) { const gameContainerRect = gameContainer.getBoundingClientRect(); return clientX - gameContainerRect.left; }
     gameContainer.addEventListener("touchstart", (e) => { if (timeLeft <= 0 || e.target.classList.contains('control-btn')) return; const touch = e.changedTouches[0]; const gameContainerRect = gameContainer.getBoundingClientRect(); if (touch.clientX >= gameContainerRect.left && touch.clientX <= gameContainerRect.right && touch.clientY >= gameContainerRect.top && touch.clientY <= gameContainerRect.bottom) { touchStartX = getTouchXInGameContainer(touch.clientX); touchStartY = touch.clientY; } else { touchStartX = null; touchStartY = null; } }, { passive: true });
     gameContainer.addEventListener("touchmove", (e) => { if (timeLeft <= 0 || touchStartX === null || e.target.classList.contains('control-btn')) return; let currentRelativeX = getTouchXInGameContainer(e.changedTouches[0].clientX); let deltaX = currentRelativeX - touchStartX; characterX += deltaX; const charWidth = character.offsetWidth || 120; characterX = Math.max(charWidth / 2, Math.min(gameContainer.offsetWidth - (charWidth / 2), characterX)); updateCharacterPosition(); touchStartX = currentRelativeX; }, { passive: true });
     gameContainer.addEventListener("touchend", (e) => { if (timeLeft <= 0 || touchStartX === null || touchStartY === null || e.target.classList.contains('control-btn')) { touchStartX = null; touchStartY = null; return; } const finalTouchX = getTouchXInGameContainer(e.changedTouches[0].clientX); const deltaX = finalTouchX - touchStartX; const deltaY = e.changedTouches[0].clientY - touchStartY; if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY < -swipeThreshold) jump(); touchStartX = null; touchStartY = null; }, { passive: true });
+
     window.addEventListener('resize', () => { const charWidth = character.offsetWidth || 120; characterX = Math.max(charWidth / 2, Math.min(gameContainer.offsetWidth - (charWidth / 2), characterX)); updateCharacterPosition(); });
     function attemptBgmPlay() { if (bgm && typeof bgm.play === 'function' && bgm.paused) { bgm.play().then(() => { document.body.removeEventListener('click', attemptBgmPlay); document.body.removeEventListener('touchstart', attemptBgmPlay); }).catch(error => { console.warn("BGMの再生試行に失敗しました:", error); }); } else if (bgm && !bgm.paused) { document.body.removeEventListener('click', attemptBgmPlay); document.body.removeEventListener('touchstart', attemptBgmPlay); } }
     document.body.addEventListener('click', attemptBgmPlay, {once: true});
     document.body.addEventListener('touchstart', attemptBgmPlay, {once: true});
+
     startGame();
   </script>
 </body>
