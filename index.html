@@ -1,38 +1,273 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>キャラクター選択 - 卵キャッチゲーム</title> {/* タイトル変更 */}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reborn catch - オープニング</title> {/* ゲームタイトル変更 */}
   <style>
-    body { margin: 0; font-family: sans-serif; background-color: #f0f0e0; text-align: center; } /* 背景色を少し卵っぽく */
-    h1 { margin-top: 20px; color: #5a483c; } /* 文字色変更 */
-    .container { display: flex; flex-direction: row; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 20px; }
-    .character { border: 2px solid #c0c0a0; border-radius: 10px; overflow: hidden; cursor: pointer; transition: transform 0.3s ease; background-color: #fff8e1; }
-    .character:hover { transform: scale(1.05); border-color: #a08870;}
-    .character img { width: 200px; height: 200px; object-fit: cover; display: block; } /* サイズを正方形に近く */
-    .name { font-weight: bold; padding: 10px; background: #fff8dc; color: #5a483c;}
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #1c1c1c 0%, #3c3c3c 100%);
+      font-family: 'Noto Sans JP', sans-serif;
+      text-align: center;
+      overflow: hidden;
+    }
+    #game-title {
+      font-size: 3.8em;
+      color: #FFD700; /* ゴールドに変更して卵っぽく */
+      text-shadow: 0 0 8px rgba(255, 215, 0, 0.7), 0 0 12px rgba(255, 165, 0, 0.5);
+      margin-bottom: 40px;
+      animation: title-float 2.5s ease-in-out infinite alternate;
+      z-index: 10;
+    }
+    @keyframes title-float {
+      0% { transform: translateY(0px) scale(1); }
+      50% { transform: translateY(-12px) scale(1.03); }
+      100% { transform: translateY(0px) scale(1); }
+    }
+    .start-button {
+      padding: 20px 40px;
+      font-size: 2em;
+      color: #402000; /* 濃い茶色 */
+      background: linear-gradient(145deg, #FFDEAD, #DEB887); /* ナバホホワイトからバーリーウッド (卵の殻の色) */
+      border: 2px solid #CD853F; /* パーシモン (境界線) */
+      border-radius: 15px;
+      cursor: pointer;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+      transition: all 0.2s ease-out;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      z-index: 10;
+      font-weight: bold;
+    }
+    .start-button:hover {
+      background: linear-gradient(145deg, #DEB887, #CD853F);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+      transform: translateY(-4px) scale(1.02);
+    }
+    .start-button:active {
+      transform: translateY(0px) scale(1);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    /* パーティクルはテーマに合わせて変更推奨 */
+    .sakura-particle {
+      position: absolute; background-color: rgba(255, 235, 205, 0.7); /* 薄いオレンジ (卵の黄身のイメージ) */
+      border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%; animation: fall-sakura linear infinite;
+      pointer-events: none; z-index: 1; opacity: 0;
+    }
+    @keyframes fall-sakura {
+      0% { transform: translateY(-10vh) translateX(var(--start-x)) rotate(0deg) scale(var(--scale)); opacity: 0; }
+      10% { opacity: 1; } 95% { opacity: 0.7; }
+      100% { transform: translateY(110vh) translateX(var(--end-x)) rotate(var(--rotate-end)) scale(var(--scale)); opacity: 0; }
+    }
+    .star-particle {
+        position: absolute; background-color: rgba(255, 250, 240, 0.8); /* 薄いクリーム色 (卵の白身のイメージ) */
+        border-radius: 50%; animation: twinkle-fall linear infinite; pointer-events: none; z-index: 1;
+        box-shadow: 0 0 6px rgba(255, 250, 240, 0.7), 0 0 10px rgba(255, 250, 240, 0.5); opacity: 0;
+    }
+    @keyframes twinkle-fall {
+        0% { transform: translateY(-15vh) translateX(var(--star-start-x)) scale(var(--star-scale)) rotate(0deg); opacity: 0; }
+        15% { opacity: 1; } 85% { opacity: 0.8; }
+        100% { transform: translateY(110vh) translateX(var(--star-end-x)) scale(calc(var(--star-scale) * 0.5)) rotate(720deg); opacity: 0; }
+    }
+
+    #floating-chars-container {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      overflow: hidden; pointer-events: none; z-index: 5;
+    }
+    .floating-char-img {
+      position: absolute; height: auto; opacity: 0;
+      animation-name: floatAndWiggleDisappear; /* ★★★ 新しいアニメーション名 ★★★ */
+      animation-timing-function: ease-in-out;
+      animation-fill-mode: forwards;
+      border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+      transform-origin: center center; will-change: transform, opacity;
+    }
+
+    /* ★★★ 新しいフローティングキャラクターのアニメーション ★★★ */
+    @keyframes floatAndWiggleDisappear {
+      0% { opacity: 0; transform: translateY(15vh) scale(0.3) rotate(-10deg); } /* 小さく、下から少し上へ */
+      20% { opacity: 0.9; transform: translateY(0vh) scale(var(--target-scale-mid)) rotate(3deg); } /* 中間サイズ */
+      60% { opacity: 0.9; transform: translateY(-10vh) scale(var(--target-scale-peak)) rotate(-3deg); } /* ピークサイズ、上に浮遊 */
+      /* フルフル（震える）区間 */
+      70% { transform: translateY(-10vh) scale(var(--target-scale-peak)) rotate(-5deg) translateX(-3px); }
+      72% { transform: translateY(-10vh) scale(var(--target-scale-peak)) rotate(5deg) translateX(3px); }
+      74% { transform: translateY(-10vh) scale(var(--target-scale-peak)) rotate(-4deg) translateX(-2px); }
+      76% { transform: translateY(-10vh) scale(var(--target-scale-peak)) rotate(4deg) translateX(2px); }
+      78% { transform: translateY(-10vh) scale(var(--target-scale-peak)) rotate(0deg) translateX(0px); } /* 震え終わり */
+      /* クスッと消える区間 */
+      85% { opacity: 0.8; transform: translateY(-12vh) scale(calc(var(--target-scale-peak) * 0.9)) rotate(10deg); } /* 少し縮んで傾く */
+      100% { opacity: 0; transform: translateY(5vh) scale(0.1) rotate(-30deg); } /* ポップに縮んで下に落ちるように消える */
+    }
   </style>
 </head>
 <body>
-  <h1>キャラクターを選んでね！</h1>
-  <div class="container">
-    <div class="character" onclick="selectCharacter('キャラクターH', 'hide.jpg')"> {/* ★表示名とファイル名を変更 */}
-      <img src="hide.jpg" alt="キャラクターH">
-      <div class="name">キャラクターH</div> {/* ★表示名を変更 */}
-    </div>
-    <div class="character" onclick="selectCharacter('キャラクターS', 'sho.jpg')"> {/* ★表示名とファイル名を変更 */}
-      <img src="sho.jpg" alt="キャラクターS">
-      <div class="name">キャラクターS</div> {/* ★表示名を変更 */}
-    </div>
-  </div>
+  <div id="floating-chars-container"></div>
+
+  <h1 id="game-title">Reborn catch</h1> {/* ゲームタイトル変更 */}
+  <button class="start-button" onclick="goToCharacterSelect()">ゲーム開始</button>
+
+  <audio id="opening-bgm" src="opbgm.mp3" loop></audio>
 
   <script>
-    function selectCharacter(name, image) {
-      localStorage.setItem("selectedName", name);
-      localStorage.setItem("selectedImage", image);
-      window.location.href = "stage.html";
+    const bgm = document.getElementById('opening-bgm');
+
+    function goToCharacterSelect() {
+      if (bgm) {
+        bgm.pause();
+        bgm.currentTime = 0;
+      }
+      window.location.href = "character_select.html";
     }
+
+    function createSakuraParticles() { /* ... (内容は前回から変更なし、テーマに合わせて調整推奨) ... */
+      const numParticles = 25; // 少し数を減らす
+      const body = document.body;
+      for (let i = 0; i < numParticles; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('sakura-particle');
+        const size = Math.random() * 10 + 4; // 少し小さめに
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size * (Math.random() * 0.3 + 0.6)}px`;
+        particle.style.setProperty('--scale', (Math.random() * 0.4 + 0.6).toFixed(2));
+        const startX = `${Math.random() * 100}vw`;
+        particle.style.setProperty('--start-x', startX);
+        const endXVariance = (Math.random() - 0.5) * 40;
+        particle.style.setProperty('--end-x', `calc(${startX} + ${endXVariance}vw)`);
+        particle.style.setProperty('--rotate-end', `${Math.random() * 720 + 360}deg`);
+        particle.style.animationDuration = `${Math.random() * 10 + 8}s`; // 少し長めに
+        particle.style.animationDelay = `${Math.random() * 12}s`;
+        body.appendChild(particle);
+      }
+    }
+
+    function createStarParticles() { /* ... (内容は前回から変更なし、テーマに合わせて調整推奨) ... */
+        const numParticles = 20; // 少し数を減らす
+        const body = document.body;
+        for (let i = 0; i < numParticles; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('star-particle');
+            const size = Math.random() * 4 + 1;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            const starScale = Math.random() * 0.3 + 0.5;
+            particle.style.setProperty('--star-scale', starScale.toFixed(2));
+            const starStartX = `${Math.random() * 100}vw`;
+            particle.style.setProperty('--star-start-x', starStartX);
+            const starEndXVariance = (Math.random() - 0.5) * 30;
+            particle.style.setProperty('--star-end-x', `calc(${starStartX} + ${starEndXVariance}vw)`);
+            particle.style.animationDuration = `${Math.random() * 7 + 6}s`; // 少し長めに
+            particle.style.animationDelay = `${Math.random() * 10}s`;
+            body.appendChild(particle);
+        }
+    }
+
+    // ★★★ フローティングキャラクターの画像リストを更新 ★★★
+    const characterImageFiles = ['sho.jpg', 'MG Chan.PNG', 'hide.jpg'];
+    const floatingCharsContainer = document.getElementById('floating-chars-container');
+    let currentlyDisplayedCharSources = new Set();
+    const MAX_FLOATING_CHARS = 3;
+
+    function showRandomFloatingCharacter() {
+        if (!floatingCharsContainer || floatingCharsContainer.children.length >= MAX_FLOATING_CHARS) {
+            return;
+        }
+        let availableImages = characterImageFiles.filter(src => !currentlyDisplayedCharSources.has(src));
+        if (availableImages.length === 0) {
+            // 表示できるユニークなキャラがいなくても、MAX_FLOATING_CHARSに満たない場合は、
+            // characterImageFiles 全体からランダムに選んで重複を許容する (ただし3キャラしかないので、必ずユニークになる)
+            if (characterImageFiles.length <= currentlyDisplayedCharSources.size && floatingCharsContainer.children.length < MAX_FLOATING_CHARS) {
+                 // このケースは、全キャラ表示済みで、かつ表示枠が埋まっていない場合。
+                 // (例:キャラが2種で表示枠3。2種表示済みなら、もう新しいユニークなものは出せない)
+                 //  3キャラしかいない今回のケースでは、この条件は実質あまり意味をなさない。
+            } else if (availableImages.length === 0) { // 厳密にユニークなものが出せない場合
+                 return;
+            }
+        }
+        // availableImagesが空でも、表示数がMAX未満なら全リストから選ぶ（重複許容）というロジックは、
+        // 今回は3キャラなので、枠が空いていれば必ずユニークなものを選べるはず。
+        if (availableImages.length === 0 && characterImageFiles.length > 0) { // もしユニークなものが無くても枠があれば全リストから
+            if(floatingCharsContainer.children.length < MAX_FLOATING_CHARS) {
+                console.log("No unique available, picking from full list (allowing duplicates if necessary).")
+                availableImages = [...characterImageFiles]; // 全リストを候補にする
+            } else {
+                return;
+            }
+        }
+         if (availableImages.length === 0) return; // 本当に候補がないなら終了
+
+        const imgSrc = availableImages[Math.floor(Math.random() * availableImages.length)];
+
+        const img = document.createElement('img');
+        img.src = imgSrc;
+        img.alt = "Floating Character";
+        img.className = 'floating-char-img';
+
+        const screenWidth = window.innerWidth;
+        const screenHeight = window.innerHeight;
+        
+        const baseImageWidth = Math.random() * 70 + 90; // 基本幅: 90px から 160px
+        img.style.width = `${baseImageWidth}px`;
+        
+        const desiredDisplayWidth = Math.min(screenWidth, screenHeight) / 3.8; // 画面の短辺の1/3.8程度
+        let targetScaleMid = desiredDisplayWidth * 0.7 / baseImageWidth;
+        let targetScalePeak = desiredDisplayWidth / baseImageWidth;
+
+        targetScaleMid = Math.max(0.7, Math.min(targetScaleMid, 2.5));
+        targetScalePeak = Math.max(0.9, Math.min(targetScalePeak, 2.8)); 
+        
+        img.style.setProperty('--target-scale-mid', targetScaleMid.toFixed(2));
+        img.style.setProperty('--target-scale-peak', targetScalePeak.toFixed(2));
+
+        const peakWidth = baseImageWidth * targetScalePeak;
+        const estimatedPeakHeight = peakWidth * 1.2; 
+
+        img.style.left = `${Math.random() * (screenWidth - peakWidth)}px`;
+        img.style.top = `${Math.random() * (screenHeight - estimatedPeakHeight * 1.1) + (screenHeight*0.05)}px`; // 少し下に寄せる
+
+        img.style.animationName = 'floatAndWiggleDisappear'; // ★★★ 新しいアニメーション名を指定 ★★★
+        img.style.animationDuration = `${Math.random() * 4 + 9}s`; // アニメーション時間 9秒～13秒
+
+        floatingCharsContainer.appendChild(img);
+        currentlyDisplayedCharSources.add(imgSrc);
+
+        img.addEventListener('animationend', () => {
+            if (img.parentNode) {
+                img.parentNode.removeChild(img);
+            }
+            currentlyDisplayedCharSources.delete(imgSrc);
+        }, { once: true });
+    }
+
+    window.onload = function() {
+      if (bgm) {
+        bgm.volume = 0.4; // BGM音量を少し調整
+        bgm.play().catch(error => {
+          console.warn("オープニングBGMの自動再生に失敗:", error, "ユーザー操作後に再生を試みます。");
+          const playBgmOnFirstInteraction = () => {
+            bgm.play().catch(e => console.error("インタラクション後のBGM再生失敗:", e));
+            document.body.removeEventListener('click', playBgmOnFirstInteraction, true);
+            document.body.removeEventListener('touchstart', playBgmOnFirstInteraction, true);
+          };
+          document.body.addEventListener('click', playBgmOnFirstInteraction, true);
+          document.body.addEventListener('touchstart', playBgmOnFirstInteraction, true);
+        });
+      }
+      createSakuraParticles(); // テーマに合わせて変更推奨
+      createStarParticles();   // テーマに合わせて変更推奨
+      
+      for (let i = 0; i < MAX_FLOATING_CHARS; i++) {
+          setTimeout(showRandomFloatingCharacter, i * 1100 + 500); // 少し遅れて開始、間隔も調整
+      }
+      setInterval(showRandomFloatingCharacter, 2800); // 約2.8秒ごとに新しいキャラクターの表示を試みる
+    };
   </script>
 </body>
 </html>
