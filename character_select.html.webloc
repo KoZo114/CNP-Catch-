@@ -1,8 +1,38 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>URL</key>
-	<string>https://github.com/KoZo114/-/blob/main/character_select.html</string>
-</dict>
-</plist>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>キャラクター選択 - 卵キャッチゲーム</title> {/* タイトル変更 */}
+  <style>
+    body { margin: 0; font-family: sans-serif; background-color: #f0f0e0; text-align: center; } /* 背景色を少し卵っぽく */
+    h1 { margin-top: 20px; color: #5a483c; } /* 文字色変更 */
+    .container { display: flex; flex-direction: row; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 20px; }
+    .character { border: 2px solid #c0c0a0; border-radius: 10px; overflow: hidden; cursor: pointer; transition: transform 0.3s ease; background-color: #fff8e1; }
+    .character:hover { transform: scale(1.05); border-color: #a08870;}
+    .character img { width: 200px; height: 200px; object-fit: cover; display: block; } /* サイズを正方形に近く */
+    .name { font-weight: bold; padding: 10px; background: #fff8dc; color: #5a483c;}
+  </style>
+</head>
+<body>
+  <h1>キャラクターを選んでね！</h1>
+  <div class="container">
+    <div class="character" onclick="selectCharacter('キャラクターH', 'hide.jpg')"> {/* ★表示名とファイル名を変更 */}
+      <img src="hide.jpg" alt="キャラクターH">
+      <div class="name">キャラクターH</div> {/* ★表示名を変更 */}
+    </div>
+    <div class="character" onclick="selectCharacter('キャラクターS', 'sho.jpg')"> {/* ★表示名とファイル名を変更 */}
+      <img src="sho.jpg" alt="キャラクターS">
+      <div class="name">キャラクターS</div> {/* ★表示名を変更 */}
+    </div>
+  </div>
+
+  <script>
+    function selectCharacter(name, image) {
+      localStorage.setItem("selectedName", name);
+      localStorage.setItem("selectedImage", image);
+      window.location.href = "stage.html";
+    }
+  </script>
+</body>
+</html>
