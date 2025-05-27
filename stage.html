@@ -5,395 +5,564 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Reborn catch - 究極版</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+    /* ─────────────────────────
+       共通リセット & フォント
+    ───────────────────────── */
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
-    body {
-      width: 100vw; height: 100vh; overflow: hidden;
-      font-family: 'Noto Sans JP', sans-serif;
-      touch-action: manipulation; -webkit-overflow-scrolling: touch; margin: 0;
+    body{
+      width:100vw;height:100vh;overflow:hidden;
+      font-family:'Noto Sans JP',sans-serif;
+      touch-action:manipulation;-webkit-overflow-scrolling:touch;
     }
-    #page-wrapper {
-      width: 100%; height: 100%;
-      background-color: #1a1a1a; /* 外側は黒背景 */
-      display: flex; justify-content: center; align-items: center;
-      position: relative; overflow: hidden;
-    }
-    #game-container {
-      position: relative; width: 100%;
-      max-width: 380px; /* PCでの表示幅 (320px～480px程度で調整) */
-      height: 100%;
-      background: linear-gradient(135deg, #fffacd 0%, #f5deb3 50%, #ffe4b5 100%); /* 卵っぽい暖色系 */
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(255,228,181,0.5);
-    }
-    .bg-bubble-particle {
-      position: absolute; border-radius: 50%;
-      pointer-events: none; animation: float-bubble linear infinite;
-      z-index: 1; opacity: 0;
-    }
-    .bg-bubble-particle.yellow { background: rgba(255, 215, 0, 0.15); }
-    .bg-bubble-particle.white { background: rgba(255, 250, 240, 0.12); }
-    @keyframes float-bubble {
-      0% { transform: translateY(105%) scale(var(--bubble-scale)); opacity: 0; }
-      20% { opacity: var(--bubble-opacity); }
-      80% { opacity: var(--bubble-opacity); }
-      100% { transform: translateY(-10%) scale(var(--bubble-scale)); opacity: 0; }
-    }
-    .outer-shell-particle { /* 外側に降るエフェクト */
-        position: absolute;
-        background-color: rgba(245, 222, 179, 0.3); /* ウィート色 */
-        width: var(--shell-width); height: var(--shell-height);
-        border-radius: 30% 70% 20% 80% / 50% 40% 60% 50%;
-        pointer-events: none; animation: fall-outer-shell linear infinite;
-        opacity: 0; z-index: 5;
-    }
-    @keyframes fall-outer-shell {
-        0% { transform: translateY(-10vh) translateX(var(--outer-start-x)) rotateZ(0deg) rotateY(var(--outer-rotate-y-start)); opacity: 0; }
-        10% { opacity: 0.5; } 90% { opacity: 0.5; }
-        100% { transform: translateY(110vh) translateX(var(--outer-end-x)) rotateZ(var(--outer-rotate-z-end)) rotateY(var(--outer-rotate-y-end)); opacity: 0; }
-    }
-    #character { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); max-height: 25vh; max-width: 120px; height: auto; z-index: 50; filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.2)); }
-    #character.jump { animation: jump 0.6s ease; }
-    #character.powerup { filter: drop-shadow(0 0 15px #FFD700) drop-shadow(2px 4px 8px rgba(0,0,0,0.2)); transform: translateX(-50%) scale(1.1); transition: transform 0.2s ease-out, filter 0.2s ease-out; }
-    @keyframes jump { 0% { transform: translateX(-50%) translateY(0); } 30% { transform: translateX(-50%) translateY(-60px); } 60% { transform: translateX(-50%) translateY(-60px); } 100% { transform: translateX(-50%) translateY(0); } }
-    .egg, .bomb, .power-up, .time-plus, .helper-mgchan { position: absolute; pointer-events: none; z-index: 40; }
-    .egg { width: 30px; height: 40px; background-image: url('egg.png'); background-color: transparent; background-repeat: no-repeat; background-position: center; background-size: contain; animation-name: fall-egg; animation-timing-function: linear; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.15)); }
-    .egg.special { width: 35px; height: 45px; background: radial-gradient(circle, #FFD700 30%, #FFA500 70%, #FF8C00 100%); border: 2px dotted #FFFACD; filter: drop-shadow(0 0 8px rgba(255,223,0,0.7)); animation-name: fall-special-egg; animation-timing-function: linear; border-radius:45% 45% 38% 38%/55% 55% 40% 40%; box-shadow: inset 0 0 5px rgba(255,255,255,0.3); }
-    .egg.golden { width: 40px; height: 52px; background: radial-gradient(ellipse at top, #FFFACD 0%, #FFD700 50%, #FFA500 100%); filter: drop-shadow(0 0 15px gold) drop-shadow(0 0 5px white); animation-name: fall-golden-egg; animation-timing-function: linear; border: 2px solid gold; border-radius:48% 48% 42% 42%/60% 60% 35% 35%; }
-    .helper-mgchan { width: 60px; height: 60px; background-image: url('MG Chan.PNG'); background-color: transparent; background-repeat: no-repeat; background-position: center; background-size: contain; animation-name: fall-helper; animation-timing-function: linear; border-radius: 15px; filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.3)); }
-    .bomb { width: 40px; height: 40px; background: radial-gradient(circle, #5a3d32 0%, #3e2723 70%, #2d1b17 100%); border-radius: 50%; filter: drop-shadow(0 0 10px rgba(40, 20, 10, 0.8)); animation-name: fall-bomb; animation-timing-function: linear; }
-    .bomb::before { content: '💣'; color: #FF4500; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; animation: bomb-pulse 0.5s infinite alternate; text-shadow: 0 0 5px #FF0000;}
-    .power-up { width: 45px; height: 45px; background: linear-gradient(45deg, #FFD700, #FFA500, #FF8C00, #FF7F50, #FF6347); border-radius: 50%; filter: drop-shadow(0 0 15px rgba(255,165,0,0.8)); animation-name: fall-powerup, rainbow-rotate-warm; animation-timing-function: linear, ease-in-out; animation-duration: inherit, 1.5s; animation-iteration-count: 1, infinite; }
-    .power-up::before { content: '🔥'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25px; animation: star-spin 1.5s linear infinite; }
-    .time-plus { width: 40px; height: 40px; background: radial-gradient(circle, #F0E68C 0%, #EEE8AA 50%, #BDB76B 100%); border-radius: 50%; filter: drop-shadow(0 0 8px rgba(218,165,32,0.7)); animation-name: fall-time-plus; animation-timing-function: linear; }
-    .time-plus::before { content: '⏱️'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 25px; animation: time-pulse 1.5s ease-in-out infinite alternate; }
 
-    @keyframes time-pulse { 0% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.8; } 50% { transform: translate(-50%, -50%) scale(1.15) rotate(5deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.8; } }
-    @keyframes star-spin { 0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); } 50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.2); } 100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); } }
-    @keyframes rainbow-rotate-warm { 0% { filter: drop-shadow(0 0 15px rgba(255,165,0,0.8)) hue-rotate(0deg); } 100% { filter: drop-shadow(0 0 15px rgba(255,165,0,0.8)) hue-rotate(45deg); } }
-    @keyframes fall-egg { 0% { transform: translateY(-70px) rotateZ(var(--start-rot-z)) scale(0.8); opacity: 0.6; } 100% { transform: translateY(105vh) rotateZ(var(--end-rot-z)); opacity: 1; } }
-    @keyframes fall-special-egg { 0% { transform: translateY(-60px) rotateZ(0deg) scale(0.9); opacity: 0.8; } 50% { transform: translateY(50vh) rotateZ(90deg) scale(1.1); } 100% { transform: translateY(105vh) rotateZ(180deg) scale(0.9); opacity: 1; } }
-    @keyframes fall-golden-egg { 0% { transform: translateY(-60px) rotateZ(0deg) scale(1); opacity: 0.9; } 25% { transform: translateY(25vh) rotateZ(var(--random-rotate-half)) scale(1.15); } 100% { transform: translateY(105vh) rotateZ(var(--random-rotate)) scale(1); opacity: 1; } }
-    @keyframes fall-helper { 0% { transform: translateY(-80px) scale(0.7) rotate(-15deg); opacity: 0.7; } 50% { transform: translateY(40vh) scale(1) rotate(15deg); opacity: 1; } 100% { transform: translateY(105vh) scale(0.8) rotate(5deg); opacity: 0.9; } }
-    @keyframes fall-bomb { 0% { transform: translateY(-50px) rotate(0deg) scale(1); opacity: 1; } 30% { transform: translateY(30vh) rotate(-20deg) scale(1.05); } 60% { transform: translateY(60vh) rotate(15deg) scale(1.1); } 100% { transform: translateY(100vh) rotate(10deg) scale(1); opacity: 1; } }
-    @keyframes fall-powerup { 0% { transform: translateY(-50px) scale(0.8); opacity: 0.8; } 25% { opacity: 1; transform: translateY(25vh) scale(1.1); } 50% { transform: translateY(50vh) scale(1.2); } 75% { transform: translateY(75vh) scale(1.1); } 100% { transform: translateY(100vh) scale(1); opacity: 1; } }
-    @keyframes fall-time-plus { 0% { transform: translateY(-50px) translateX(0px) rotate(0deg) scale(0.9); opacity: 0.7;} 25% { opacity: 1; transform: translateY(25vh) translateX(10px) rotate(5deg) scale(1);} 50% { transform: translateY(50vh) translateX(-10px) rotate(-5deg) scale(1.1);} 75% { transform: translateY(75vh) translateX(5px) rotate(2deg) scale(1);} 100% { transform: translateY(100vh) translateX(0px) rotate(0deg) scale(0.9); opacity: 1;} }
+    /* ─────────────────────────
+       レイアウト
+    ───────────────────────── */
+    #page-wrapper{
+      width:100%;height:100%;
+      background:#1a1a1a;
+      display:flex;justify-content:center;align-items:center;
+      position:relative;overflow:hidden;
+    }
+    #game-container{
+      position:relative;width:100%;max-width:380px;height:100%;
+      background:linear-gradient(135deg,#fffacd 0%,#f5deb3 50%,#ffe4b5 100%);
+      overflow:hidden;box-shadow:0 0 20px rgba(255,228,181,.5);
+    }
 
-    #scoreboard, #level-display, .control-btn, .power-effect, .combo-display, .level-up-effect { position: fixed; z-index: 200; }
-    #scoreboard { top: 15px; right: 20px; font-size: 14px; font-weight: bold; color: #604020; background: linear-gradient(145deg, #fff8dc 0%, #ffefd5 100%); padding: 15px 20px; border-radius: 20px; line-height: 1.6; box-shadow: 0 8px 24px rgba(0,0,0,0.1), 0 4px 8px rgba(139,69,19,0.2); border: 2px solid rgba(210,180,140,0.5); backdrop-filter: blur(10px); min-width: 180px; }
-    #level-display { top: 15px; left: 20px; font-size: 16px; font-weight: bold; color: #604020; background: linear-gradient(145deg, #fff8dc 0%, #ffefd5 100%); padding: 12px 18px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(139,69,19,0.2); border: 2px solid rgba(210,180,140,0.5); backdrop-filter: blur(5px); }
-    .combo-display { top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; font-weight: bold; color: #FF8C00; background: rgba(60,30,10, 0.85); padding: 10px 20px; border-radius: 15px; display: none; animation: combo-pop 1s ease-out; text-shadow: 1px 1px 2px rgba(255,255,255,0.3); z-index: 210; }
-    #gameover { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; font-weight: bold; background: linear-gradient(145deg, rgba(80,50,20,0.9), rgba(50,30,10,0.85)); color: #fff8dc; padding: 30px; border-radius: 20px; display: none; z-index: 150; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 2px solid rgba(210,180,140,0.3); width: 90%; max-width: 380px; }
-    #return-to-select-btn { background-color: #D2691E; color: white; border: none; padding: 12px 25px; text-align: center; text-decoration: none; display: inline-block; font-size: 16px; margin-top: 25px; cursor: pointer; border-radius: 8px; transition: background-color 0.3s ease; }
-    #return-to-select-btn:hover { background-color: #A0522D; }
-    .control-btn { bottom: 15px; width: 55px; height: 55px; font-size: 22px; border-radius: 50%; border: none; background: linear-gradient(145deg, rgba(210,180,140,0.9) 0%, rgba(139,69,19,0.8) 100%); color: white; touch-action: manipulation; -webkit-tap-highlight-color: transparent; cursor: pointer; box-shadow: 0 6px 18px rgba(139,69,19,0.4), 0 3px 6px rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.4); transition: all 0.2s ease; }
-    .control-btn:active { transform: scale(0.95); box-shadow: 0 3px 9px rgba(139,69,19,0.4), 0 1px 3px rgba(0,0,0,0.2); }
-    .power-effect { bottom: 150px; left: 20px; background: linear-gradient(45deg, #FFA500, #FF4500); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: bold; display: none; animation: power-glow 0.5s ease-in-out infinite alternate; }
-    .level-up-effect { top: 30%; left: 50%; transform: translate(-50%, -50%); font-size: 32px; font-weight: bold; color: #CD853F; background: linear-gradient(45deg, rgba(255,228,181,0.9), rgba(255,218,185,0.8)); padding: 20px 40px; border-radius: 20px; display: none; animation: level-up-animation 2s ease-out; text-shadow: 1px 1px 2px rgba(100,50,0,0.5); border: 3px solid rgba(255,255,255,0.8); z-index: 210;}
-    @keyframes bomb-pulse { 0% { transform: translate(-50%, -50%) scale(1); } 100% { transform: translate(-50%, -50%) scale(1.2); } }
-    @keyframes star-spin { 0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); } 50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.2); } 100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); } }
-    @keyframes rainbow-rotate-warm { 0% { filter: drop-shadow(0 0 15px rgba(255,165,0,0.8)) hue-rotate(0deg); } 100% { filter: drop-shadow(0 0 15px rgba(255,165,0,0.8)) hue-rotate(45deg); } }
-    @keyframes power-glow { 0% { box-shadow: 0 0 10px rgba(255,165,0,0.8); } 100% { box-shadow: 0 0 20px rgba(255,120,0,1); } }
-    @keyframes level-up-animation { 0% { transform: translate(-50%, -50%) scale(0.5) rotate(-10deg); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1.2) rotate(5deg); opacity: 1; } 70% { transform: translate(-50%, -50%) scale(1.1) rotate(-2deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0; } }
+    /* ─────────────────────────
+       背景エフェクト
+    ───────────────────────── */
+    .bg-bubble-particle{position:absolute;border-radius:50%;pointer-events:none;animation:float-bubble linear infinite;z-index:1;opacity:0}
+    .bg-bubble-particle.yellow{background:rgba(255,215,0,.15)}
+    .bg-bubble-particle.white{background:rgba(255,250,240,.12)}
+    @keyframes float-bubble{
+      0%{transform:translateY(105%) scale(var(--bubble-scale));opacity:0}
+      20%,80%{opacity:var(--bubble-opacity)}
+      100%{transform:translateY(-10%) scale(var(--bubble-scale));opacity:0}
+    }
+    .outer-shell-particle{
+      position:absolute;pointer-events:none;opacity:0;z-index:5;
+      background:rgba(245,222,179,.3);
+      width:var(--shell-width);height:var(--shell-height);
+      border-radius:30% 70% 20% 80%/50% 40% 60% 50%;
+      animation:fall-outer-shell linear infinite;
+    }
+    @keyframes fall-outer-shell{
+      0%{transform:translateY(-10vh) translateX(var(--outer-start-x)) rotateZ(0) rotateY(var(--outer-rotate-y-start));opacity:0}
+      10%,90%{opacity:.5}
+      100%{transform:translateY(110vh) translateX(var(--outer-end-x)) rotateZ(var(--outer-rotate-z-end)) rotateY(var(--outer-rotate-y-end));opacity:0}
+    }
+
+    /* ─────────────────────────
+       キャラクター
+    ───────────────────────── */
+    #character{
+      position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
+      max-height:25vh;max-width:120px;height:auto;z-index:50;
+      filter:drop-shadow(2px 4px 8px rgba(0,0,0,.2));
+    }
+    #character.jump{animation:jump .6s ease}
+    #character.powerup{
+      filter:drop-shadow(0 0 15px #FFD700) drop-shadow(2px 4px 8px rgba(0,0,0,.2));
+      transform:translateX(-50%) scale(1.1);transition:.2s ease-out;
+    }
+    @keyframes jump{
+      0%{transform:translateX(-50%) translateY(0)}
+      30%,60%{transform:translateX(-50%) translateY(-60px)}
+      100%{transform:translateX(-50%) translateY(0)}
+    }
+
+    /* ─────────────────────────
+       アイテム（卵・爆弾・他）
+    ───────────────────────── */
+    .egg,.bomb,.power-up,.time-plus,.helper-mgchan{
+      position:absolute;pointer-events:none;z-index:40;
+      background-position:center;background-repeat:no-repeat;background-size:contain;
+    }
+
+    /* ▼▼▼ ここが今回の変更点 ▼▼▼ */
+    /* 白い卵（小） */
+    .egg{
+      width:26px;height:34px;
+      background-image:url("egg_white.png");
+      filter:drop-shadow(0 2px 2px rgba(0,0,0,.15));
+      animation-name:fall-egg;animation-timing-function:linear;
+    }
+    /* 水色卵（中） */
+    .egg.special{
+      width:32px;height:44px;
+      background-image:url("egg_blue.png");
+      animation-name:fall-special-egg;animation-timing-function:linear;
+      filter:drop-shadow(0 2px 4px rgba(0,0,0,.2));
+    }
+    /* ゴールド卵（大） */
+    .egg.golden{
+      width:40px;height:52px;
+      background-image:url("egg_gold.png");
+      animation-name:fall-golden-egg;animation-timing-function:linear;
+      filter:drop-shadow(0 0 15px gold) drop-shadow(0 0 5px white);
+    }
+    /* ▲▲▲ 変更ここまで ▲▲▲ */
+
+    .helper-mgchan{
+      width:60px;height:60px;
+      background-image:url("MG Chan.PNG");
+      animation-name:fall-helper;animation-timing-function:linear;
+      border-radius:15px;
+      filter:drop-shadow(0 3px 5px rgba(0,0,0,.3));
+    }
+    .bomb{
+      width:40px;height:40px;
+      background:radial-gradient(circle,#5a3d32 0%,#3e2723 70%,#2d1b17 100%);
+      border-radius:50%;
+      filter:drop-shadow(0 0 10px rgba(40,20,10,.8));
+      animation-name:fall-bomb;animation-timing-function:linear;
+    }
+    .bomb::before{
+      content:'💣';position:absolute;top:50%;left:50%;
+      transform:translate(-50%,-50%);
+      font-size:28px;color:#FF4500;text-shadow:0 0 5px #FF0000;
+      animation:bomb-pulse .5s infinite alternate;
+    }
+    .power-up{
+      width:45px;height:45px;border-radius:50%;
+      background:linear-gradient(45deg,#FFD700,#FFA500,#FF8C00,#FF7F50,#FF6347);
+      filter:drop-shadow(0 0 15px rgba(255,165,0,.8));
+      animation:fall-powerup linear 1,var(--dummy,1s) ease infinite;
+    }
+    .power-up::before{
+      content:'🔥';position:absolute;top:50%;left:50%;
+      transform:translate(-50%,-50%);font-size:25px;
+      animation:star-spin 1.5s linear infinite;
+    }
+    .time-plus{
+      width:40px;height:40px;border-radius:50%;
+      background:radial-gradient(circle,#F0E68C 0%,#EEE8AA 50%,#BDB76B 100%);
+      filter:drop-shadow(0 0 8px rgba(218,165,32,.7));
+      animation:fall-time-plus linear;
+    }
+    .time-plus::before{
+      content:'⏱️';position:absolute;top:50%;left:50%;
+      transform:translate(-50%,-50%);font-size:25px;
+      animation:time-pulse 1.5s ease-in-out infinite alternate;
+    }
+
+    /* ─────────────────────────
+       その他 UI（スコア等）
+    ───────────────────────── */
+    #scoreboard,#level-display,.control-btn,.power-effect,.combo-display,.level-up-effect{position:fixed;z-index:200}
+    #scoreboard{
+      top:15px;right:20px;font-size:14px;font-weight:bold;color:#604020;
+      background:linear-gradient(145deg,#fff8dc 0%,#ffefd5 100%);
+      padding:15px 20px;border-radius:20px;line-height:1.6;
+      box-shadow:0 8px 24px rgba(0,0,0,.1),0 4px 8px rgba(139,69,19,.2);
+      border:2px solid rgba(210,180,140,.5);backdrop-filter:blur(10px);min-width:180px;
+    }
+    #level-display{
+      top:15px;left:20px;font-size:16px;font-weight:bold;color:#604020;
+      background:linear-gradient(145deg,#fff8dc 0%,#ffefd5 100%);
+      padding:12px 18px;border-radius:15px;
+      box-shadow:0 4px 12px rgba(0,0,0,.1),0 2px 4px rgba(139,69,19,.2);
+      border:2px solid rgba(210,180,140,.5);backdrop-filter:blur(5px);
+    }
+    .combo-display{
+      top:50%;left:50%;transform:translate(-50%,-50%);
+      font-size:24px;font-weight:bold;color:#FF8C00;
+      background:rgba(60,30,10,.85);padding:10px 20px;border-radius:15px;
+      display:none;animation:combo-pop 1s ease-out;
+      text-shadow:1px 1px 2px rgba(255,255,255,.3);z-index:210;
+    }
+    #gameover{
+      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      font-size:28px;font-weight:bold;
+      background:linear-gradient(145deg,rgba(80,50,20,.9),rgba(50,30,10,.85));
+      color:#fff8dc;padding:30px;border-radius:20px;display:none;z-index:150;text-align:center;
+      box-shadow:0 10px 30px rgba(0,0,0,.5);border:2px solid rgba(210,180,140,.3);width:90%;max-width:380px;
+    }
+    #return-to-select-btn{
+      background:#D2691E;color:#fff;border:none;padding:12px 25px;margin-top:25px;
+      font-size:16px;border-radius:8px;cursor:pointer;transition:.3s;
+    }
+    #return-to-select-btn:hover{background:#A0522D}
+    .control-btn{
+      bottom:15px;width:55px;height:55px;font-size:22px;border-radius:50%;border:none;
+      background:linear-gradient(145deg,rgba(210,180,140,.9) 0%,rgba(139,69,19,.8) 100%);
+      color:#fff;cursor:pointer;box-shadow:0 6px 18px rgba(139,69,19,.4),0 3px 6px rgba(0,0,0,.2);
+      border:2px solid rgba(255,255,255,.4);transition:.2s;
+    }
+    .control-btn:active{transform:scale(.95);box-shadow:0 3px 9px rgba(139,69,19,.4),0 1px 3px rgba(0,0,0,.2)}
+    .power-effect{
+      bottom:150px;left:20px;padding:8px 16px;font-size:14px;font-weight:bold;
+      background:linear-gradient(45deg,#FFA500,#FF4500);color:#fff;border-radius:20px;
+      display:none;animation:power-glow .5s ease-in-out infinite alternate;
+    }
+    .level-up-effect{
+      top:30%;left:50%;transform:translate(-50%,-50%);
+      font-size:32px;font-weight:bold;color:#CD853F;
+      background:linear-gradient(45deg,rgba(255,228,181,.9),rgba(255,218,185,.8));
+      padding:20px 40px;border-radius:20px;display:none;animation:level-up-animation 2s ease-out;
+      text-shadow:1px 1px 2px rgba(100,50,0,.5);border:3px solid rgba(255,255,255,.8);z-index:210;
+    }
+
+    /* ─────────────────────────
+       アニメーション定義（変更なし）
+    ───────────────────────── */
+    @keyframes bomb-pulse{0%{transform:translate(-50%,-50%) scale(1)}100%{transform:translate(-50%,-50%) scale(1.2)}}
+    @keyframes star-spin{0%{transform:translate(-50%,-50%) rotate(0) scale(1)}50%{transform:translate(-50%,-50%) rotate(180deg) scale(1.2)}100%{transform:translate(-50%,-50%) rotate(360deg) scale(1)}}
+    @keyframes rainbow-rotate-warm{0%{filter:drop-shadow(0 0 15px rgba(255,165,0,.8)) hue-rotate(0)}100%{filter:drop-shadow(0 0 15px rgba(255,165,0,.8)) hue-rotate(45deg)}}
+    @keyframes power-glow{0%{box-shadow:0 0 10px rgba(255,165,0,.8)}100%{box-shadow:0 0 20px rgba(255,120,0,1)}}
+    @keyframes level-up-animation{0%{transform:translate(-50%,-50%) scale(.5) rotate(-10deg);opacity:0}30%{transform:translate(-50%,-50%) scale(1.2) rotate(5deg);opacity:1}70%{transform:translate(-50%,-50%) scale(1.1) rotate(-2deg);opacity:1}100%{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:0}}
+    @keyframes time-pulse{0%{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:.8}50%{transform:translate(-50%,-50%) scale(1.15) rotate(5deg);opacity:1}100%{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:.8}}
+    @keyframes fall-egg{0%{transform:translateY(-70px) rotateZ(var(--start-rot-z)) scale(.8);opacity:.6}100%{transform:translateY(105vh) rotateZ(var(--end-rot-z));opacity:1}}
+    @keyframes fall-special-egg{0%{transform:translateY(-60px) rotateZ(0) scale(.9);opacity:.8}50%{transform:translateY(50vh) rotateZ(90deg) scale(1.1)}100%{transform:translateY(105vh) rotateZ(180deg) scale(.9);opacity:1}}
+    @keyframes fall-golden-egg{0%{transform:translateY(-60px) rotateZ(0) scale(1);opacity:.9}25%{transform:translateY(25vh) rotateZ(var(--random-rotate-half)) scale(1.15)}100%{transform:translateY(105vh) rotateZ(var(--random-rotate)) scale(1);opacity:1}}
+    @keyframes fall-helper{0%{transform:translateY(-80px) scale(.7) rotate(-15deg);opacity:.7}50%{transform:translateY(40vh) scale(1) rotate(15deg);opacity:1}100%{transform:translateY(105vh) scale(.8) rotate(5deg);opacity:.9}}
+    @keyframes fall-bomb{0%{transform:translateY(-50px) rotate(0) scale(1);opacity:1}30%{transform:translateY(30vh) rotate(-20deg) scale(1.05)}60%{transform:translateY(60vh) rotate(15deg) scale(1.1)}100%{transform:translateY(100vh) rotate(10deg) scale(1);opacity:1}}
+    @keyframes fall-powerup{0%{transform:translateY(-50px) scale(.8);opacity:.8}25%{transform:translateY(25vh) scale(1.1);opacity:1}50%{transform:translateY(50vh) scale(1.2)}75%{transform:translateY(75vh) scale(1.1)}100%{transform:translateY(100vh) scale(1);opacity:1}}
+    @keyframes fall-time-plus{0%{transform:translateY(-50px) translateX(0) rotate(0) scale(.9);opacity:.7}25%{transform:translateY(25vh) translateX(10px) rotate(5deg) scale(1);opacity:1}50%{transform:translateY(50vh) translateX(-10px) rotate(-5deg) scale(1.1)}75%{transform:translateY(75vh) translateX(5px) rotate(2deg) scale(1)}100%{transform:translateY(100vh) translateX(0) rotate(0) scale(.9);opacity:1}}
+
   </style>
 </head>
 <body>
+  <!-- 画面レイアウト -->
   <div id="page-wrapper">
     <div id="game-container">
       <img id="character" src="" alt="キャラクター">
       <div id="gameover">
         <div>ゲーム終了！</div>
-        <div style="font-size: 18px; margin-top: 10px;">
-          最終スコア: <span id="final-score">0</span><br>
-          到達レベル: <span id="final-level">1</span>
+        <div style="font-size:18px;margin-top:10px">
+          最終スコア:<span id="final-score">0</span><br>
+          到達レベル:<span id="final-level">1</span>
         </div>
         <button id="return-to-select-btn">キャラクター選択に戻る</button>
       </div>
       <div class="combo-display" id="combo-display-popup"></div>
       <div class="level-up-effect" id="level-up-effect"></div>
-      <div class="power-effect" id="power-effect"></div>
+      <div class="power-effect"  id="power-effect"></div>
     </div>
   </div>
 
-  <div id="scoreboard"> スコア: <span id="score">0</span><br> ハイスコア: <span id="highscore">0</span><br> 残り: <span id="timer">60</span>秒<br> コンボ: <span id="combo">0</span> </div>
-  <div id="level-display"> レベル: <span id="level">1</span> </div>
+  <div id="scoreboard">スコア:<span id="score">0</span><br>ハイスコア:<span id="highscore">0</span><br>残り:<span id="timer">60</span>秒<br>コンボ:<span id="combo">0</span></div>
+  <div id="level-display">レベル:<span id="level">1</span></div>
 
+  <!-- ゲームロジック -->
   <script>
-    document.addEventListener('contextmenu', e => { e.preventDefault(); return false; }, { passive: false });
-    document.addEventListener('selectstart', e => { e.preventDefault(); return false; }, { passive: false });
-    document.addEventListener('dragstart', e => { e.preventDefault(); return false; }, { passive: false });
+    /* ===== 省略せず全コード ===== */
+    document.addEventListener('contextmenu',e=>{e.preventDefault()},{passive:false});
+    document.addEventListener('selectstart',e=>{e.preventDefault()},{passive:false});
+    document.addEventListener('dragstart',e=>{e.preventDefault()},{passive:false});
 
-    const pageWrapper = document.getElementById("page-wrapper");
-    const gameContainer = document.getElementById("game-container");
-    const character = document.getElementById("character");
-    const scoreDisplay = document.getElementById("score");
-    const highscoreDisplay = document.getElementById("highscore");
-    const timerDisplay = document.getElementById("timer");
-    const levelDisplay = document.getElementById("level");
-    const comboCountDisplay = document.getElementById("combo");
-    const comboPopup = document.getElementById("combo-display-popup");
-    const powerEffect = document.getElementById("power-effect");
-    const levelUpEffect = document.getElementById("level-up-effect");
-    const gameover = document.getElementById("gameover");
-    const finalScore = document.getElementById("final-score");
-    const finalLevel = document.getElementById("final-level");
-    const returnToSelectBtn = document.getElementById("return-to-select-btn");
+    const pageWrapper         = document.getElementById("page-wrapper");
+    const gameContainer       = document.getElementById("game-container");
+    const character           = document.getElementById("character");
+    const scoreDisplay        = document.getElementById("score");
+    const highscoreDisplay    = document.getElementById("highscore");
+    const timerDisplay        = document.getElementById("timer");
+    const levelDisplay        = document.getElementById("level");
+    const comboCountDisplay   = document.getElementById("combo");
+    const comboPopup          = document.getElementById("combo-display-popup");
+    const powerEffect         = document.getElementById("power-effect");
+    const levelUpEffect       = document.getElementById("level-up-effect");
+    const gameover            = document.getElementById("gameover");
+    const finalScore          = document.getElementById("final-score");
+    const finalLevel          = document.getElementById("final-level");
+    const returnToSelectBtn   = document.getElementById("return-to-select-btn");
 
+    /* キャラクター画像設定 */
     const selectedImageFile = localStorage.getItem("selectedImage");
-    const selectedCharName = localStorage.getItem("selectedName");
-
-    if (selectedImageFile && selectedCharName) {
-      character.src = selectedImageFile; // これは character_select.html から渡されたファイル名（拡張子含む）
+    const selectedCharName  = localStorage.getItem("selectedName");
+    if(selectedImageFile && selectedCharName){
+      character.src = selectedImageFile;
       character.alt = selectedCharName;
-    } else {
-      character.src = "hide.PNG"; // ★★★ デフォルトキャラのファイル名をリストに合わせて修正 ★★★
-      character.alt = "hideya"; // デフォルト名 (任意で変更)
+    }else{
+      character.src = "hide.PNG";
+      character.alt = "hideya";
     }
 
-    let score = 0; let highscore = 0; let timeLeft = 60;
-    const MAX_TIME_LEFT = 90; const MAX_LEVEL = 5; let level = 1;
-    const levelThresholds = [0, 30, 80, 150, 250];
-    let combo = 0; let maxCombo = 0; let itemSpawnerId;
-    let gameBgParticleInterval; let outerEffectInterval;
-    let isPowerUpActive = false; let powerUpEndTime = 0;
-    let characterX;
+    /* ゲームステート */
+    let score=0,highscore=0,timeLeft=60;
+    const MAX_TIME_LEFT=90,MAX_LEVEL=5;
+    let level=1,combo=0,maxCombo=0;
+    const levelThresholds=[0,30,80,150,250];
+    let itemSpawnerId,gameBgParticleInterval,outerEffectInterval;
+    let isPowerUpActive=false,powerUpEndTime=0;
+    let characterX,powerUpTimerId=null;
 
-    // ★★★ 音声ファイルの参照をユーザー提供リストに合わせる ★★★
-    let seEggCollect, bgm, seTimePlus, seBomb, sePowerUp, seHelperMG;
-    try {
-      seEggCollect = new Audio("kirarin.mp3");   // 卵（通常、特殊、金）取得音
-      bgm = new Audio("Reborn Egg Catch.mp3"); // ★★★ BGMファイル名変更 ★★★
-      seTimePlus = new Audio("tm.mp3");
-      seBomb = new Audio("bom.mp3");
-      sePowerUp = new Audio("st.mp3");
-      seHelperMG = new Audio("mg_chan_effect.mp3"); // ★★★ MG Chan効果音 (仮にkirarin.mp3を流用、専用があれば変更) ★★★
-
-      bgm.loop = true; bgm.volume = 0.3;
-    } catch (error) {
-      console.error("オーディオの初期化に失敗: ", error);
-      seEggCollect = { play: () => {}, currentTime: 0 };
-      bgm = { play: () => Promise.resolve(), loop: true, volume: 0.3 };
-      seTimePlus = { play: () => {}, currentTime: 0 }; seBomb = { play: () => {}, currentTime: 0 };
-      sePowerUp = { play: () => {}, currentTime: 0 }; seHelperMG = { play: () => {}, currentTime: 0 };
+    /* 効果音・BGM */
+    let seEggCollect,bgm,seTimePlus,seBomb,sePowerUp,seHelperMG;
+    try{
+      seEggCollect=new Audio("kirarin.mp3");
+      bgm         =new Audio("Reborn Egg Catch.mp3");
+      seTimePlus  =new Audio("tm.mp3");
+      seBomb      =new Audio("bom.mp3");
+      sePowerUp   =new Audio("st.mp3");
+      seHelperMG  =new Audio("mg_chan_effect.mp3");
+      bgm.loop=true;bgm.volume=.3;
+    }catch(e){
+      console.error("Audio init error:",e);
+      const dummy={play:()=>{},currentTime:0};
+      seEggCollect=seTimePlus=seBomb=sePowerUp=seHelperMG=dummy;
+      bgm={play:()=>Promise.resolve(),pause:()=>{},loop:true,volume:.3};
     }
-    try { highscore = parseInt(localStorage.getItem("rebornCatchHighscore")) || 0; }
-    catch (error) { console.warn("ハイスコア読み込み失敗:", error); }
-    highscoreDisplay.innerText = highscore;
+    try{highscore=parseInt(localStorage.getItem("rebornCatchHighscore"))||0}catch(e){}
+    highscoreDisplay.textContent=highscore;
 
-    function createBgBubbleParticle() {
-      if (!gameContainer) return;
-      const particle = document.createElement("div");
-      const typeClass = Math.random() < 0.5 ? 'white' : 'yellow';
-      particle.className = `bg-bubble-particle ${typeClass}`;
-      particle.style.left = Math.random() * gameContainer.offsetWidth + "px";
-      const size = Math.random() * 10 + 5;
-      particle.style.width = particle.style.height = `${size}px`;
-      particle.style.setProperty('--bubble-scale', (Math.random() * 0.7 + 0.5).toFixed(2) );
-      particle.style.setProperty('--bubble-opacity', (Math.random() * 0.3 + 0.3).toFixed(2) );
-      particle.style.animationDuration = `${Math.random() * 8 + 10}s`;
-      particle.style.animationDelay = `${Math.random() * 10}s`;
-      gameContainer.appendChild(particle);
-      setTimeout(() => { if (particle.parentNode) particle.remove(); }, 25000);
+    /* 背景パーティクル生成 */
+    function createBgBubbleParticle(){
+      if(!gameContainer)return;
+      const p=document.createElement("div");
+      p.className=`bg-bubble-particle ${Math.random()<.5?"white":"yellow"}`;
+      p.style.left=Math.random()*gameContainer.offsetWidth+"px";
+      const size=Math.random()*10+5;
+      p.style.width=p.style.height=size+"px";
+      p.style.setProperty('--bubble-scale',(Math.random()*.7+.5).toFixed(2));
+      p.style.setProperty('--bubble-opacity',(Math.random()*.3+.3).toFixed(2));
+      p.style.animationDuration=Math.random()*8+10+"s";
+      p.style.animationDelay=Math.random()*10+"s";
+      gameContainer.appendChild(p);
+      setTimeout(()=>p.remove(),25000);
     }
-
-    function createOuterShellParticle() {
-        if(!pageWrapper) return;
-        const particle = document.createElement('div');
-        particle.className = 'outer-shell-particle';
-        const sizeBase = Math.random() * 10 + 5;
-        particle.style.setProperty('--shell-width', `${sizeBase}px`);
-        particle.style.setProperty('--shell-height', `${sizeBase * (Math.random() * 0.6 + 0.8)}px`);
-        const startXOuter = `${Math.random() * 100}vw`;
-        const endXOuterVariance = (Math.random() - 0.5) * 60;
-        const rotateZStart = `${(Math.random() - 0.5) * 45}deg`;
-        const rotateYStart = `${(Math.random() - 0.5) * 270}deg`;
-        const rotateZEnd = `${parseFloat(rotateZStart.replace('deg','')) + (Math.random() - 0.5) * 540}deg`;
-        const rotateYEnd = `${parseFloat(rotateYStart.replace('deg','')) + (Math.random() - 0.5) * 270}deg`;
-        particle.style.setProperty('--outer-start-x', startXOuter);
-        particle.style.setProperty('--outer-end-x', `calc(${startXOuter} + ${endXOuterVariance}vw)`);
-        particle.style.setProperty('--outer-rotate-z-start', rotateZStart);
-        particle.style.setProperty('--outer-rotate-y-start', rotateYStart);
-        particle.style.setProperty('--outer-rotate-z-end', rotateZEnd);
-        particle.style.setProperty('--outer-rotate-y-end', rotateYEnd);
-        particle.style.animationDuration = `${Math.random() * 12 + 10}s`;
-        particle.style.animationDelay = `${Math.random() * 15}s`;
-        pageWrapper.appendChild(particle);
-        const totalAnimationTime = (parseFloat(particle.style.animationDuration.replace('s','')) + parseFloat(particle.style.animationDelay.replace('s',''))) * 1000;
-        setTimeout(() => { if (particle.parentNode) particle.remove(); }, totalAnimationTime + 1000);
+    /* 外縁パーティクル */
+    function createOuterShellParticle(){
+      if(!pageWrapper)return;
+      const p=document.createElement("div");
+      p.className="outer-shell-particle";
+      const base=Math.random()*10+5;
+      p.style.setProperty('--shell-width',base+"px");
+      p.style.setProperty('--shell-height',base*(Math.random()*.6+.8)+"px");
+      const startX=`${Math.random()*100}vw`;
+      p.style.setProperty('--outer-start-x',startX);
+      p.style.setProperty('--outer-end-x',`calc(${startX} + ${(Math.random()-.5)*60}vw)`);
+      const rzStart=(Math.random()-.5)*45,ryStart=(Math.random()-.5)*270;
+      p.style.setProperty('--outer-rotate-y-start',`${ryStart}deg`);
+      p.style.setProperty('--outer-rotate-z-end',`${rzStart+(Math.random()-.5)*540}deg`);
+      p.style.setProperty('--outer-rotate-y-end',`${ryStart+(Math.random()-.5)*270}deg`);
+      p.style.animationDuration=Math.random()*12+10+"s";
+      p.style.animationDelay=Math.random()*15+"s";
+      pageWrapper.appendChild(p);
+      const ttl=(parseFloat(p.style.animationDuration)+parseFloat(p.style.animationDelay))*1000;
+      setTimeout(()=>p.remove(),ttl+1000);
     }
 
-    function updateCharacterPosition() { character.style.left = `${characterX}px`; }
-    function calculateLevel() { let newLvl = 1; for (let i=0; i<levelThresholds.length; i++) { if (score >= levelThresholds[i]) newLvl = i + 1; else break; } return Math.min(newLvl, MAX_LEVEL); }
-    function getSpawnRate() { return Math.max(150, 700 - (level * 40)); }
+    /* レベル計算／間隔計算 */
+    const calcLevel=()=>Math.min(levelThresholds.filter(t=>score>=t).length,MAX_LEVEL);
+    const spawnRate =()=>Math.max(150,700-level*40);
 
-    function updateScore(points = 1, itemTypeForEffect) {
-      const previousLevel = level;
-      if (isPowerUpActive) points *= 2;
-      score += points; combo++;
-      scoreDisplay.innerText = score;
-      if (comboCountDisplay) comboCountDisplay.innerText = combo;
+    /* スコア＆UI更新 */
+    function updateScore(pt=1,type){
+      if(isPowerUpActive)pt*=2;
+      score+=pt;combo++;
+      scoreDisplay.textContent=score;
+      comboCountDisplay.textContent=combo;
+      const prev=level;level=calcLevel();levelDisplay.textContent=level;
+      if(level>prev)showLevelUp(level===MAX_LEVEL?`MAX LEVEL ${MAX_LEVEL} 到達!`:`LEVEL ${level}!`);
+      if(combo>1)showComboPopup();
+      if(pt>=5 && type==="goldenEgg")showSpecialEffect();
+      if(combo>maxCombo)maxCombo=combo;
+    }
+    const resetCombo=()=>{combo=0;comboCountDisplay.textContent=combo};
+    const showComboPopup=()=>{comboPopup.textContent=`${combo} COMBO!`;comboPopup.style.display='block';setTimeout(()=>comboPopup.style.display='none',1000)};
+    const showLevelUp=msg=>{levelUpEffect.textContent=msg;levelUpEffect.style.display='block';setTimeout(()=>levelUpEffect.style.display='none',2000)};
+    const showSpecialEffect=()=>{scoreDisplay.style.cssText="transform:scale(1.3);color:#D4AF37";setTimeout(()=>scoreDisplay.style.cssText="",500)};
 
-      level = calculateLevel(); levelDisplay.innerText = level;
-      if (level > previousLevel) {
-        if (level === MAX_LEVEL && previousLevel < MAX_LEVEL) { showLevelUp(`MAX LEVEL ${MAX_LEVEL} 到達!`); }
-        else if (level < MAX_LEVEL) { showLevelUp(`LEVEL ${level}!`); }
+    /* パワーアップ */
+    function activatePowerUp(){
+      if(isPowerUpActive){powerUpEndTime+=10000;clearInterval(powerUpTimerId)}
+      else{isPowerUpActive=true;powerUpEndTime=Date.now()+10000;character.classList.add("powerup");powerEffect.style.display='block'}
+      powerUpTimerId=setInterval(()=>{
+        const remain=Math.ceil((powerUpEndTime-Date.now())/1000);
+        if(remain<=0){deactivatePowerUp();clearInterval(powerUpTimerId)}
+        else powerEffect.textContent=`🥚スコア２倍！(${remain}s)`;
+      },100);
+    }
+    function deactivatePowerUp(){
+      isPowerUpActive=false;character.classList.remove("powerup");
+      powerEffect.style.display='none';clearInterval(powerUpTimerId);
+    }
+
+    /* アイテム生成 */
+    function createItem(){
+      if(timeLeft<=0)return;
+      const item=document.createElement("div");
+      const r=Math.random();
+      const prob={bomb:0, timePlus:.08, powerUp:0, helper:.06, gold:.10, special:.15};
+      if(level>=2)prob.bomb=Math.min(.05+(level-2)*.03,.14),prob.powerUp=.07;
+      let sum=0,type="normalEgg";
+      const check=(p, t)=>{sum+=p;if(r<sum){type=t;return true}};
+      check(prob.bomb,"bomb")||check(prob.timePlus,"timePlus")||check(prob.powerUp,"powerup")||
+      check(prob.helper,"helperMG")||check(prob.gold,"goldenEgg")||check(prob.special,"specialEgg");
+
+      let w;
+      switch(type){
+        case"bomb":item.className="bomb";item.dataset.points="-10";w=40;break;
+        case"timePlus":item.className="time-plus";w=40;break;
+        case"powerup":item.className="power-up";item.dataset.points="0";w=45;break;
+        case"helperMG":item.className="helper-mgchan";item.dataset.points="25";w=60;break;
+        case"goldenEgg":item.className="egg golden";item.dataset.points="5";w=40;break;
+        case"specialEgg":item.className="egg special";item.dataset.points="2";w=32;break;
+        default:item.className="egg";item.dataset.points="1";w=26;
       }
-      if (combo > 1 && comboPopup) showComboPopup();
-      if (combo > maxCombo) maxCombo = combo;
-      if (points >= 5 && itemTypeForEffect === "goldenEgg") showSpecialEffect();
-    }
-
-    function resetCombo() { combo = 0; if (comboCountDisplay) comboCountDisplay.innerText = combo; }
-    function showComboPopup() { if (comboPopup) { comboPopup.textContent = `${combo} COMBO!`; comboPopup.style.display = 'block'; setTimeout(() => { comboPopup.style.display = 'none'; }, 1000); } }
-    function showLevelUp(message = `LEVEL ${level}!`) { if (levelUpEffect) { levelUpEffect.textContent = message; levelUpEffect.style.display = 'block'; setTimeout(() => { levelUpEffect.style.display = 'none'; }, 2000); } }
-    function showSpecialEffect() { if (scoreDisplay) { scoreDisplay.style.transform = 'scale(1.3)'; scoreDisplay.style.color = '#D4AF37'; setTimeout(() => { scoreDisplay.style.transform = 'scale(1)'; scoreDisplay.style.color = '#604020'; }, 500); } }
-    let powerUpTimerId = null;
-    function activatePowerUp() { if (isPowerUpActive) { powerUpEndTime += 10000; if (powerUpTimerId) clearInterval(powerUpTimerId); } else { isPowerUpActive = true; powerUpEndTime = Date.now() + 10000; character.classList.add('powerup'); powerEffect.textContent = '🥚スコア２倍！'; powerEffect.style.display = 'block'; } powerUpTimerId = setInterval(() => { const remaining = Math.ceil((powerUpEndTime - Date.now()) / 1000); if (remaining <= 0) { clearInterval(powerUpTimerId); powerUpTimerId = null; deactivatePowerUp(); } else { powerEffect.textContent = `🥚スコア２倍！(${remaining}s)`; } }, 100); }
-    function deactivatePowerUp() { isPowerUpActive = false; character.classList.remove('powerup'); if (powerEffect) powerEffect.style.display = 'none'; if (powerUpTimerId) { clearInterval(powerUpTimerId); powerUpTimerId = null; } }
-
-    function createItem() {
-      if (timeLeft <= 0 || !gameContainer) return;
-      const item = document.createElement("div");
-      const rand = Math.random();
-      let itemTypeForCreation = "normalEgg";
-
-      let probBomb = 0; if (level >= 2) { probBomb = Math.min(0.05 + (level - 2) * 0.03, 0.14); }
-      const probTimePlus = 0.08; let probPowerUp = 0; if (level >= 2) { probPowerUp = 0.07; }
-      const probHelperMG = 0.06; const probGoldenEgg = 0.10; const probSpecialEgg = 0.15;
-      let cumulativeProb = 0;
-      cumulativeProb += probBomb; if (rand < cumulativeProb && level >= 2) { itemTypeForCreation = "bomb"; }
-      else { cumulativeProb += probTimePlus; if (rand < cumulativeProb) { itemTypeForCreation = "timePlus"; }
-      else { cumulativeProb += probPowerUp; if (rand < cumulativeProb && level >= 2) { itemTypeForCreation = "powerup"; }
-      else { cumulativeProb += probHelperMG; if (rand < cumulativeProb ) { itemTypeForCreation = "helperMG"; }
-      else { cumulativeProb += probGoldenEgg; if (rand < cumulativeProb) { itemTypeForCreation = "goldenEgg"; }
-      else { cumulativeProb += probSpecialEgg; if (rand < cumulativeProb) { itemTypeForCreation = "specialEgg"; }
-      else { itemTypeForCreation = "normalEgg"; }}}}}}
-
-      let itemWidth;
-      switch(itemTypeForCreation) {
-        case "bomb": item.className = "bomb"; item.dataset.type = "bomb"; item.dataset.points = "-10"; itemWidth = 40; break;
-        case "timePlus": item.className = "time-plus"; item.dataset.type = "timePlus"; itemWidth = 40; break;
-        case "powerup": item.className = "power-up"; item.dataset.type = "powerup"; item.dataset.points = "0"; itemWidth = 45; break;
-        case "helperMG": item.className = "helper-mgchan"; item.dataset.type = "helperMG"; item.dataset.points = "25"; itemWidth = 60; break;
-        case "goldenEgg": item.className = "egg golden"; item.dataset.type = "goldenEgg"; item.dataset.points = "5"; itemWidth = 40; break;
-        case "specialEgg": item.className = "egg special"; item.dataset.type = "specialEgg"; item.dataset.points = "2"; itemWidth = 35; break;
-        default: item.className = "egg"; item.dataset.type = "normalEgg"; item.dataset.points = "1"; itemWidth = 30;
-      }
-
-      item.style.left = Math.random() * (gameContainer.offsetWidth - itemWidth) + "px";
-      let animationDuration = Math.max(1.5, (2.5 + Math.random() * 2) - (level * 0.15));
-      item.style.animationDuration = animationDuration + "s";
-      item.style.setProperty('--random-rotate', `${(Math.random() - 0.5) * 70}deg`);
-      item.style.setProperty('--random-rotate-half', `${(Math.random() - 0.5) * 35}deg`);
-
-      if (itemTypeForCreation === "normalEgg") item.style.animationName = "fall-egg";
-      else if (itemTypeForCreation === "specialEgg") item.style.animationName = "fall-special-egg";
-      else if (itemTypeForCreation === "goldenEgg") item.style.animationName = "fall-golden-egg";
-      else if (itemTypeForCreation === "helperMG") item.style.animationName = "fall-helper";
-      // 他はCSSでanimation-nameが指定済み
-
+      item.dataset.type=type;
+      item.style.left=Math.random()*(gameContainer.offsetWidth-w)+"px";
+      const dur=Math.max(1.5,2.5+Math.random()*2-level*.15);
+      item.style.animationDuration=dur+"s";
+      item.style.setProperty('--random-rotate',(Math.random()-.5)*70+"deg");
+      item.style.setProperty('--random-rotate-half',(Math.random()-.5)*35+"deg");
+      if(type==="normalEgg")item.style.animationName="fall-egg";
+      else if(type==="specialEgg")item.style.animationName="fall-special-egg";
+      else if(type==="goldenEgg")item.style.animationName="fall-golden-egg";
+      else if(type==="helperMG")item.style.animationName="fall-helper";
       gameContainer.appendChild(item);
 
-      const checkCollision = setInterval(() => {
-        if (!item.parentNode || timeLeft <= 0) { clearInterval(checkCollision); if(item.parentNode) item.remove(); return; }
-        const rect1 = item.getBoundingClientRect(); const rect2 = character.getBoundingClientRect();
-        if ( rect1.top < rect2.bottom && rect1.bottom > rect2.top && rect1.left < rect2.right && rect1.right > rect2.left ) {
-          const currentItemType = item.dataset.type;
-          const points = parseInt(item.dataset.points) || 0;
-
-          if (currentItemType === "bomb") {
-            score = Math.max(0, score + points); scoreDisplay.innerText = score; resetCombo();
-            if (seBomb && typeof seBomb.play === 'function') { seBomb.currentTime = 0; seBomb.play().catch(err => console.warn("bom.mp3 再生エラー:", err));}
-            if (gameContainer) gameContainer.style.background = 'rgba(150,50,50,0.7)'; setTimeout(() => { if (gameContainer) gameContainer.style.background = 'linear-gradient(135deg, #fffacd 0%, #f5deb3 50%, #ffe4b5 100%)'; }, 150);
-          } else if (currentItemType === "timePlus") {
-            timeLeft = Math.min(timeLeft + 5, MAX_TIME_LEFT); timerDisplay.innerText = timeLeft;
-            if (seTimePlus && typeof seTimePlus.play === 'function') { seTimePlus.currentTime = 0; seTimePlus.play().catch(err => console.warn("tm.mp3 再生エラー:", err));}
-          } else if (currentItemType === "powerup") {
-            if (sePowerUp && typeof sePowerUp.play === 'function') { sePowerUp.currentTime = 0; sePowerUp.play().catch(err => console.warn("st.mp3 再生エラー:", err));}
-            activatePowerUp();
-          } else if (currentItemType === "helperMG") {
-            updateScore(points, currentItemType);
-            if (seHelperMG && typeof seHelperMG.play === 'function') { seHelperMG.currentTime = 0; seHelperMG.play().catch(err => console.warn("helperMG SE 再生エラー:", err));}
-            const bombsOnScreen = gameContainer.querySelectorAll('.bomb');
-            bombsOnScreen.forEach((bombEl, index) => { if (index < 2 && bombEl.parentNode) { bombEl.remove(); } });
-          } else { // normalEgg, specialEgg, goldenEgg
-            updateScore(points, currentItemType);
-            if (seEggCollect && typeof seEggCollect.play === 'function') {
-                seEggCollect.currentTime = 0;
-                seEggCollect.play().catch(err => console.warn("卵取得音 再生エラー:", err));
-            }
+      /* 衝突判定 */
+      const hit=setInterval(()=>{
+        if(!item.parentNode||timeLeft<=0){clearInterval(hit);item.remove();return}
+        const a=item.getBoundingClientRect(),b=character.getBoundingClientRect();
+        if(a.top<b.bottom&&a.bottom>b.top&&a.left<b.right&&a.right>b.left){
+          const p=parseInt(item.dataset.points)||0;
+          switch(type){
+            case"bomb":
+              score=Math.max(0,score+p);scoreDisplay.textContent=score;resetCombo();
+              seBomb.currentTime=0;seBomb.play().catch(()=>{});
+              gameContainer.style.background='rgba(150,50,50,.7)';
+              setTimeout(()=>gameContainer.style.background='linear-gradient(135deg,#fffacd 0%,#f5deb3 50%,#ffe4b5 100%)',150);
+              break;
+            case"timePlus":
+              timeLeft=Math.min(timeLeft+5,MAX_TIME_LEFT);timerDisplay.textContent=timeLeft;
+              seTimePlus.currentTime=0;seTimePlus.play().catch(()=>{});
+              break;
+            case"powerup":
+              sePowerUp.currentTime=0;sePowerUp.play().catch(()=>{});
+              activatePowerUp();break;
+            case"helperMG":
+              updateScore(p,type);
+              seHelperMG.currentTime=0;seHelperMG.play().catch(()=>{});
+              [...gameContainer.querySelectorAll('.bomb')].slice(0,2).forEach(e=>e.remove());
+              break;
+            default: /* 卵系 */
+              updateScore(p,type);
+              seEggCollect.currentTime=0;seEggCollect.play().catch(()=>{});
           }
-          item.remove(); clearInterval(checkCollision);
+          item.remove();clearInterval(hit);
         }
-      }, 30);
-      setTimeout(() => { if (item.parentNode) { item.remove(); if (item.dataset.type && item.dataset.type.includes("Egg")) { resetCombo(); } } clearInterval(checkCollision); }, animationDuration * 1000 + 300);
+      },30);
+      /* 落下終了で消去 */
+      setTimeout(()=>{
+        if(item.parentNode){item.remove();if(item.dataset.type.includes("Egg"))resetCombo()}
+        clearInterval(hit);
+      },dur*1000+300);
     }
 
-    let gameTimerId = null;
-    function startGame() {
-      characterX = gameContainer.offsetWidth / 2; updateCharacterPosition();
-      if (bgm && typeof bgm.play === 'function' && bgm.paused) { bgm.play().catch(err => console.warn("BGM再生に失敗:", err)); }
-      itemSpawnerId = setInterval(createItem, getSpawnRate());
-      gameBgParticleInterval = setInterval(createBgBubbleParticle, 700);
-      outerEffectInterval = setInterval(createOuterShellParticle, 500);
-
-      gameTimerId = setInterval(() => {
-        if (timeLeft <= 0) {
-            clearInterval(gameTimerId); clearInterval(itemSpawnerId);
-            clearInterval(gameBgParticleInterval); clearInterval(outerEffectInterval);
-            if (powerUpTimerId) clearInterval(powerUpTimerId); endGame(); return;
+    /* ゲーム開始・終了 */
+    function startGame(){
+      characterX=gameContainer.offsetWidth/2;character.style.left=characterX+"px";
+      bgm.play().catch(()=>{});
+      itemSpawnerId=setInterval(createItem,spawnRate());
+      gameBgParticleInterval=setInterval(createBgBubbleParticle,700);
+      outerEffectInterval=setInterval(createOuterShellParticle,500);
+      gameTimerId=setInterval(()=>{
+        if(timeLeft<=0){
+          clearInterval(gameTimerId);clearInterval(itemSpawnerId);
+          clearInterval(gameBgParticleInterval);clearInterval(outerEffectInterval);
+          if(powerUpTimerId)clearInterval(powerUpTimerId);endGame();return;
         }
-        timeLeft--; timerDisplay.innerText = timeLeft;
-        if(timeLeft > 0) { clearInterval(itemSpawnerId); itemSpawnerId = setInterval(createItem, getSpawnRate()); }
-      }, 1000);
+        timeLeft--;timerDisplay.textContent=timeLeft;
+        clearInterval(itemSpawnerId);itemSpawnerId=setInterval(createItem,spawnRate());
+      },1000);
     }
-
-    function endGame() {
-      if (bgm && typeof bgm.pause === 'function') bgm.pause();
-      finalScore.innerText = score; finalLevel.innerText = level; if(gameover) gameover.style.display = "block";
-      if (score > highscore) { highscore = score; try { localStorage.setItem("rebornCatchHighscore", highscore); if(highscoreDisplay) highscoreDisplay.innerText = highscore; } catch (error) { } }
-      if(gameContainer) Array.from(gameContainer.children).forEach(child => {
-        if (child.id !== 'character' && child.id !== 'gameover' && child.id !== 'combo-display-popup' && child.id !== 'level-up-effect' && child.id !== 'power-effect' ) {
-            if (child.classList.contains('egg') || child.classList.contains('bomb') || child.classList.contains('power-up') || child.classList.contains('time-plus') || child.classList.contains('helper-mgchan') || child.classList.contains('bg-bubble-particle') ) {
-                child.remove();
-            }
+    function endGame(){
+      bgm.pause();finalScore.textContent=score;finalLevel.textContent=level;
+      gameover.style.display="block";
+      if(score>highscore){highscore=score;localStorage.setItem("rebornCatchHighscore",highscore);highscoreDisplay.textContent=highscore}
+      [...gameContainer.children].forEach(c=>{
+        if(!["character","gameover","combo-display-popup","level-up-effect","power-effect"].includes(c.id)){
+          if(c.classList.contains("egg")||c.classList.contains("bomb")||c.classList.contains("power-up")||c.classList.contains("time-plus")||c.classList.contains("helper-mgchan")||c.classList.contains("bg-bubble-particle"))c.remove();
         }
       });
-      if(pageWrapper) pageWrapper.querySelectorAll('.outer-shell-particle').forEach(el => el.remove());
-      if (returnToSelectBtn) { returnToSelectBtn.addEventListener("click", () => { window.location.href = "index.html"; }); }
+      pageWrapper.querySelectorAll('.outer-shell-particle').forEach(e=>e.remove());
+      returnToSelectBtn.onclick=()=>location.href="index.html";
     }
 
-    document.addEventListener("keydown", (e) => { if (timeLeft <= 0 || !gameContainer) return; let moved = false; const charWidth = character.offsetWidth || 120; if (e.key === "ArrowLeft") { characterX -= 30; moved = true; } else if (e.key === "ArrowRight") { characterX += 30; moved = true; } else if (e.key === " " || e.key === "ArrowUp") { e.preventDefault(); jump(); } if (moved) { characterX = Math.max(charWidth / 2, Math.min(gameContainer.offsetWidth - (charWidth / 2), characterX)); updateCharacterPosition(); } });
-    function jump() { if (!character.classList.contains("jump") && timeLeft > 0) { character.classList.add("jump"); setTimeout(() => character.classList.remove("jump"), 600); } }
-    character.addEventListener("click", (e) => { if (timeLeft <= 0) return; e.preventDefault(); jump(); }, { passive: false });
-
-    const leftBtn = document.createElement("button"); leftBtn.innerText = "◀"; leftBtn.className = "control-btn"; leftBtn.style.left = "20px";
-    const rightBtn = document.createElement("button"); rightBtn.innerText = "▶"; rightBtn.className = "control-btn"; rightBtn.style.right = "20px";
-    if(pageWrapper) { pageWrapper.appendChild(leftBtn); pageWrapper.appendChild(rightBtn); } else { document.body.appendChild(leftBtn); document.body.appendChild(rightBtn); }
-
-    let moveInterval = null;
-    function startMove(direction) { if (moveInterval || timeLeft <= 0 || !gameContainer) return; const charWidth = character.offsetWidth || 120; moveInterval = setInterval(() => { if (direction === "left") characterX -= 15; else if (direction === "right") characterX += 15; characterX = Math.max(charWidth / 2, Math.min(gameContainer.offsetWidth - (charWidth / 2), characterX)); updateCharacterPosition(); }, 30); }
-    function stopMove() { clearInterval(moveInterval); moveInterval = null; }
-    leftBtn.addEventListener("touchstart", (e) => { e.preventDefault(); startMove("left"); }, { passive: false });
-    rightBtn.addEventListener("touchstart", (e) => { e.preventDefault(); startMove("right"); }, { passive: false });
-    document.addEventListener("touchend", (e) => { if (moveInterval) stopMove(); }, { passive: false });
-    leftBtn.addEventListener("mousedown", () => startMove("left"));
-    rightBtn.addEventListener("mousedown", () => startMove("right"));
-    document.addEventListener("mouseup", stopMove);
-
-    let touchStartX = null; let touchStartY = null; const swipeThreshold = 30;
-    function getTouchXInGameContainer(clientX) { if(!gameContainer) return clientX; const gameContainerRect = gameContainer.getBoundingClientRect(); return clientX - gameContainerRect.left; }
-    if(gameContainer) {
-        gameContainer.addEventListener("touchstart", (e) => { if (timeLeft <= 0 || e.target.classList.contains('control-btn')) return; const touch = e.changedTouches[0]; const gameContainerRect = gameContainer.getBoundingClientRect(); if (touch.clientX >= gameContainerRect.left && touch.clientX <= gameContainerRect.right && touch.clientY >= gameContainerRect.top && touch.clientY <= gameContainerRect.bottom) { touchStartX = getTouchXInGameContainer(touch.clientX); touchStartY = touch.clientY; } else { touchStartX = null; touchStartY = null; } }, { passive: true });
-        gameContainer.addEventListener("touchmove", (e) => { if (timeLeft <= 0 || touchStartX === null || e.target.classList.contains('control-btn')) return; let currentRelativeX = getTouchXInGameContainer(e.changedTouches[0].clientX); let deltaX = currentRelativeX - touchStartX; characterX += deltaX; const charWidth = character.offsetWidth || 120; characterX = Math.max(charWidth / 2, Math.min(gameContainer.offsetWidth - (charWidth / 2), characterX)); updateCharacterPosition(); touchStartX = currentRelativeX; }, { passive: true });
-        gameContainer.addEventListener("touchend", (e) => { if (timeLeft <= 0 || touchStartX === null || touchStartY === null || e.target.classList.contains('control-btn')) { touchStartX = null; touchStartY = null; return; } const finalTouchX = getTouchXInGameContainer(e.changedTouches[0].clientX); const deltaX = finalTouchX - touchStartX; const deltaY = e.changedTouches[0].clientY - touchStartY; if (Math.abs(deltaY) > Math.abs(deltaX) && deltaY < -swipeThreshold) jump(); touchStartX = null; touchStartY = null; }, { passive: true });
+    /* 操作系 */
+    document.addEventListener("keydown",e=>{
+      if(timeLeft<=0)return;
+      const w=character.offsetWidth||120;
+      if(e.key==="ArrowLeft"){characterX-=30}
+      else if(e.key==="ArrowRight"){characterX+=30}
+      else if(e.key===" "||e.key==="ArrowUp"){e.preventDefault();jump()}
+      characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX));
+      character.style.left=characterX+"px";
+    });
+    function jump(){
+      if(character.classList.contains("jump")||timeLeft<=0)return;
+      character.classList.add("jump");setTimeout(()=>character.classList.remove("jump"),600);
     }
+    character.addEventListener("click",e=>{if(timeLeft>0){e.preventDefault();jump()}},{passive:false});
 
-    window.addEventListener('resize', () => { if(!gameContainer || !character) return; const charWidth = character.offsetWidth || 120; characterX = Math.max(charWidth / 2, Math.min(gameContainer.offsetWidth - (charWidth / 2), characterX)); updateCharacterPosition(); });
-    function attemptBgmPlay() { if (bgm && typeof bgm.play === 'function' && bgm.paused) { bgm.play().then(() => { document.body.removeEventListener('click', attemptBgmPlay); document.body.removeEventListener('touchstart', attemptBgmPlay); }).catch(error => { console.warn("BGMの再生試行に失敗しました:", error); }); } else if (bgm && !bgm.paused) { document.body.removeEventListener('click', attemptBgmPlay); document.body.removeEventListener('touchstart', attemptBgmPlay); } }
-    document.body.addEventListener('click', attemptBgmPlay, {once: true});
-    document.body.addEventListener('touchstart', attemptBgmPlay, {once: true});
+    const leftBtn=document.createElement("button"),rightBtn=document.createElement("button");
+    leftBtn.textContent="◀";rightBtn.textContent="▶";
+    leftBtn.className=rightBtn.className="control-btn";
+    leftBtn.style.left="20px";rightBtn.style.right="20px";
+    pageWrapper.append(leftBtn,rightBtn);
 
+    let moveInt=null;
+    const startMove=dir=>{
+      if(moveInt||timeLeft<=0)return;
+      const w=character.offsetWidth||120;
+      moveInt=setInterval(()=>{
+        characterX+=(dir==="left"?-15:15);
+        characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX));
+        character.style.left=characterX+"px";
+      },30);
+    };
+    const stopMove=()=>{clearInterval(moveInt);moveInt=null};
+    leftBtn.addEventListener("touchstart",e=>{e.preventDefault();startMove("left")},{passive:false});
+    rightBtn.addEventListener("touchstart",e=>{e.preventDefault();startMove("right")},{passive:false});
+    leftBtn.onmousedown=()=>startMove("left");
+    rightBtn.onmousedown=()=>startMove("right");
+    ["mouseup","touchend"].forEach(ev=>document.addEventListener(ev,stopMove,{passive:false}));
+
+    /* スワイプ移動+ジャンプ */
+    let sx=null,sy=null,thr=30;
+    const relX=cl=>cl-gameContainer.getBoundingClientRect().left;
+    gameContainer.addEventListener("touchstart",e=>{
+      if(timeLeft<=0)return;
+      const t=e.changedTouches[0];sx=relX(t.clientX);sy=t.clientY;
+    },{passive:true});
+    gameContainer.addEventListener("touchmove",e=>{
+      if(timeLeft<=0||sx==null)return;
+      const x=relX(e.changedTouches[0].clientX),dx=x-sx;characterX+=dx;sx=x;
+      const w=character.offsetWidth||120;
+      characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX));
+      character.style.left=characterX+"px";
+    },{passive:true});
+    gameContainer.addEventListener("touchend",e=>{
+      if(timeLeft<=0||sx==null||sy==null){sx=sy=null;return}
+      const dx=relX(e.changedTouches[0].clientX)-sx,dy=e.changedTouches[0].clientY-sy;
+      if(Math.abs(dy)>Math.abs(dx)&&dy<-thr)jump();
+      sx=sy=null;
+    },{passive:true});
+
+    /* リサイズで位置補正 */
+    window.addEventListener('resize',()=>{
+      const w=character.offsetWidth||120;
+      characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX));
+      character.style.left=characterX+"px";
+    });
+
+    /* ユーザ操作で BGM 再生解禁 */
+    const tryPlay=()=>{
+      bgm.play().then(()=>{
+        document.body.removeEventListener('click',tryPlay);
+        document.body.removeEventListener('touchstart',tryPlay);
+      }).catch(()=>{});
+    };
+    document.body.addEventListener('click',tryPlay,{once:true});
+    document.body.addEventListener('touchstart',tryPlay,{once:true});
+
+    /* ゲーム開始 */
     startGame();
   </script>
 </body>
