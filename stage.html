@@ -83,27 +83,32 @@
     }
 
     /* ▼▼▼ ここが今回の変更点 ▼▼▼ */
-    /* 白い卵（小） */
-    .egg{
-      width:26px;height:34px;
-      background-image:url("egg_white.png");
-      filter:drop-shadow(0 2px 2px rgba(0,0,0,.15));
-      animation-name:fall-egg;animation-timing-function:linear;
-    }
-    /* 水色卵（中） */
-    .egg.special{
-      width:32px;height:44px;
-      background-image:url("egg_blue.png");
-      animation-name:fall-special-egg;animation-timing-function:linear;
-      filter:drop-shadow(0 2px 4px rgba(0,0,0,.2));
-    }
-    /* ゴールド卵（大） */
-    .egg.golden{
-      width:40px;height:52px;
-      background-image:url("egg_gold.png");
-      animation-name:fall-golden-egg;animation-timing-function:linear;
-      filter:drop-shadow(0 0 15px gold) drop-shadow(0 0 5px white);
-    }
+    /* ▼★ 白い卵（小） ★▼ */
+.egg{
+  width:26px;height:34px;
+  background-image:url("egg_white.png"),
+    radial-gradient(circle at 40% 35%,#ffffff 0%,#f9f9f9 60%,#e2e2e2 100%);
+  background-blend-mode:normal;
+  border:1px solid rgba(0,0,0,.06);
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.25));
+  animation:fall-egg linear;
+}
+
+/* 水色卵（中） */
+.egg.special{
+  width:32px;height:44px;
+  background-image:url("egg_blue.png");
+  animation:fall-special-egg linear;
+  filter:drop-shadow(0 2px 4px rgba(0,0,0,.25));
+}
+
+/* ゴールド卵（大） */
+.egg.golden{
+  width:40px;height:52px;
+  background-image:url("egg_gold.png");
+  animation:fall-golden-egg linear;
+  filter:drop-shadow(0 0 15px gold) drop-shadow(0 0 5px white);
+}
     /* ▲▲▲ 変更ここまで ▲▲▲ */
 
     .helper-mgchan{
