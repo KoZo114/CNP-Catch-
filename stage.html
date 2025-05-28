@@ -731,17 +731,16 @@
       powerEffect.style.display = "none";
     }
 
-    /* ================================================================
- *  アイテム生成（卵／爆弾／タイム＋／パワーアップ etc.）
- *  ─ normalEgg も含め、必ず animationName・Duration・TimingFunction
- *    が 1 か所でセットされるように統一しました
+   /* ================================================================
+ *  アイテム生成  ─ normalEgg・specialEgg・goldenEgg・bomb …etc.
  * ================================================================ */
 function createItem () {
-  if (timeLeft <= 0) return;                 // ゲーム終了中は生成しない
+  if (timeLeft <= 0) return;                      // ゲーム終了中なら何もしない
 
+  /* ---------- 1. 要素生成 ---------- */
   const item = document.createElement('div');
 
-  /* ---------- 1. どのアイテムを出すか確率で決定 ---------- */
+  /* ---------- 2. アイテム種別を確率で決定 ---------- */
   const r = Math.random();
   const prob = {
     bomb     : level >= 2 ? Math.min(0.05 + (level - 2) * 0.03, 0.14) : 0,
@@ -752,7 +751,7 @@ function createItem () {
     special  : 0.15
   };
   let sum = 0, type = 'normalEgg';
-  const pick = (p, t) => { sum += p; if (r < sum) { type = t; return true; } };
+  const pick = (p, t) => { sum += p; return r < sum && (type = t); };
   pick(prob.bomb,   'bomb'     ) ||
   pick(prob.timePlus,'timePlus') ||
   pick(prob.powerup, 'powerup' ) ||
@@ -760,31 +759,32 @@ function createItem () {
   pick(prob.golden,  'goldenEgg')||
   pick(prob.special, 'specialEgg');
 
-  /* ---------- 2. 見た目・得点・幅を設定 ---------- */
-  let w;                                       // 当たり判定 & 位置決定用幅
+  /* ---------- 3. クラス・得点・幅を設定 ---------- */
+  let w;                                           // 当たり判定・位置用幅
   switch (type) {
     case 'bomb'      : item.className = 'bomb';            item.dataset.points = '-10'; w = 40; break;
-    case 'timePlus'  : item.className = 'time-plus';                           w = 40; break;
+    case 'timePlus'  : item.className = 'time-plus';                               w = 40; break;
     case 'powerup'   : item.className = 'power-up';        item.dataset.points =  '0'; w = 45; break;
     case 'helperMG'  : item.className = 'helper-mgchan';   item.dataset.points = '25'; w = 60; break;
     case 'goldenEgg' : item.className = 'egg golden';      item.dataset.points =  '5'; w = 40; break;
     case 'specialEgg': item.className = 'egg special';     item.dataset.points =  '2'; w = 32; break;
-    default          : item.className = 'egg';             item.dataset.points =  '1'; w = 26;　　break;
+    default          : item.className = 'egg';             item.dataset.points =  '1'; w = 26;
   }
   item.dataset.type = type;
 
-  /* ---------- 3. 初期位置 ---------- */
+  /* ---------- 4. 初期位置 ---------- */
   item.style.left = Math.random() * (gameContainer.offsetWidth - w) + 'px';
 
-  /* ---------- 4. アニメーション共通設定 ---------- */
+  /* ---------- 5. 落下アニメーション共通設定 ---------- */
   const dur = Math.max(1.5, 2.5 + Math.random() * 2 - level * 0.15);
   item.style.animationDuration       = dur + 's';
   item.style.animationTimingFunction = 'linear';
   item.style.animationFillMode       = 'forwards';
-  item.style.setProperty('--random-rotate',      (Math.random() - .5) * 70 + 'deg');
-  item.style.setProperty('--random-rotate-half', (Math.random() - .5) * 35 + 'deg');
+  // 回転ランダム値（CSS カスタムプロパティに渡す）
+  item.style.setProperty('--rz0', (Math.random() - .5) * 70 + 'deg');
+  item.style.setProperty('--rz1', (Math.random() - .5) * 70 + 'deg');
 
-  /* ---------- 5. アニメーション名 ---------- */
+  /* ---------- 6. animation-name を種別ごとに指定 ---------- */
   item.style.animationName = ({
     specialEgg : 'fall-special-egg',
     goldenEgg  : 'fall-golden-egg',
@@ -792,31 +792,61 @@ function createItem () {
     bomb       : 'fall-bomb',
     timePlus   : 'fall-time-plus',
     powerup    : 'fall-powerup'
-  })[type] || 'fall-egg';          // normalEgg を含むデフォルト
+  })[type] || 'fall-egg';                         // normalEgg を含むデフォルト
 
-  /* ---------- 6. 追加 & 衝突判定 / 消滅タイマー ---------- */
+  /* ---------- 7. 画面に追加 ---------- */
   gameContainer.appendChild(item);
 
-  // --- 衝突判定（元コードをそのまま移植） ---
+  /* ---------- 8. 衝突判定 ---------- */
   const hit = setInterval(() => {
     if (!item.parentNode || timeLeft <= 0) { clearInterval(hit); item.remove(); return; }
-    const a = item.getBoundingClientRect(), b = character.getBoundingClientRect();
+
+    const a = item.getBoundingClientRect();
+    const b = character.getBoundingClientRect();
     if (a.top < b.bottom && a.bottom > b.top && a.left < b.right && a.right > b.left) {
-      const p = parseInt(item.dataset.points) || 0;
+
+      const pts = parseInt(item.dataset.points) || 0;
+
       switch (type) {
-        case 'bomb':      /* …爆弾処理… */          break;
-        case 'timePlus':  /* …時間加算… */          break;
-        case 'powerup':   /* …パワーアップ… */      break;
-        case 'helperMG':  /* …MG 助け… */           break;
-        default:          /* 卵系得点 */             updateScore(p, type);
+        case 'bomb':        // 爆弾
+          score = Math.max(0, score + pts); scoreDisplay.textContent = score; resetCombo();
+          seBomb.currentTime = 0; seBomb.play().catch(()=>{});
+          gameContainer.style.background = 'rgba(150,50,50,.7)';
+          setTimeout(() => gameContainer.style.background =
+            'linear-gradient(135deg,#fffacd 0%,#f5deb3 50%,#ffe4b5 100%)', 150);
+          break;
+
+        case 'timePlus':    // 時間+5 秒
+          timeLeft = Math.min(timeLeft + 5, MAX_TIME_LEFT); timerDisplay.textContent = timeLeft;
+          seTimePlus.currentTime = 0; seTimePlus.play().catch(()=>{});
+          break;
+
+        case 'powerup':     // スコア 2 倍
+          sePowerUp.currentTime = 0; sePowerUp.play().catch(()=>{});
+          activatePowerUp();
+          break;
+
+        case 'helperMG':    // MG ちゃん（爆弾2個消し＋得点）
+          updateScore(pts, type);
+          seHelperMG.currentTime = 0; seHelperMG.play().catch(()=>{});
+          [...gameContainer.querySelectorAll('.bomb')].slice(0, 2).forEach(bm => bm.remove());
+          break;
+
+        default:            // 卵（normal/special/golden）
+          updateScore(pts, type);
+          seEggCollect.currentTime = 0; seEggCollect.play().catch(()=>{});
       }
+
       item.remove(); clearInterval(hit);
     }
   }, 30);
 
-  // --- 落下完了で自動削除 & コンボ切れ ---
+  /* ---------- 9. 落下し終えたら削除 & コンボリセット ---------- */
   setTimeout(() => {
-    if (item.parentNode) { item.remove(); if (item.dataset.type.includes('Egg')) resetCombo(); }
+    if (item.parentNode) {
+      item.remove();
+      if (item.dataset.type.includes('Egg')) resetCombo();
+    }
     clearInterval(hit);
   }, dur * 1000 + 300);
 }
