@@ -400,59 +400,50 @@
       check(prob.helper,"helperMG")||check(prob.gold,"goldenEgg")||check(prob.special,"specialEgg");
 
       let w;
-switch (type) {
+  switch (type) {
+    case "bomb":
+      item.className = "bomb";
+      item.dataset.type   = "bomb";
+      item.dataset.points = "-10";
+      w = 40; break;
 
-  case "bomb":
-    item.className   = "bomb";
-    item.dataset.type   = "bomb";
-    item.dataset.points = "-10";
-    w = 40;
-    break;
+    case "timePlus":
+      item.className = "time-plus";
+      item.dataset.type = "timePlus";
+      w = 40; break;
 
-  case "timePlus":
-    item.className   = "time-plus";
-    item.dataset.type   = "timePlus";
-    /* 時間延長なので得点なし */
-    w = 40;
-    break;
+    case "powerup":
+      item.className = "power-up";
+      item.dataset.type   = "powerup";
+      item.dataset.points = "0";
+      w = 45; break;
 
-  case "powerup":
-    item.className   = "power-up";
-    item.dataset.type   = "powerup";
-    item.dataset.points = "0";
-    w = 45;
-    break;
+    case "helperMG":
+      item.className = "helper-mgchan";
+      item.dataset.type   = "helperMG";
+      item.dataset.points = "25";
+      w = 60; break;
 
-  case "helperMG":
-    item.className   = "helper-mgchan";
-    item.dataset.type   = "helperMG";
-    item.dataset.points = "25";
-    w = 60;
-    break;
+    case "goldenEgg":
+      item.className = "egg golden";
+      item.dataset.type   = "goldenEgg";
+      item.dataset.points = "5";
+      w = 40; break;
 
-  case "goldenEgg":
-    item.className   = "egg golden";
-    item.dataset.type   = "goldenEgg";
-    item.dataset.points = "5";
-    w = 40;
-    break;
+    case "specialEgg":
+      item.className = "egg special";
+      item.dataset.type   = "specialEgg";
+      item.dataset.points = "2";
+      w = 32; break;
 
-  case "specialEgg":
-    item.className   = "egg special";
-    item.dataset.type   = "specialEgg";
-    item.dataset.points = "2";
-    w = 32;
-    break;
-
-  /* ▼ 白卵（normalEgg）▼ */
-  case "normalEgg":          // type が渡っている場合
-  default:                   // またはその他すべて
-    item.className   = "egg";
-    item.dataset.type   = "normalEgg";
-    item.dataset.points = "1";
-    w = 26;                 // CSS の幅と合わせる
-    break;
-}
+    /* ▼ 白卵 ▼ */
+    case "normalEgg":
+    default:
+      item.className = "egg";
+      item.dataset.type   = "normalEgg";
+      item.dataset.points = "1";   // ← これが抜けていた
+      w = 26; break;
+  }
 
       item.dataset.type=type;
       item.style.left=Math.random()*(gameContainer.offsetWidth-w)+"px";
