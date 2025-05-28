@@ -444,7 +444,7 @@
       w = 26; break;
   }
 
-     item.dataset.type = type;
+    
 item.style.left = Math.random() * (gameContainer.offsetWidth - w) + "px";
 
 const dur = Math.max(1.5, 2.5 + Math.random() * 2 - level * 0.15);
@@ -461,6 +461,8 @@ item.style.animationName =
 
 /* ② 次に duration（ここで 1 回だけ設定） */
 item.style.animationDuration = dur + "s";
+
+      gameContainer.appendChild(item); 
 
 
       /* 衝突判定 */
