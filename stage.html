@@ -91,7 +91,6 @@
   background-blend-mode:normal;
   border:2px solid rgba(0,0,0,.08);          /* ←1px→2px に */
   filter:drop-shadow(0 3px 4px rgba(0,0,0,.28)); /* 影を少し強く */
-  animation:fall-egg linear;
 }
 
 /* 水色卵（中） */
@@ -445,17 +444,24 @@
       w = 26; break;
   }
 
-      item.dataset.type=type;
-      item.style.left=Math.random()*(gameContainer.offsetWidth-w)+"px";
-      const dur=Math.max(1.5,2.5+Math.random()*2-level*.15);
-      item.style.animationDuration=dur+"s";
-      item.style.setProperty('--random-rotate',(Math.random()-.5)*70+"deg");
-      item.style.setProperty('--random-rotate-half',(Math.random()-.5)*35+"deg");
-      if(type==="normalEgg")item.style.animationName="fall-egg";
-      else if(type==="specialEgg")item.style.animationName="fall-special-egg";
-      else if(type==="goldenEgg")item.style.animationName="fall-golden-egg";
-      else if(type==="helperMG")item.style.animationName="fall-helper";
-      gameContainer.appendChild(item);
+     item.dataset.type = type;
+item.style.left = Math.random() * (gameContainer.offsetWidth - w) + "px";
+
+const dur = Math.max(1.5, 2.5 + Math.random() * 2 - level * 0.15);
+
+item.style.setProperty('--random-rotate',       (Math.random() - .5) * 70 + "deg");
+item.style.setProperty('--random-rotate-half', (Math.random() - .5) * 35 + "deg");
+
+/* ① 先にアニメーション名 */
+item.style.animationName =
+  type === "specialEgg" ? "fall-special-egg" :
+  type === "goldenEgg"  ? "fall-golden-egg"  :
+  type === "helperMG"   ? "fall-helper"      :
+  "fall-egg";           // ← normalEgg を含むデフォルト
+
+/* ② 次に duration（ここで 1 回だけ設定） */
+item.style.animationDuration = dur + "s";
+
 
       /* 衝突判定 */
       const hit=setInterval(()=>{
