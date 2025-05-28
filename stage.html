@@ -87,10 +87,10 @@
 .egg{
   width:26px;height:34px;
   background-image:url("egg_white.png"),
-    radial-gradient(circle at 40% 35%,#ffffff 0%,#f9f9f9 60%,#e2e2e2 100%);
+     radial-gradient(circle at 40% 35%,#ffffff 0%,#f9f9f9 60%,#e2e2e2 100%);
   background-blend-mode:normal;
-  border:1px solid rgba(0,0,0,.06);
-  filter:drop-shadow(0 2px 3px rgba(0,0,0,.25));
+  border:2px solid rgba(0,0,0,.08);          /* ←1px→2px に */
+  filter:drop-shadow(0 3px 4px rgba(0,0,0,.28)); /* 影を少し強く */
   animation:fall-egg linear;
 }
 
@@ -400,15 +400,60 @@
       check(prob.helper,"helperMG")||check(prob.gold,"goldenEgg")||check(prob.special,"specialEgg");
 
       let w;
-      switch(type){
-        case"bomb":item.className="bomb";item.dataset.points="-10";w=40;break;
-        case"timePlus":item.className="time-plus";w=40;break;
-        case"powerup":item.className="power-up";item.dataset.points="0";w=45;break;
-        case"helperMG":item.className="helper-mgchan";item.dataset.points="25";w=60;break;
-        case"goldenEgg":item.className="egg golden";item.dataset.points="5";w=40;break;
-        case"specialEgg":item.className="egg special";item.dataset.points="2";w=32;break;
-        default:item.className="egg";item.dataset.points="1";w=26;
-      }
+switch (type) {
+
+  case "bomb":
+    item.className   = "bomb";
+    item.dataset.type   = "bomb";
+    item.dataset.points = "-10";
+    w = 40;
+    break;
+
+  case "timePlus":
+    item.className   = "time-plus";
+    item.dataset.type   = "timePlus";
+    /* 時間延長なので得点なし */
+    w = 40;
+    break;
+
+  case "powerup":
+    item.className   = "power-up";
+    item.dataset.type   = "powerup";
+    item.dataset.points = "0";
+    w = 45;
+    break;
+
+  case "helperMG":
+    item.className   = "helper-mgchan";
+    item.dataset.type   = "helperMG";
+    item.dataset.points = "25";
+    w = 60;
+    break;
+
+  case "goldenEgg":
+    item.className   = "egg golden";
+    item.dataset.type   = "goldenEgg";
+    item.dataset.points = "5";
+    w = 40;
+    break;
+
+  case "specialEgg":
+    item.className   = "egg special";
+    item.dataset.type   = "specialEgg";
+    item.dataset.points = "2";
+    w = 32;
+    break;
+
+  /* ▼ 白卵（normalEgg）▼ */
+  case "normalEgg":          // type が渡っている場合
+  default:                   // またはその他すべて
+    item.className   = "egg";
+    item.dataset.type   = "normalEgg";
+    item.dataset.points = "1";
+    w = 26;                 // CSS の幅と合わせる
+    break;
+}
+
       item.dataset.type=type;
       item.style.left=Math.random()*(gameContainer.offsetWidth-w)+"px";
       const dur=Math.max(1.5,2.5+Math.random()*2-level*.15);
