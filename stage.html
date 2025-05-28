@@ -75,7 +75,6 @@
       }
     }
 
-    /* 落下する殻のエフェクト */
     .outer-shell-particle {
       position: absolute;
       pointer-events: none;
@@ -142,7 +141,7 @@
       }
     }
 
-    /* ─── アイテム（卵・爆弾など） ─── */
+    /* ─── アイテム ─── */
     .egg,
     .bomb,
     .power-up,
@@ -170,6 +169,7 @@
       background-blend-mode: normal;
       border: 2px solid rgba(0, 0, 0, 0.08);
       filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.28));
+      animation: fall-egg linear; /* ★ 追加 ★ */
     }
 
     /* 水色卵 */
@@ -178,6 +178,7 @@
       height: 44px;
       background-image: url("egg_blue.png");
       filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+      animation: fall-special-egg linear;
     }
 
     /* ゴールド卵 */
@@ -186,6 +187,7 @@
       height: 52px;
       background-image: url("egg_gold.png");
       filter: drop-shadow(0 0 15px gold) drop-shadow(0 0 5px white);
+      animation: fall-golden-egg linear;
     }
 
     /* MG ちゃん */
@@ -195,6 +197,7 @@
       background-image: url("MG Chan.PNG");
       border-radius: 15px;
       filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
+      animation: fall-helper linear;
     }
 
     /* 爆弾 */
@@ -204,6 +207,7 @@
       background: radial-gradient(circle, #5a3d32 0%, #3e2723 70%, #2d1b17 100%);
       border-radius: 50%;
       filter: drop-shadow(0 0 10px rgba(40, 20, 10, 0.8));
+      animation: fall-bomb linear;
     }
     .bomb::before {
       content: "💣";
@@ -231,6 +235,7 @@
         #ff6347
       );
       filter: drop-shadow(0 0 15px rgba(255, 165, 0, 0.8));
+      animation: fall-powerup linear;
     }
     .power-up::before {
       content: "🔥";
@@ -254,6 +259,7 @@
         #bdb76b 100%
       );
       filter: drop-shadow(0 0 8px rgba(218, 165, 32, 0.7));
+      animation: fall-time-plus linear;
     }
     .time-plus::before {
       content: "⏱️";
@@ -264,6 +270,7 @@
       font-size: 25px;
       animation: time-pulse 1.5s ease-in-out infinite alternate;
     }
+
 
     /* ─── UI 要素 ─── */
     #scoreboard,
