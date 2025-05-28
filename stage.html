@@ -6,270 +6,56 @@
   <title>Reborn Catch – 究極版</title>
   <style>
     /* ─── 共通リセット & フォント ─── */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-user-select: none;
-      user-select: none;
-      -webkit-touch-callout: none;
-      -webkit-tap-highlight-color: transparent;
-    }
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
     @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap");
-    body {
-      width: 100vw;
-      height: 100vh;
-      overflow: hidden;
-      font-family: "Noto Sans JP", sans-serif;
-      touch-action: manipulation;
-    }
+    body{width:100vw;height:100vh;overflow:hidden;font-family:"Noto Sans JP",sans-serif;touch-action:manipulation}
 
     /* ─── レイアウト ─── */
-    #page-wrapper {
-      width: 100%;
-      height: 100%;
-      background: #1a1a1a;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      overflow: hidden;
-    }
-    #game-container {
-      position: relative;
-      width: 100%;
-      max-width: 380px;
-      height: 100%;
-      background: linear-gradient(135deg, #fffacd 0%, #f5deb3 50%, #ffe4b5 100%);
-      overflow: hidden;
-      box-shadow: 0 0 20px rgba(255, 228, 181, 0.5);
-    }
+    #page-wrapper{width:100%;height:100%;background:#1a1a1a;display:flex;justify-content:center;align-items:center;position:relative;overflow:hidden}
+    #game-container{position:relative;width:100%;max-width:380px;height:100%;background:linear-gradient(135deg,#fffacd 0%,#f5deb3 50%,#ffe4b5 100%);overflow:hidden;box-shadow:0 0 20px rgba(255,228,181,.5)}
 
     /* ─── 背景パーティクル ─── */
-    .bg-bubble-particle {
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: none;
-      animation: float-bubble linear infinite;
-      z-index: 1;
-      opacity: 0;
-    }
-    .bg-bubble-particle.yellow {
-      background: rgba(255, 215, 0, 0.15);
-    }
-    .bg-bubble-particle.white {
-      background: rgba(255, 250, 240, 0.12);
-    }
-    @keyframes float-bubble {
-      0% {
-        transform: translateY(105%) scale(var(--bubble-scale));
-        opacity: 0;
-      }
-      20%,
-      80% {
-        opacity: var(--bubble-opacity);
-      }
-      100% {
-        transform: translateY(-10%) scale(var(--bubble-scale));
-        opacity: 0;
-      }
-    }
+    .bg-bubble-particle{position:absolute;border-radius:50%;pointer-events:none;animation:float-bubble linear infinite;z-index:1;opacity:0}
+    .bg-bubble-particle.yellow{background:rgba(255,215,0,.15)}
+    .bg-bubble-particle.white{background:rgba(255,250,240,.12)}
+    @keyframes float-bubble{0%{transform:translateY(105%) scale(var(--bubble-scale));opacity:0}20%,80%{opacity:var(--bubble-opacity)}100%{transform:translateY(-10%) scale(var(--bubble-scale));opacity:0}}
 
-    .outer-shell-particle {
-      position: absolute;
-      pointer-events: none;
-      opacity: 0;
-      z-index: 5;
-      background: rgba(245, 222, 179, 0.3);
-      width: var(--shell-width);
-      height: var(--shell-height);
-      border-radius: 30% 70% 20% 80% / 50% 40% 60% 50%;
-      animation: fall-outer-shell linear infinite;
-    }
-    @keyframes fall-outer-shell {
-      0% {
-        transform: translateY(-10vh)
-          translateX(var(--outer-start-x))
-          rotateZ(0deg)
-          rotateY(var(--outer-rotate-y-start));
-        opacity: 0;
-      }
-      10%,
-      90% {
-        opacity: 0.5;
-      }
-      100% {
-        transform: translateY(110vh)
-          translateX(var(--outer-end-x))
-          rotateZ(var(--outer-rotate-z-end))
-          rotateY(var(--outer-rotate-y-end));
-        opacity: 0;
-      }
-    }
+    .outer-shell-particle{position:absolute;pointer-events:none;opacity:0;z-index:5;background:rgba(245,222,179,.3);width:var(--shell-width);height:var(--shell-height);border-radius:30% 70% 20% 80%/50% 40% 60% 50%;animation:fall-outer-shell linear infinite}
+    @keyframes fall-outer-shell{0%{transform:translateY(-10vh) translateX(var(--outer-start-x)) rotateZ(0deg) rotateY(var(--outer-rotate-y-start));opacity:0}10%,90%{opacity:.5}100%{transform:translateY(110vh) translateX(var(--outer-end-x)) rotateZ(var(--outer-rotate-z-end)) rotateY(var(--outer-rotate-y-end));opacity:0}}
 
     /* ─── キャラクター ─── */
-    #character {
-      position: absolute;
-      bottom: 80px;
-      left: 50%;
-      transform: translateX(-50%);
-      max-height: 25vh;
-      max-width: 120px;
-      height: auto;
-      z-index: 50;
-      filter: drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.2));
-    }
-    #character.jump {
-      animation: jump 0.6s ease;
-    }
-    #character.powerup {
-      filter: drop-shadow(0 0 15px #ffd700)
-        drop-shadow(2px 4px 8px rgba(0, 0, 0, 0.2));
-      transform: translateX(-50%) scale(1.1);
-      transition: 0.2s ease-out;
-    }
-    @keyframes jump {
-      0% {
-        transform: translateX(-50%) translateY(0);
-      }
-      30%,
-      60% {
-        transform: translateX(-50%) translateY(-60px);
-      }
-      100% {
-        transform: translateX(-50%) translateY(0);
-      }
-    }
+    #character{position:absolute;bottom:80px;left:50%;transform:translateX(-50%);max-height:25vh;max-width:120px;height:auto;z-index:50;filter:drop-shadow(2px 4px 8px rgba(0,0,0,.2))}
+    #character.jump{animation:jump .6s ease}
+    #character.powerup{filter:drop-shadow(0 0 15px #ffd700) drop-shadow(2px 4px 8px rgba(0,0,0,.2));transform:translateX(-50%) scale(1.1);transition:.2s ease-out}
+    @keyframes jump{0%{transform:translateX(-50%) translateY(0)}30%,60%{transform:translateX(-50%) translateY(-60px)}100%{transform:translateX(-50%) translateY(0)}}
 
     /* ─── アイテム ─── */
-    .egg,
-    .bomb,
-    .power-up,
-    .time-plus,
-    .helper-mgchan {
-      position: absolute;
-      pointer-events: none;
-      z-index: 40;
-      background-position: center;
-      background-size: contain;
-      background-repeat: no-repeat;
-    }
+    .egg,.bomb,.power-up,.time-plus,.helper-mgchan{position:absolute;pointer-events:none;z-index:40;background-position:center;background-size:contain;background-repeat:no-repeat}
 
-    /* 白い卵 */
-    .egg {
-      width: 26px;
-      height: 34px;
-      background-image: url("egg_white.png"),
-        radial-gradient(
-          circle at 40% 35%,
-          #ffffff 0%,
-          #f9f9f9 60%,
-          #e2e2e2 100%
-        );
-      background-blend-mode: normal;
-      border: 2px solid rgba(0, 0, 0, 0.08);
-      filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.28));
-      animation: fall-egg linear; /* ★ 追加 ★ */
-    }
+    /* 白卵 (normalEgg) */
+    .egg{width:26px;height:34px;background-image:url("egg_white.png"),radial-gradient(circle at 40% 35%,#fff 0%,#f9f9f9 60%,#e2e2e2 100%);background-blend-mode:normal;border:2px solid rgba(0,0,0,.08);filter:drop-shadow(0 3px 4px rgba(0,0,0,.28));animation-timing-function:linear}
 
     /* 水色卵 */
-    .egg.special {
-      width: 32px;
-      height: 44px;
-      background-image: url("egg_blue.png");
-      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
-      animation: fall-special-egg linear;
-    }
+    .egg.special{width:32px;height:44px;background-image:url("egg_blue.png");filter:drop-shadow(0 2px 4px rgba(0,0,0,.25));animation:fall-special-egg linear}
 
     /* ゴールド卵 */
-    .egg.golden {
-      width: 40px;
-      height: 52px;
-      background-image: url("egg_gold.png");
-      filter: drop-shadow(0 0 15px gold) drop-shadow(0 0 5px white);
-      animation: fall-golden-egg linear;
-    }
+    .egg.golden{width:40px;height:52px;background-image:url("egg_gold.png");filter:drop-shadow(0 0 15px gold) drop-shadow(0 0 5px white);animation:fall-golden-egg linear}
 
-    /* MG ちゃん */
-    .helper-mgchan {
-      width: 60px;
-      height: 60px;
-      background-image: url("MG Chan.PNG");
-      border-radius: 15px;
-      filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
-      animation: fall-helper linear;
-    }
+    /* MGちゃん */
+    .helper-mgchan{width:60px;height:60px;background-image:url("MG Chan.PNG");border-radius:15px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.3));animation:fall-helper linear}
 
     /* 爆弾 */
-    .bomb {
-      width: 40px;
-      height: 40px;
-      background: radial-gradient(circle, #5a3d32 0%, #3e2723 70%, #2d1b17 100%);
-      border-radius: 50%;
-      filter: drop-shadow(0 0 10px rgba(40, 20, 10, 0.8));
-      animation: fall-bomb linear;
-    }
-    .bomb::before {
-      content: "💣";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 28px;
-      color: #ff4500;
-      text-shadow: 0 0 5px #ff0000;
-      animation: bomb-pulse 0.5s infinite alternate;
-    }
+    .bomb{width:40px;height:40px;background:radial-gradient(circle,#5a3d32 0%,#3e2723 70%,#2d1b17 100%);border-radius:50%;filter:drop-shadow(0 0 10px rgba(40,20,10,.8));animation:fall-bomb linear}
+    .bomb::before{content:"💣";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;color:#ff4500;text-shadow:0 0 5px #ff0000;animation:bomb-pulse .5s infinite alternate}
 
     /* パワーアップ */
-    .power-up {
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      background: linear-gradient(
-        45deg,
-        #ffd700,
-        #ffa500,
-        #ff8c00,
-        #ff7f50,
-        #ff6347
-      );
-      filter: drop-shadow(0 0 15px rgba(255, 165, 0, 0.8));
-      animation: fall-powerup linear;
-    }
-    .power-up::before {
-      content: "🔥";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 25px;
-      animation: star-spin 1.5s linear infinite;
-    }
+    .power-up{width:45px;height:45px;border-radius:50%;background:linear-gradient(45deg,#ffd700,#ffa500,#ff8c00,#ff7f50,#ff6347);filter:drop-shadow(0 0 15px rgba(255,165,0,.8));animation:fall-powerup linear}
+    .power-up::before{content:"🔥";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:25px;animation:star-spin 1.5s linear infinite}
 
     /* タイムプラス */
-    .time-plus {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: radial-gradient(
-        circle,
-        #f0e68c 0%,
-        #eee8aa 50%,
-        #bdb76b 100%
-      );
-      filter: drop-shadow(0 0 8px rgba(218, 165, 32, 0.7));
-      animation: fall-time-plus linear;
-    }
-    .time-plus::before {
-      content: "⏱️";
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 25px;
-      animation: time-pulse 1.5s ease-in-out infinite alternate;
-    }
+    .time-plus{width:40px;height:40px;border-radius:50%;background:radial-gradient(circle,#f0e68c 0%,#eee8aa 50%,#bdb76b 100%);filter:drop-shadow(0 0 8px rgba(218,165,32,.7));animation:fall-time-plus linear}
+    .time-plus::before{content:"⏱️";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:25px;animation:time-pulse 1.5s ease-in-out infinite alternate}
+
 
 
     /* ─── UI 要素 ─── */
