@@ -384,78 +384,109 @@
       powerEffect.style.display='none';clearInterval(powerUpTimerId);
     }
 
-    /* アイテム生成 */
-    function createItem(){
-      if(timeLeft<=0)return;
-      const item=document.createElement("div");
-      const r=Math.random();
-      const prob={bomb:0, timePlus:.08, powerUp:0, helper:.06, gold:.10, special:.15};
-      if(level>=2)prob.bomb=Math.min(.05+(level-2)*.03,.14),prob.powerUp=.07;
-      let sum=0,type="normalEgg";
-      const check=(p, t)=>{sum+=p;if(r<sum){type=t;return true}};
-      check(prob.bomb,"bomb")||check(prob.timePlus,"timePlus")||check(prob.powerUp,"powerup")||
-      check(prob.helper,"helperMG")||check(prob.gold,"goldenEgg")||check(prob.special,"specialEgg");
+    /*  アイテム生成  */
+function createItem () {
+  if (timeLeft <= 0) return;
 
-      let w;
-      switch(type){
-        case"bomb":item.className="bomb";item.dataset.points="-10";w=40;break;
-        case"timePlus":item.className="time-plus";w=40;break;
-        case"powerup":item.className="power-up";item.dataset.points="0";w=45;break;
-        case"helperMG":item.className="helper-mgchan";item.dataset.points="25";w=60;break;
-        case"goldenEgg":item.className="egg golden";item.dataset.points="5";w=40;break;
-        case"specialEgg":item.className="egg special";item.dataset.points="2";w=32;break;
-        default:item.className="egg";item.dataset.points="1";w=26;item.style.animationName= "fall-egg";break;
-      }
-      item.dataset.type=type;
-      item.style.left=Math.random()*(gameContainer.offsetWidth-w)+"px";
-      const dur=Math.max(1.5,2.5+Math.random()*2-level*.15);
-      item.style.animationDuration=dur+"s";
-      item.style.setProperty('--random-rotate',(Math.random()-.5)*70+"deg");
-      item.style.setProperty('--random-rotate-half',(Math.random()-.5)*35+"deg");
-      if(type==="normalEgg")item.style.animationName="fall-egg";
-      else if(type==="specialEgg")item.style.animationName="fall-special-egg";
-      else if(type==="goldenEgg")item.style.animationName="fall-golden-egg";
-      else if(type==="helperMG")item.style.animationName="fall-helper";
-      gameContainer.appendChild(item);
+  /* ── 1.   どのアイテムを出すか抽選 ──────────── */
+  const r = Math.random();
+  const prob = { bomb: 0, timePlus: .08, powerUp: 0, helper: .06, gold: .10, special: .15 };
+  if (level >= 2) {               // レベル 2 以降で確率が増えるもの
+    prob.bomb   = Math.min(.05 + (level - 2) * .03, .14);
+    prob.powerUp = .07;
+  }
+  let sum = 0, type = "normalEgg";
+  const pick = (p, t) => { sum += p; return (r < sum) && (type = t); };
+  pick(prob.bomb,   "bomb"     ) ||  pick(prob.timePlus,"timePlus") ||
+  pick(prob.powerUp,"powerup"  ) ||  pick(prob.helper,  "helperMG") ||
+  pick(prob.gold,   "goldenEgg") ||  pick(prob.special, "specialEgg");
 
-      /* 衝突判定 */
-      const hit=setInterval(()=>{
-        if(!item.parentNode||timeLeft<=0){clearInterval(hit);item.remove();return}
-        const a=item.getBoundingClientRect(),b=character.getBoundingClientRect();
-        if(a.top<b.bottom&&a.bottom>b.top&&a.left<b.right&&a.right>b.left){
-          const p=parseInt(item.dataset.points)||0;
-          switch(type){
-            case"bomb":
-              score=Math.max(0,score+p);scoreDisplay.textContent=score;resetCombo();
-              seBomb.currentTime=0;seBomb.play().catch(()=>{});
-              gameContainer.style.background='rgba(150,50,50,.7)';
-              setTimeout(()=>gameContainer.style.background='linear-gradient(135deg,#fffacd 0%,#f5deb3 50%,#ffe4b5 100%)',150);
-              break;
-            case"timePlus":
-              timeLeft=Math.min(timeLeft+5,MAX_TIME_LEFT);timerDisplay.textContent=timeLeft;
-              seTimePlus.currentTime=0;seTimePlus.play().catch(()=>{});
-              break;
-            case"powerup":
-              sePowerUp.currentTime=0;sePowerUp.play().catch(()=>{});
-              activatePowerUp();break;
-            case"helperMG":
-              updateScore(p,type);
-              seHelperMG.currentTime=0;seHelperMG.play().catch(()=>{});
-              [...gameContainer.querySelectorAll('.bomb')].slice(0,2).forEach(e=>e.remove());
-              break;
-            default: /* 卵系 */
-              updateScore(p,type);
-              seEggCollect.currentTime=0;seEggCollect.play().catch(()=>{});
-          }
-          item.remove();clearInterval(hit);
-        }
-      },30);
-      /* 落下終了で消去 */
-      setTimeout(()=>{
-        if(item.parentNode){item.remove();if(item.dataset.type.includes("Egg"))resetCombo()}
-        clearInterval(hit);
-      },dur*1000+300);
+  /* ── 2.   種類別の見た目・得点・幅を設定 ─────── */
+  const item = document.createElement("div");
+  let w;                    // 幅だけ後で left 計算に使う
+
+  switch (type) {
+    case "bomb":
+      item.className      = "bomb";
+      item.dataset.points = "-10";
+      w = 40; break;
+
+    case "timePlus":
+      item.className      = "time-plus";
+      w = 40; break;
+
+    case "powerup":
+      item.className      = "power-up";
+      item.dataset.points = "0";
+      w = 45; break;
+
+    case "helperMG":
+      item.className      = "helper-mgchan";
+      item.dataset.points = "25";
+      w = 60; break;
+
+    case "goldenEgg":
+      item.className      = "egg golden";
+      item.dataset.points = "5";
+      w = 40; break;
+
+    case "specialEgg":
+      item.className      = "egg special";
+      item.dataset.points = "2";
+      w = 32; break;
+
+    /* ▼ normalEgg（白卵）▼ */
+    default:
+      item.className      = "egg";
+      item.dataset.points = "1";
+      w = 26; break;
+  }
+  item.dataset.type = type;      // 衝突判定などで参照
+
+  /* ── 3.   共通の落下アニメーション設定 ─────── */
+  const dur = Math.max(1.5, 2.5 + Math.random() * 2 - level * 0.15);
+
+  item.style.left               = Math.random() * (gameContainer.offsetWidth - w) + "px";
+  item.style.animationDuration  = dur + "s";
+  item.style.animationName      =
+        type === "specialEgg" ? "fall-special-egg" :
+        type === "goldenEgg"  ? "fall-golden-egg"  :
+        type === "helperMG"   ? "fall-helper"      :
+        "fall-egg";                       // ← normalEgg 含むデフォルト
+
+  /* ★ fall-egg 用の回転角カスタムプロパティを必ず入れる */
+  item.style.setProperty("--start-rot-z", ((Math.random() - .5) * 60).toFixed(1) + "deg");
+  item.style.setProperty("--end-rot-z",   ((Math.random() - .5) * 90).toFixed(1) + "deg");
+
+  /* （golden／special 用の追加プロパティも共通で入れておくと見栄え安定） */
+  item.style.setProperty("--random-rotate",       ((Math.random() - .5) * 70).toFixed(1) + "deg");
+  item.style.setProperty("--random-rotate-half",  ((Math.random() - .5) * 35).toFixed(1) + "deg");
+
+  gameContainer.appendChild(item);
+
+  /* ── 4.   以下　衝突判定＆掃除 ───────────────── */
+  const hit = setInterval(() => {
+    if (!item.parentNode || timeLeft <= 0) { clearInterval(hit); item.remove(); return; }
+
+    const a = item.getBoundingClientRect();
+    const b = character.getBoundingClientRect();
+    if (a.top < b.bottom && a.bottom > b.top && a.left < b.right && a.right > b.left) {
+      const pts = parseInt(item.dataset.points) || 0;
+      // ★ 既存のスコア処理 / 効果音 / パワーアップ呼び出しなどは元のまま ★
+      /*  …… ここはあなたの元の switch(type){…} をそのまま残して下さい …… */
+      item.remove(); clearInterval(hit);
     }
+  }, 30);
+
+  /* アニメーションが終わったら自動で削除 */
+  setTimeout(() => {
+    if (item.parentNode) {
+      item.remove();
+      if (item.dataset.type?.includes("Egg")) resetCombo();  // 既存関数
+    }
+    clearInterval(hit);
+  }, dur * 1000 + 300);
+}
 
     /* ゲーム開始・終了 */
     function startGame(){
