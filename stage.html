@@ -464,30 +464,72 @@ function createItem () {
 
   gameContainer.appendChild(item);
 
-  /* ── 4.   以下　衝突判定＆掃除 ───────────────── */
-  const hit = setInterval(() => {
-    if (!item.parentNode || timeLeft <= 0) { clearInterval(hit); item.remove(); return; }
+  /* ── 4.   衝突判定 ＆ スコア・効果音処理 ───────────────── */
+const hit = setInterval(() => {
+  if (!item.parentNode || timeLeft <= 0) {       // 画面外・終了時に掃除
+    clearInterval(hit); item.remove(); return;
+  }
 
-    const a = item.getBoundingClientRect();
-    const b = character.getBoundingClientRect();
-    if (a.top < b.bottom && a.bottom > b.top && a.left < b.right && a.right > b.left) {
-      const pts = parseInt(item.dataset.points) || 0;
-      // ★ 既存のスコア処理 / 効果音 / パワーアップ呼び出しなどは元のまま ★
-      /*  …… ここはあなたの元の switch(type){…} をそのまま残して下さい …… */
-      item.remove(); clearInterval(hit);
-    }
-  }, 30);
+  const a = item.getBoundingClientRect();
+  const b = character.getBoundingClientRect();
 
-  /* アニメーションが終わったら自動で削除 */
-  setTimeout(() => {
-    if (item.parentNode) {
-      item.remove();
-      if (item.dataset.type?.includes("Egg")) resetCombo();  // 既存関数
+  if (a.top < b.bottom && a.bottom > b.top && a.left < b.right && a.right > b.left) {
+
+    /* --- 衝突した！ --- */
+    const pts = parseInt(item.dataset.points) || 0;
+
+    switch (type) {
+
+      /* ① 爆弾 ------------------------------------------------ */
+      case "bomb":
+        score = Math.max(0, score + pts);
+        scoreDisplay.textContent = score;
+        resetCombo();
+
+        if (seBomb) { seBomb.currentTime = 0; seBomb.play().catch(()=>{}); }
+
+        /* 一瞬背景を赤くする演出 */
+        gameContainer.style.background = 'rgba(150,50,50,.7)';
+        setTimeout(() => {
+          gameContainer.style.background =
+            'linear-gradient(135deg,#fffacd 0%,#f5deb3 50%,#ffe4b5 100%)';
+        }, 150);
+        break;
+
+      /* ② 時間＋５秒 ------------------------------------------ */
+      case "timePlus":
+        timeLeft = Math.min(timeLeft + 5, MAX_TIME_LEFT);
+        timerDisplay.textContent = timeLeft;
+        if (seTimePlus) { seTimePlus.currentTime = 0; seTimePlus.play().catch(()=>{}); }
+        break;
+
+      /* ③ パワーアップ（得点×２） ----------------------------- */
+      case "powerup":
+        if (sePowerUp) { sePowerUp.currentTime = 0; sePowerUp.play().catch(()=>{}); }
+        activatePowerUp();
+        break;
+
+      /* ④ ヘルパー（爆弾を最大２個除去＋25 点） -------------- */
+      case "helperMG":
+        updateScore(pts, "helperMG");
+        if (seHelperMG) { seHelperMG.currentTime = 0; seHelperMG.play().catch(()=>{}); }
+
+        /* 画面上の爆弾を２個まで除去 */
+        [...gameContainer.querySelectorAll(".bomb")].slice(0, 2).forEach(b => b.remove());
+        break;
+
+      /* ⑤ 卵（白／水色／金） --------------------------------- */
+      default:   // normalEgg, specialEgg, goldenEgg
+        updateScore(pts, item.dataset.type);
+        if (seEggCollect) { seEggCollect.currentTime = 0; seEggCollect.play().catch(()=>{}); }
+        break;
     }
+
+    /* 衝突後はアイテムを削除してループ終了 */
+    item.remove();
     clearInterval(hit);
-  }, dur * 1000 + 300);
-}
-
+  }
+}, 30);
     /* ゲーム開始・終了 */
     function startGame(){
       characterX=gameContainer.offsetWidth/2;character.style.left=characterX+"px";
