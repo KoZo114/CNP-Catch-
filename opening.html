@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reborn Catch – Opening</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  width:100vw;height:100vh;overflow:hidden;
+  background:#ffeecd url("img/bg_opening.jpg") center/cover no-repeat;
+  display:flex;justify-content:center;align-items:center;
+  font-family:"Noto Sans JP",sans-serif;
+}
+#stage{
+  position:relative;width:100%;height:100%;
+}
+.character{
+  position:absolute;pointer-events:none;
+  width:80px;height:80px;
+  background-size:contain;background-repeat:no-repeat;
+  animation:moveAcross var(--dur) linear forwards;
+}
+
+/* 出現～消失のベクトルを JS が --fromX/Y, --toX/Y に流し込む */
+@keyframes moveAcross{
+  0%  {transform:translate(var(--fromX),var(--fromY)) scale(1);}
+  100%{transform:translate(var(--toX)  ,var(--toY))   scale(1);}
+}
+
+#startBtn{
+  position:absolute;bottom:10%;left:50%;transform:translateX(-50%);
+  padding:14px 40px;font-size:20px;font-weight:bold;letter-spacing:2px;
+  border:none;border-radius:40px;cursor:pointer;
+  color:#fff;background:linear-gradient(135deg,#ff8c00,#ff4500);
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.3));
+}
+#startBtn:hover{opacity:.9}
+</style>
+</head>
+<body>
+
+<div id="stage"></div>
+<button id="startBtn">START</button>
+
+<script>
+/* ▼ 設定値 --------------------------------------------- */
+const SPRITES = [
+  "img/char1.png","img/char2.png","img/char3.png",
+  "img/char4.png","img/char5.png","img/char6.png","img/char7.png"
+];
+const SPAWN_INTERVAL = 1000;   // ms ごとに 1 体生成
+const MIN_DUR = 5, MAX_DUR = 10; // 移動秒数（ランダム）
+
+/* ▼ ヘルパー ------------------------------------------- */
+const rand = (min,max)=>Math.random()*(max-min)+min;
+
+/* 端をランダムに選んで from / to 座標を返す */
+function pickEdgePosition(w,h){
+  const side = Math.floor(Math.random()*4); // 0:top 1:right 2:bottom 3:left
+  let fromX,fromY,toX,toY;
+  switch(side){
+    case 0: // 上→下
+      fromX = rand(-w*0.1, w*1.1); fromY = -100;
+      toX   = rand(-w*0.1, w*1.1); toY   = h+100; break;
+    case 1: // 右→左
+      fromX = w+100; fromY = rand(-h*0.1, h*1.1);
+      toX   = -100;  toY   = rand(-h*0.1, h*1.1); break;
+    case 2: // 下→上
+      fromX = rand(-w*0.1, w*1.1); fromY = h+100;
+      toX   = rand(-w*0.1, w*1.1); toY   = -100; break;
+    case 3: // 左→右
+      fromX = -100;  fromY = rand(-h*0.1, h*1.1);
+      toX   = w+100; toY   = rand(-h*0.1, h*1.1); break;
+  }
+  return {fromX,fromY,toX,toY};
+}
+
+/* ▼ メイン --------------------------------------------- */
+const stage = document.getElementById("stage");
+function spawnCharacter(){
+  const ch = document.createElement("div");
+  ch.className = "character";
+  ch.style.backgroundImage = `url("${SPRITES[Math.floor(Math.random()*SPRITES.length)]}")`;
+
+  const {fromX,fromY,toX,toY} = pickEdgePosition(window.innerWidth, window.innerHeight);
+  ch.style.setProperty("--fromX", fromX + "px");
+  ch.style.setProperty("--fromY", fromY + "px");
+  ch.style.setProperty("--toX",   toX   + "px");
+  ch.style.setProperty("--toY",   toY   + "px");
+
+  const dur = rand(MIN_DUR,MAX_DUR).toFixed(1);
+  ch.style.setProperty("--dur", dur + "s");
+
+  stage.appendChild(ch);
+
+  /* アニメ終了で削除 → 再スポーン */
+  ch.addEventListener("animationend", ()=>{ ch.remove(); });
+}
+let timer = setInterval(spawnCharacter, SPAWN_INTERVAL);
+
+/* START ボタンクリックでゲームへ */
+document.getElementById("startBtn").onclick = ()=>{
+  clearInterval(timer);
+  window.location.href = "stage.html";     // ★ここを既存ステージに
+};
+
+/* リサイズ対応で画面が極端に変わるときの軌道ズレを防ぐ */
+window.addEventListener("resize", ()=>{
+  // 既に飛んでいるキャラはそのまま、次 spawn で新しい座標が反映される
+});
+</script>
+</body>
+</html>
