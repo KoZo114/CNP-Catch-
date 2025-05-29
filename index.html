@@ -34,6 +34,57 @@
         from{transform:translate(var(--startX),var(--startY));opacity:0}
         5% {opacity:1}
         to  {transform:translate(var(--endX),var(--endY));opacity:0}
+        /* =========================
+   opening 背景：ほたる風キラキラ
+   ========================= */
+
+/* ① 背景を完全に黒にする  */
+body{
+  background:#000;            /* ←真っ黒   */
+  overflow:hidden;            /* スクロールバーを出さない */
+}
+
+/* ② :before 疑似要素に “粒” を 60 個ばら撒く
+      (色情報は HSL で３色をランダム化）          */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;                 /* 背景として最背面に */
+  background:
+    /* --- 60 ルール --- */
+    /* 60 個それぞれを radial-gradient で発光させて
+       背景画像の layer に列挙する。
+       サイズ・位置は calc()+random を使わず固定値で良い */
+    /* ▼ 生成スクリプト例で自動出力して貼るともっと楽ですが
+         手動の場合は 30‒80 個であれば十分 ▼              */
+}
+
+/* ③ “ほたるの点滅” キーフレーム */
+@keyframes twinkle{
+  0%,100%   { transform:scale(.4); opacity:0; }
+  10%       { opacity:.8; }
+  50%       { opacity:1;  }
+  90%       { opacity:.8; transform:scale(.6); }
+}
+
+/* ④ 実体の粒を作る */
+.star{
+  position:fixed;
+  width:4px; height:4px;
+  border-radius:50%;
+  background:#fff;
+  pointer-events:none;
+  animation:twinkle 4.5s linear infinite;
+  filter:blur(1px) drop-shadow(0 0 4px currentColor);
+}
+
+/* --- ３色バリエーションを class で分ける --- */
+.star.c1{ color:#FFD700; }
+.star.c2{ color:#7FFFD4; }
+.star.c3{ color:#FF69B4; }
+
     }
 </style>
 </head>
@@ -125,6 +176,31 @@ setInterval(()=>{
     setTimeout(()=>running--, 7000);
   }
 }, INTERVAL);
+
+
+document.addEventListener("DOMContentLoaded", ()=>{
+
+  const colors = ["c1","c2","c3"];      // ３色クラス
+  const COUNT  = 60;                    // 粒の個数
+
+  for(let i=0;i<COUNT;i++){
+    const s = document.createElement("div");
+    s.className = "star "+colors[i%colors.length];
+    /* 画面全体を乱数配置 */
+    s.style.top  = Math.random()*100+"vh";
+    s.style.left = Math.random()*100+"vw";
+    /* サイズを 3-6px の範囲でランダムに */
+    const size = 3+Math.random()*3;
+    s.style.width = s.style.height = size+"px";
+    /* 個別にアニメ遅延をずらして自然な光り方に */
+    s.style.animationDelay = (Math.random()*4)+"s";
+    /* 速度もちょっとランダム化 */
+    s.style.animationDuration = (4+Math.random()*3)+"s";
+    document.body.appendChild(s);
+  }
+
+});
+
 
 /* stage をクリックでメインへ遷移 (仮) */
 stage.addEventListener("click",()=>location.href="select.html");
