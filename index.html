@@ -3,208 +3,125 @@
 <head>
 <meta charset="utf-8">
 <title>Opening – CNP-Catch</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-    /* 画面を覆うステージ */
-    body,html{margin:0;height:100%;overflow:hidden;background:#141414;}
+/* ============================
+   レイアウト & 背景
+============================ */
+html,body{margin:0;height:100%;overflow:hidden;background:#000;}
 
-    #opening-stage{
-        position:relative;width:100%;height:100%;
-        overflow:hidden;
-    }
+#opening-stage{position:relative;width:100%;height:100%;overflow:hidden;}
 
-    /* キャラ共通スタイル */
-    .char{
-        position:absolute;
-        width:120px;           /* お好みで */
-        pointer-events:none;   /* クリック貫通 */
-        will-change:transform; /* パフォーマンス */
-        animation:float linear forwards;
-    }
-
-    /* キャラが少しプカプカゆれる */
-    @keyframes bob {
-        0%,100%{transform:translate(-50%,-50%) translateY(0)}
-        50%    {transform:translate(-50%,-50%) translateY(-8px)}
-    }
-    .char img{width:100%;animation:bob 3s ease-in-out infinite;}
-
-    /* 画面端→端へ移動するメインアニメーション。JS が
-       --startX / --startY / --endX / --endY を注入します。*/
-    @keyframes float {
-        from{transform:translate(var(--startX),var(--startY));opacity:0}
-        5% {opacity:1}
-        to  {transform:translate(var(--endX),var(--endY));opacity:0}
-    }
-        /* =========================
-   opening 背景：ほたる風キラキラ
-   ========================= */
-
-/* ① 背景を完全に黒にする  */
-body{
-  background:#000;            /* ←真っ黒   */
-  overflow:hidden;            /* スクロールバーを出さない */
+/* ============================
+   スタートボタン
+============================ */
+#start-btn{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  padding:16px 48px;font-size:24px;font-family:"Zen Kaku Gothic New",sans-serif;
+  letter-spacing:.08em;color:#fff;background:rgba(0,0,0,.55);
+  border:2px solid #fff;border-radius:12px;cursor:pointer;z-index:20;
+  transition:background .3s,transform .3s,opacity .6s;
 }
+#start-btn:hover  {background:rgba(255,255,255,.15);transform:translate(-50%,-50%) scale(1.05);}
+#start-btn:active{transform:translate(-50%,-50%) scale(.96);}    
 
-/* ② :before 疑似要素に “粒” を 60 個ばら撒く
-      (色情報は HSL で３色をランダム化）          */
-body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  pointer-events:none;
-  z-index:-1;                 /* 背景として最背面に */
-  background:
-    /* --- 60 ルール --- */
-    /* 60 個それぞれを radial-gradient で発光させて
-       背景画像の layer に列挙する。
-       サイズ・位置は calc()+random を使わず固定値で良い */
-    /* ▼ 生成スクリプト例で自動出力して貼るともっと楽ですが
-         手動の場合は 30‒80 個であれば十分 ▼              */
+/* ============================
+   キャラクター
+============================ */
+.char{
+  position:absolute;width:120px;pointer-events:none;will-change:transform;
+  animation:float linear forwards;
 }
+@keyframes bob{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-8px)}}
+.char img{width:100%;animation:bob 3s ease-in-out infinite;}
+@keyframes float{from{transform:translate(var(--startX),var(--startY));opacity:0}5%{opacity:1}to{transform:translate(var(--endX),var(--endY));opacity:0}}
 
-/* ③ “ほたるの点滅” キーフレーム */
-@keyframes twinkle{
-  0%,100%   { transform:scale(.4); opacity:0; }
-  10%       { opacity:.8; }
-  50%       { opacity:1;  }
-  90%       { opacity:.8; transform:scale(.6); }
-}
-
-/* ④ 実体の粒を作る */
-.star{
-  position:fixed;
-  width:4px; height:4px;
-  border-radius:50%;
-  background:#fff;
-  pointer-events:none;
-  animation:twinkle 4.5s linear infinite;
-  filter:blur(1px) drop-shadow(0 0 4px currentColor);
-}
-
-/* --- ３色バリエーションを class で分ける --- */
-.star.c1{ color:#FFD700; }
-.star.c2{ color:#7FFFD4; }
-.star.c3{ color:#FF69B4; }
-
-    }
+/* ============================
+   ほたる風キラキラ背景
+============================ */
+@keyframes twinkle{0%,100%{transform:scale(.4);opacity:0;}10%{opacity:.8;}50%{opacity:1;}90%{opacity:.8;transform:scale(.6);}}
+.star{position:fixed;width:4px;height:4px;border-radius:50%;background:#fff;pointer-events:none;animation:twinkle 4.5s linear infinite;filter:blur(1px) drop-shadow(0 0 4px currentColor);}
+.star.c1{color:#FFD700;}
+.star.c2{color:#7FFFD4;}
+.star.c3{color:#FF69B4;}
 </style>
 </head>
 <body>
-<div id="opening-stage"></div>
+<!-- ============================
+     BGM（自動再生＋ループ）
+     ※ ブラウザがブロックした場合は最初のタップで再再生
+============================ -->
+<audio id="bgm" src="CNP Catch.mp3" preload="auto" loop autoplay></audio>
+
+<div id="opening-stage">
+  <button id="start-btn">START</button>
+</div>
 
 <script>
-/* --------------- ここだけ画像名をそろえて下さい ---------------- */
-const charImages = [
-  "Leeleeg (1).png",
-  "leelee (1).png",
-  "luna (1).png",
-  "makamih (1).png",
-  "makamio (1).png",
-  "mitaman (1).png",
-  "mitamag (1).png",
-  "narukami (1).png",
-  "narukamik (1).png",
-  "orochi (1).png",
-  "oroti (1).png",
-  "runa (1).png",
-  "setuna (1).png",
-  "towa (1).png",
-  "yamar (1).png",
-  "yama (2).png",
-  /* ……16体まで何枚でも追加OK …… */
+/* --------------------------------------------------
+ * BGM：自動再生を試行し、失敗したら初回タップで再生
+ * -------------------------------------------------- */
+const bgm=document.getElementById('bgm');
+function tryPlay(){bgm.play().catch(()=>{});}             // 失敗は握りつぶす
+
+document.addEventListener('DOMContentLoaded',tryPlay);   // 最初に試行
+window.addEventListener('pointerdown',tryPlay,{once:true}); // 初回ジェスチャで再試行
+
+/* --------------------------------------------------
+ * キャラクター関連
+ * -------------------------------------------------- */
+const charImages=[
+  "Leeleeg (1).png","leelee (1).png","luna (1).png","makamih (1).png","makamio (1).png","mitaman (1).png","mitamag (1).png","narukami (1).png","narukamik (1).png","orochi (1).png","oroti (1).png","runa (1).png","setuna (1).png","towa (1).png","yamar (1).png","yama (2).png",
 ];
+const CONCURRENT=6;  // 同時出現数
+const INTERVAL=900;  // 出現間隔(ms)
 
-/* 1 回に表示する同時キャラ数と出現間隔 */
-const CONCURRENT = 6;
-const INTERVAL   = 900;   // ms
+const stage=document.getElementById('opening-stage');
+const stageW=()=>stage.clientWidth;
+const stageH=()=>stage.clientHeight;
 
-const stage = document.getElementById("opening-stage");
-const stageW = () => stage.clientWidth;
-const stageH = () => stage.clientHeight;
-
-/* 方角 4 パターンの端座標を返すヘルパ */
 function randomEdgePos(){
-  const edge = Math.floor(Math.random()*4);   // 0:上,1:右,2:下,3:左
+  const edge=Math.floor(Math.random()*4);
   switch(edge){
-    case 0:return {x:Math.random()*stageW(), y:-150};              // 上
-    case 1:return {x:stageW()+150,            y:Math.random()*stageH()}; // 右
-    case 2:return {x:Math.random()*stageW(), y:stageH()+150};       // 下
-    default:return{x:-150,                   y:Math.random()*stageH()}; // 左
+    case 0:return{x:Math.random()*stageW(),y:-150};
+    case 1:return{x:stageW()+150,y:Math.random()*stageH()};
+    case 2:return{x:Math.random()*stageW(),y:stageH()+150};
+    default:return{x:-150,y:Math.random()*stageH()};
   }
 }
-
-/* キャラ 1 体生成して流す */
 function spawnChar(){
-  /* img 要素を包む div.char を作る */
-  const wrap = document.createElement("div");
-  wrap.className="char";
-
-  const img  = document.createElement("img");
-  img.src = charImages[Math.floor(Math.random()*charImages.length)];
-  wrap.appendChild(img);
-
-  /* スタート/ゴール座標生成 */
-  const start = randomEdgePos();
-  let   end   = randomEdgePos();
-  /* ゴールがスタートと同じ辺にならないよう調整 */
-  while(Math.abs(start.x-end.x)<200 && Math.abs(start.y-end.y)<200){
-    end = randomEdgePos();
-  }
-
-  /* カスタムプロパティでアニメーション値を注入 */
-  wrap.style.setProperty("--startX", start.x+"px");
-  wrap.style.setProperty("--startY", start.y+"px");
-  wrap.style.setProperty("--endX",   end.x+"px");
-  wrap.style.setProperty("--endY",   end.y+"px");
-
-  /* 移動時間 (5〜9 秒) をランダムに */
-  const dur = 5 + Math.random()*4;
-  wrap.style.animationDuration = dur+"s";
-
-  stage.appendChild(wrap);
-
-  /* 終了したら要素を除去して総数を保つ */
-  setTimeout(()=>wrap.remove(), dur*1000);
+  const wrap=document.createElement('div');wrap.className='char';
+  const img=document.createElement('img');img.src=charImages[Math.floor(Math.random()*charImages.length)];wrap.appendChild(img);
+  const start=randomEdgePos();let end=randomEdgePos();
+  while(Math.abs(start.x-end.x)<200&&Math.abs(start.y-end.y)<200){end=randomEdgePos();}
+  wrap.style.setProperty('--startX',start.x+'px');
+  wrap.style.setProperty('--startY',start.y+'px');
+  wrap.style.setProperty('--endX',end.x+'px');
+  wrap.style.setProperty('--endY',end.y+'px');
+  const dur=5+Math.random()*4;wrap.style.animationDuration=dur+'s';
+  stage.appendChild(wrap);setTimeout(()=>wrap.remove(),dur*1000);
 }
+let running=0;
+setInterval(()=>{if(running<CONCURRENT){spawnChar();running++;setTimeout(()=>running--,7000);}},INTERVAL);
 
-/* 一定間隔でスポーン  */
-let running = 0;
-setInterval(()=>{
-  if(running < CONCURRENT){
-    spawnChar();
-    running++;
-    /* 一定時間後 running カウントを戻す */
-    setTimeout(()=>running--, 7000);
-  }
-}, INTERVAL);
-
-
-document.addEventListener("DOMContentLoaded", ()=>{
-
-  const colors = ["c1","c2","c3"];      // ３色クラス
-  const COUNT  = 60;                    // 粒の個数
-
+document.addEventListener('DOMContentLoaded',()=>{
+  const colors=['c1','c2','c3'];const COUNT=60;
   for(let i=0;i<COUNT;i++){
-    const s = document.createElement("div");
-    s.className = "star "+colors[i%colors.length];
-    /* 画面全体を乱数配置 */
-    s.style.top  = Math.random()*100+"vh";
-    s.style.left = Math.random()*100+"vw";
-    /* サイズを 3-6px の範囲でランダムに */
-    const size = 3+Math.random()*3;
-    s.style.width = s.style.height = size+"px";
-    /* 個別にアニメ遅延をずらして自然な光り方に */
-    s.style.animationDelay = (Math.random()*4)+"s";
-    /* 速度もちょっとランダム化 */
-    s.style.animationDuration = (4+Math.random()*3)+"s";
-    document.body.appendChild(s);
+    const s=document.createElement('div');s.className='star '+colors[i%colors.length];s.style.top=Math.random()*100+'vh';s.style.left=Math.random()*100+'vw';
+    const size=3+Math.random()*3;s.style.width=s.style.height=size+'px';
+    s.style.animationDelay=(Math.random()*4)+'s';s.style.animationDuration=(4+Math.random()*3)+'s';document.body.appendChild(s);
   }
-
 });
 
-
-/* stage をクリックでメインへ遷移 (仮) */
-stage.addEventListener("click",()=>location.href="select.html");
+/* --------------------------------------------------
+ * START ボタン：フェードアウト → select.html 遷移
+ * -------------------------------------------------- */
+const startBtn=document.getElementById('start-btn');
+startBtn.addEventListener('click',()=>{
+  startBtn.style.pointerEvents='none';
+  startBtn.style.opacity='0';
+  setTimeout(()=>location.href='select.html',500);
+});
 </script>
 </body>
 </html>
