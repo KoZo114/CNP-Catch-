@@ -7,31 +7,30 @@
 /* ============================
    レイアウト & 背景
 ============================ */
-html,body{margin:0;height:100%;overflow:hidden;background:#000;}
+html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen Kaku Gothic New",sans-serif;}
 
 #opening-stage{
-  position:relative;
-  width:100%;height:100%;
-  overflow:hidden;
+  position:relative;width:100%;height:100%;overflow:hidden;
+}
+
+/* ============================
+   タイトル表示
+============================ */
+#game-title{
+  position:absolute;top:12%;left:50%;transform:translateX(-50%);
+  font-size:48px;font-weight:700;letter-spacing:.05em;color:#fff;
+  text-shadow:0 0 12px rgba(255,255,255,.7);
+  pointer-events:none;z-index:15;
 }
 
 /* ============================
    スタートボタン
 ============================ */
 #start-btn{
-  position:absolute;
-  left:50%;top:50%;transform:translate(-50%,-50%);
-  padding:16px 48px;
-  font-size:24px;
-  font-family:"Zen Kaku Gothic New",sans-serif;
-  letter-spacing:.08em;
-  color:#fff;
-  background:rgba(0,0,0,.55);
-  border:2px solid #fff;
-  border-radius:12px;
-  cursor:pointer;
-  z-index:20;
-  transition:background .3s,transform .3s,opacity .6s;
+  position:absolute;left:50%;top:60%;transform:translate(-50%,-50%);
+  padding:16px 48px;font-size:28px;letter-spacing:.08em;color:#fff;
+  background:rgba(0,0,0,.55);border:2px solid #fff;border-radius:14px;
+  cursor:pointer;z-index:20;transition:background .3s,transform .3s,opacity .6s;
 }
 #start-btn:hover {background:rgba(255,255,255,.15);transform:translate(-50%,-50%) scale(1.05);} 
 #start-btn:active{transform:translate(-50%,-50%) scale(.96);} 
@@ -39,59 +38,32 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;}
 /* ============================
    キャラクター共通スタイル
 ============================ */
-.char{
-  position:absolute;
-  width:120px;            /* 調整可 */
-  pointer-events:none;    /* クリック貫通 */
-  will-change:transform;  /* パフォーマンス */
-  animation:float linear forwards;
-}
-@keyframes bob{
-  0%,100%{transform:translate(-50%,-50%) translateY(0)}
-  50%     {transform:translate(-50%,-50%) translateY(-8px)}
-}
+.char{position:absolute;width:120px;pointer-events:none;will-change:transform;animation:float linear forwards;}
+@keyframes bob{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-8px)}}
 .char img{width:100%;animation:bob 3s ease-in-out infinite;}
-
-@keyframes float{
-  from{transform:translate(var(--startX),var(--startY));opacity:0}
-  5%  {opacity:1}
-  to  {transform:translate(var(--endX),var(--endY));opacity:0}
-}
+@keyframes float{from{transform:translate(var(--startX),var(--startY));opacity:0}5%{opacity:1}to{transform:translate(var(--endX),var(--endY));opacity:0}}
 
 /* ============================
    ほたる風キラキラ背景
 ============================ */
-@keyframes twinkle{
-  0%,100%{transform:scale(.4);opacity:0;}
-  10%    {opacity:.8;}
-  50%    {opacity:1;}
-  90%    {opacity:.8;transform:scale(.6);} 
-}
-.star{
-  position:fixed;
-  width:4px;height:4px; 
-  border-radius:50%;
-  background:#fff;
-  pointer-events:none;
-  animation:twinkle 4.5s linear infinite;
-  filter:blur(1px) drop-shadow(0 0 4px currentColor);
-}
-.star.c1{color:#FFD700;}
-.star.c2{color:#7FFFD4;}
-.star.c3{color:#FF69B4;}
+@keyframes twinkle{0%,100%{transform:scale(.4);opacity:0;}10%{opacity:.8;}50%{opacity:1;}90%{opacity:.8;transform:scale(.6);}}
+.star{position:fixed;width:4px;height:4px;border-radius:50%;background:#fff;pointer-events:none;animation:twinkle 4.5s linear infinite;filter:blur(1px) drop-shadow(0 0 4px currentColor);}
+.star.c1{color:#FFD700;}.star.c2{color:#7FFFD4;}.star.c3{color:#FF69B4;}
 </style>
 </head>
 <body>
 
 <!-- ============================
      BGM
+     ※ パスとファイル名はプロジェクト構成に合わせて変更してください
 ============================ -->
-<audio id="bgm" src="assets/CNP Catch.mp3" preload="auto" loop muted></audio>
+<audio id="bgm" src="audio/cnp-catch.mp3" preload="auto" loop></audio>
 
 <!-- ============================
      Opening ステージ
 ============================ -->
 <div id="opening-stage">
+  <h1 id="game-title">CNP Catch</h1>
   <button id="start-btn">START</button>
 </div>
 
@@ -119,102 +91,46 @@ const stageH=()=>stage.clientHeight;
  * オーディオ関連
  * ---------------------------------------------------------- */
 function fadeInVolume(){
-  let v=0;
-  bgm.volume=0;
-  const id=setInterval(()=>{
-    v+=0.05;
-    bgm.volume=Math.min(v,1);
-    if(v>=1)clearInterval(id);
-  },100);
+  let v=0;bgm.volume=0;const id=setInterval(()=>{v+=0.05;bgm.volume=Math.min(v,1);if(v>=1)clearInterval(id);},100);
 }
 
 function attemptPlay(){
-  if(!bgm.paused) return; // 既に再生中
-  bgm.play().then(()=>{
-      bgm.muted=false;
-      fadeInVolume();
-  }).catch(()=>{/* 失敗しても何もしない */});
+  if(!bgm.paused) return;
+  bgm.play().then(fadeInVolume).catch(()=>{/* ブロックされた場合は無視 */});
 }
 
-// ページロード時にも一応試行（許可済み環境では即再生）
+/* 自動再生を試みる（許可環境なら即再生） */
 window.addEventListener("load",attemptPlay);
-
-// ステージのどこかをタップ（※START ボタンを除く）で再生
-stage.addEventListener("click",e=>{
-  if(e.target!==startBtn) attemptPlay();
-});
+/* ステージ全体のどこかタップで再生（START ボタン含め両方） */
+stage.addEventListener("click",attemptPlay);
 
 /* ----------------------------------------------------------
  * キャラ生成関連
  * ---------------------------------------------------------- */
-function randomEdgePos(){
-  const edge=Math.floor(Math.random()*4);
-  switch(edge){
-    case 0:return {x:Math.random()*stageW(), y:-150};
-    case 1:return {x:stageW()+150,            y:Math.random()*stageH()};
-    case 2:return {x:Math.random()*stageW(), y:stageH()+150};
-    default:return{x:-150,                   y:Math.random()*stageH()};
-  }
-}
+function randomEdgePos(){const edge=Math.floor(Math.random()*4);switch(edge){case 0:return{x:Math.random()*stageW(),y:-150};case 1:return{x:stageW()+150,y:Math.random()*stageH()};case 2:return{x:Math.random()*stageW(),y:stageH()+150};default:return{x:-150,y:Math.random()*stageH()};}}
 
 function spawnChar(){
-  const wrap=document.createElement("div");
-  wrap.className="char";
-  const img=document.createElement("img");
-  img.src=charImages[Math.floor(Math.random()*charImages.length)];
-  wrap.appendChild(img);
-
-  const start=randomEdgePos();
-  let end=randomEdgePos();
-  while(Math.abs(start.x-end.x)<200 && Math.abs(start.y-end.y)<200){
-    end=randomEdgePos();
-  }
-
-  wrap.style.setProperty("--startX",start.x+"px");
-  wrap.style.setProperty("--startY",start.y+"px");
-  wrap.style.setProperty("--endX",  end.x+"px");
-  wrap.style.setProperty("--endY",  end.y+"px");
-
-  const dur=5+Math.random()*4; // 5〜9 秒
-  wrap.style.animationDuration=dur+"s";
-
-  stage.appendChild(wrap);
-  setTimeout(()=>wrap.remove(),dur*1000);
+  const wrap=document.createElement("div");wrap.className="char";
+  const img=document.createElement("img");img.src=charImages[Math.floor(Math.random()*charImages.length)];wrap.appendChild(img);
+  const start=randomEdgePos();let end=randomEdgePos();
+  while(Math.abs(start.x-end.x)<200 && Math.abs(start.y-end.y)<200){end=randomEdgePos();}
+  wrap.style.setProperty("--startX",start.x+"px");wrap.style.setProperty("--startY",start.y+"px");wrap.style.setProperty("--endX",end.x+"px");wrap.style.setProperty("--endY",end.y+"px");
+  const dur=5+Math.random()*4;wrap.style.animationDuration=dur+"s";
+  stage.appendChild(wrap);setTimeout(()=>wrap.remove(),dur*1000);
 }
 
-let running=0;
-setInterval(()=>{
-  if(running<CONCURRENT){
-    spawnChar();
-    running++;
-    setTimeout(()=>running--,7000);
-  }
-},INTERVAL);
+let running=0;setInterval(()=>{if(running<CONCURRENT){spawnChar();running++;setTimeout(()=>running--,7000);}},INTERVAL);
 
 /* ----------------------------------------------------------
  * 背景粒（星）の生成
  * ---------------------------------------------------------- */
-(function generateStars(){
-  const colors=["c1","c2","c3"];
-  const COUNT=60;
-  for(let i=0;i<COUNT;i++){
-    const s=document.createElement("div");
-    s.className="star "+colors[i%colors.length];
-    s.style.top =Math.random()*100+"vh";
-    s.style.left=Math.random()*100+"vw";
-    const size=3+Math.random()*3;
-    s.style.width=s.style.height=size+"px";
-    s.style.animationDelay=(Math.random()*4)+"s";
-    s.style.animationDuration=(4+Math.random()*3)+"s";
-    document.body.appendChild(s);
-  }
-})();
+(function generateStars(){const colors=["c1","c2","c3"];const COUNT=60;for(let i=0;i<COUNT;i++){const s=document.createElement("div");s.className="star "+colors[i%colors.length];s.style.top=Math.random()*100+"vh";s.style.left=Math.random()*100+"vw";const size=3+Math.random()*3;s.style.width=s.style.height=size+"px";s.style.animationDelay=Math.random()*4+"s";s.style.animationDuration=4+Math.random()*3+"s";document.body.appendChild(s);}})();
 
 /* ----------------------------------------------------------
- * START ボタンクリック：音を確実に再生しつつ遷移
+ * START ボタンクリックで遷移
  * ---------------------------------------------------------- */
 startBtn.addEventListener("click",()=>{
-  attemptPlay();            // 未再生なら再度試行
+  attemptPlay();
   startBtn.style.pointerEvents="none";
   startBtn.style.opacity="0";
   setTimeout(()=>location.href="select.html",500);
