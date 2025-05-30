@@ -3,161 +3,143 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>キャラクター選択 - Reborn catch</title>
+  <title>キャラクター選択 – CNP Catch</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap'); /* 丸ゴシック系フォント */
+    /* ============================
+       フォント
+    ============================ */
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap');
 
-    body {
-      margin: 0;
-      font-family: 'M PLUS Rounded 1c', 'Hiragino Sans', 'ヒラギノ角ゴシック', Meiryo, sans-serif;
-      background-color: #fffacd; /* レモンシフォン (ソフトなパステルイエロー) */
-      text-align: center;
-      padding: 30px 15px; /* 上下のパディングを追加 */
-      min-height: 100vh; /* 画面の高さに合わせる */
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      /* justify-content: center; */ /* コンテンツが少ない場合に中央寄せ */
+    /* ============================
+       レイアウト & 背景（星空）
+    ============================ */
+    html,body{
+      margin:0;
+      height:100%;
+      overflow:hidden;          /* スクロールバーを隠す（必要なら外してもOK） */
+      background:#000;          /* 真っ黒な夜空 */
+      font-family:'M PLUS Rounded 1c','Hiragino Sans','メイリオ',sans-serif;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:30px 15px;
     }
 
-    h1 {
-      margin-top: 20px;
-      margin-bottom: 40px; /* コンテナとのスペースを調整 */
-      color: #8B4513; /* サドルブラウン */
-      font-size: 2.5em; /* 少し調整 */
-      font-weight: 700;
-      position: relative;
-      display: inline-block;
-      padding-bottom: 15px; /* 飾り線とのスペース */
+    /* 星空の粒アニメ */
+    @keyframes twinkle{
+      0%,100%{transform:scale(.4);opacity:0;}  
+      10%     {opacity:.8;}                     
+      50%     {opacity:1;}                      
+      90%     {opacity:.8;transform:scale(.6);} 
     }
 
-    /* 見出しの下の飾り線 */
-    h1::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100px; /* 少し長めに */
-      height: 5px;  /* 少し太めに */
-      background: linear-gradient(to right, #ffb6c1, #ffdab9); /* ピンクからピーチへのグラデーション */
-      border-radius: 3px;
+    .star{
+      position:fixed;
+      width:4px;height:4px;
+      border-radius:50%;
+      background:#fff;
+      pointer-events:none;
+      animation:twinkle 4.5s linear infinite;
+      filter:blur(1px) drop-shadow(0 0 4px currentColor);
+      z-index:-1;           /* コンテンツより背面に */
+    }
+    .star.c1{color:#FFD700;}   /* ゴールド */
+    .star.c2{color:#7FFFD4;}   /* アクアマリン */
+    .star.c3{color:#FF69B4;}   /* ホットピンク */
+
+    /* ============================
+       見出し
+    ============================ */
+    h1{
+      margin:20px 0 40px;
+      color:#ffdab9;           /* ピーチパフ */
+      font-size:2.6em;
+      font-weight:700;
+      position:relative;
+      padding-bottom:15px;
+      text-shadow:0 0 10px rgba(255,218,185,.6);
+    }
+    h1::after{
+      content:"";
+      position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+      width:100px;height:5px;border-radius:3px;
+      background:linear-gradient(to right,#ffb6c1,#ffdab9);
     }
 
-    .container {
-      display: flex;
-      flex-direction: row;
-      justify-content: center;
-      gap: 35px; /* キャラクター間の間隔を調整 */
-      flex-wrap: wrap; /* 画面幅に応じて折り返す */
-      padding: 20px;
-      max-width: 800px; /* コンテナ全体の最大幅 */
-      width: 100%;
-    }
+    /* ============================
+       キャラクターカード
+    ============================ */
+    .container{display:flex;flex-wrap:wrap;gap:35px;justify-content:center;max-width:800px;width:100%;}
 
-    .character {
-      border: 3px dashed #D2B48C; /* タン (点線の枠線) */
-      border-radius: 25px; /* 角をより丸く */
-      overflow: visible; /* ハートが見えるように */
-      cursor: pointer;
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease; /* ホバーアニメーション調整 */
-      background-color: #FFF8DC; /* コーンシルク */
-      width: 230px; /* ボックスの幅 */
-      padding: 20px;
-      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+    .character{
+      width:230px;padding:20px;
+      border:3px dashed #d2b48c;border-radius:25px;
+      background:#fff8dc;      /* コーンシルク */
+      box-shadow:0 5px 10px rgba(0,0,0,.1);
+      overflow:visible;cursor:pointer;
+      display:flex;flex-direction:column;align-items:center;
+      transition:transform .3s cubic-bezier(.175,.885,.32,1.275),box-shadow .3s;
     }
+    .character:hover{
+      transform:translateY(-10px) scale(1.05);
+      border-color:#a0522d;
+      box-shadow:0 12px 25px rgba(210,180,140,.6);
+    }
+    .character::before{
+      content:'♥';position:absolute;right:-10px;top:-10px;font-size:2.8em;color:#ffb6c1;opacity:.8;transform:rotate(15deg);z-index:-1;transition:transform .3s;
+    }
+    .character:hover::before{transform:rotate(5deg) scale(1.1);}
 
-    /* キャラクターボックス右上のハート */
-    .character::before {
-      content: '♥'; /* ハートの絵文字 */
-      position: absolute;
-      top: -10px;  /* 少し上にずらす */
-      right: -10px; /* 少し右にずらす */
-      font-size: 2.8em; /* ハートのサイズ */
-      color: #ffb6c1; /* ライトピンク */
-      opacity: 0.8;
-      transform: rotate(15deg); /* 少し傾ける */
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
-      z-index: -1; /* 画像の後ろに */
-      transition: transform 0.3s ease;
-    }
+    .character-image-container{width:150px;height:150px;border-radius:50%;overflow:hidden;margin-bottom:20px;background:#fff;border:5px solid #fff;box-shadow:0 0 0 3px #ffdAB9,0 4px 10px rgba(0,0,0,.15);flex-shrink:0;}
+    .character img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;}
 
-    .character:hover {
-      transform: translateY(-10px) scale(1.05); /* より浮き上がるように */
-      border-color: #A0522D; /* シエンナ */
-      box-shadow: 0 12px 25px rgba(210, 180, 140, 0.6); /* 影を強調 */
-    }
-    .character:hover::before {
-        transform: rotate(5deg) scale(1.1); /* ハートも少し動く */
-    }
-
-    .character-image-container {
-        width: 150px; /* 画像表示エリアのサイズ */
-        height: 150px;
-        border-radius: 50%; /* 円形に */
-        overflow: hidden;
-        margin-bottom: 20px; /* 名前との間隔 */
-        border: 5px solid #fff; /* 白い太めの枠線 */
-        box-shadow: 0 0 0 3px #FFDAB9, 0 4px 10px rgba(0,0,0,0.15); /* ピーチパフの枠線と影 */
-        background-color: #fff;
-        flex-shrink: 0; /* コンテナが縮まないように */
-    }
-
-    .character img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      border-radius: 50%;
-    }
-
-    .name {
-      font-weight: 700;
-      padding: 10px 15px;
-      background: #FFEBCD; /* ブランチドアーモンド (少し濃いクリーム色) */
-      color: #774F38;    /* モカブラウン */
-      border-radius: 12px;
-      font-size: 1.2em;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      width: 90%; /* 名前ラベルの幅を調整 */
-      margin-top: auto; /* 画像との間にスペースが空く場合、下寄せに */
+    .name{
+      background:#ffebcd;color:#774f38;font-weight:700;font-size:1.2em;
+      padding:10px 15px;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,.05);width:90%;margin-top:auto;
     }
   </style>
 </head>
 <body>
   <h1>キャラクターを選んでね！</h1>
   <div class="container">
-    <div class="character" onclick="selectCharacter('hideya', 'hide.PNG')">
-      <div class="character-image-container">
-        <img src="hide.PNG" alt="hideya">
-      </div>
+    <div class="character" onclick="selectCharacter('hideya','hide.PNG')">
+      <div class="character-image-container"><img src="hide.PNG" alt="hideya"></div>
       <div class="name">hideya</div>
     </div>
-    <div class="character" onclick="selectCharacter('sho', 'sho.PNG')">
-      <div class="character-image-container">
-        <img src="sho.PNG" alt="sho">
-      </div>
+    <div class="character" onclick="selectCharacter('sho','sho.PNG')">
+      <div class="character-image-container"><img src="sho.PNG" alt="sho"></div>
       <div class="name">sho</div>
     </div>
-    <!--
-    <div class="character" onclick="selectCharacter('新しいキャラ名', 'new_char_image.PNG')">
-      <div class="character-image-container">
-        <img src="new_char_image.PNG" alt="新しいキャラ名">
-      </div>
-      <div class="name">新しいキャラ名</div>
-    </div>
-    -->
+    <!-- 追加キャラはこのコメントをコピペして増やせます -->
   </div>
 
   <script>
-    function selectCharacter(name, image) {
-      localStorage.setItem("selectedName", name);
-      localStorage.setItem("selectedImage", image);
-      window.location.href = "stage.html";
+    /* =============================================
+       星粒を生成（60 個 / 3 色）
+    ============================================= */
+    (function generateStars(){
+      const colors=['c1','c2','c3'];
+      const COUNT=60;
+      for(let i=0;i<COUNT;i++){
+        const s=document.createElement('div');
+        s.className='star '+colors[i%colors.length];
+        s.style.top =Math.random()*100+'vh';
+        s.style.left=Math.random()*100+'vw';
+        const size=3+Math.random()*3;
+        s.style.width=s.style.height=size+'px';
+        s.style.animationDelay=(Math.random()*4)+'s';
+        s.style.animationDuration=(4+Math.random()*3)+'s';
+        document.body.appendChild(s);
+      }
+    })();
+
+    /* =============================================
+       キャラ選択 → ローカルストレージ保存
+    ============================================= */
+    function selectCharacter(name,img){
+      localStorage.setItem('selectedName',name);
+      localStorage.setItem('selectedImage',img);
+      location.href='stage.html';
     }
   </script>
 </body>
