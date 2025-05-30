@@ -5,6 +5,16 @@
 <title>Opening – CNP‑Catch</title>
 <style>
 /* ============================
+   Web フォント登録
+   Verdana Bold.ttf と同じ階層に index.html を置く想定
+============================ */
+@font-face{
+  font-family:'VerdanaBold';
+  src:url('Verdana Bold.ttf') format('truetype');
+  font-weight:700;font-style:normal;
+}
+
+/* ============================
    レイアウト & 背景
 ============================ */
 html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen Kaku Gothic New",sans-serif;}
@@ -16,7 +26,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 ============================ */
 #game-title{
   position:absolute;top:12%;left:50%;transform:translateX(-50%);
-  font-size:48px;font-weight:700;letter-spacing:.05em;color:#fff;
+  font-size:48px;letter-spacing:.05em;color:#fff;
+  font-family:'VerdanaBold','Zen Kaku Gothic New',sans-serif;
   text-shadow:0 0 12px rgba(255,255,255,.7);
   pointer-events:none;z-index:15;
 }
@@ -52,8 +63,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 <body>
 
 <!-- ============================
-     BGM: ファイル名とパスを **正確に** 合わせてください
-     例: index.html と同じ階層に "CNP Catch.mp3" を置く
+     BGM
 ============================ -->
 <audio id="bgm" src="CNP Catch.mp3" preload="auto" loop playsinline></audio>
 
@@ -67,7 +77,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 
 <script>
 /* ----------------------------------------------------------
- * 画像リスト（ファイル名を実際のパスに合わせて下さい）
+ * 画像リスト
  * ---------------------------------------------------------- */
 const charImages=[
   "Leeleeg (1).png","leelee (1).png","luna (1).png","makamih (1).png",
@@ -75,67 +85,26 @@ const charImages=[
   "narukamik (1).png","orochi (1).png","oroti (1).png","runa (1).png",
   "setuna (1).png","towa (1).png","yamar (1).png","yama (2).png",
 ];
-const CONCURRENT=6;   // 同時に流すキャラ数
-const INTERVAL  =900; // スポーン間隔(ms)
-
+const CONCURRENT=6;const INTERVAL=900;
 const stage=document.getElementById("opening-stage");
-const bgm  =document.getElementById("bgm");
+const bgm=document.getElementById("bgm");
 const startBtn=document.getElementById("start-btn");
+const stageW=()=>stage.clientWidth;const stageH=()=>stage.clientHeight;
 
-const stageW=()=>stage.clientWidth;
-const stageH=()=>stage.clientHeight;
+/* オーディオ */
+function fadeInVolume(){let v=0;bgm.volume=0;const id=setInterval(()=>{v+=0.05;bgm.volume=Math.min(v,1);if(v>=1)clearInterval(id);},100);} 
+function attemptPlay(){if(!bgm.paused) return;bgm.play().then(fadeInVolume).catch(err=>{console.warn("Audio play blocked",err);});}
+window.addEventListener("load",attemptPlay);stage.addEventListener("click",attemptPlay);stage.addEventListener("touchstart",attemptPlay,{passive:true});
 
-/* ----------------------------------------------------------
- * オーディオ関連
- * ---------------------------------------------------------- */
-function fadeInVolume(){
-  let v=0;bgm.volume=0;const id=setInterval(()=>{v+=0.05;bgm.volume=Math.min(v,1);if(v>=1)clearInterval(id);},100);
-}
+/* キャラ生成 */
+function randomEdgePos(){const e=Math.floor(Math.random()*4);switch(e){case 0:return{x:Math.random()*stageW(),y:-150};case 1:return{x:stageW()+150,y:Math.random()*stageH()};case 2:return{x:Math.random()*stageW(),y:stageH()+150};default:return{x:-150,y:Math.random()*stageH()};}}
+function spawnChar(){const w=document.createElement("div");w.className="char";const i=document.createElement("img");i.src=charImages[Math.floor(Math.random()*charImages.length)];w.appendChild(i);const s=randomEdgePos();let e=randomEdgePos();while(Math.abs(s.x-e.x)<200&&Math.abs(s.y-e.y)<200){e=randomEdgePos();}w.style.setProperty("--startX",s.x+"px");w.style.setProperty("--startY",s.y+"px");w.style.setProperty("--endX",e.x+"px");w.style.setProperty("--endY",e.y+"px");const d=5+Math.random()*4;w.style.animationDuration=d+"s";stage.appendChild(w);setTimeout(()=>w.remove(),d*1000);}let running=0;setInterval(()=>{if(running<CONCURRENT){spawnChar();running++;setTimeout(()=>running--,7000);}},INTERVAL);
 
-function attemptPlay(){
-  if(!bgm.paused) return;
-  bgm.play().then(fadeInVolume).catch((err)=>{
-    console.warn("Audio play blocked or failed", err);
-  });
-}
+/* 背景星 */
+(function(){const colors=["c1","c2","c3"],COUNT=60;for(let i=0;i<COUNT;i++){const s=document.createElement("div");s.className="star "+colors[i%colors.length];s.style.top=Math.random()*100+"vh";s.style.left=Math.random()*100+"vw";const size=3+Math.random()*3;s.style.width=s.style.height=size+"px";s.style.animationDelay=Math.random()*4+"s";s.style.animationDuration=4+Math.random()*3+"s";document.body.appendChild(s);}})();
 
-/* ページロードで自動再生を試みる */
-window.addEventListener("load",attemptPlay);
-/* どこをタップしても再生 (click & touchstart) */
-stage.addEventListener("click",attemptPlay);
-stage.addEventListener("touchstart",attemptPlay, {passive:true});
-
-/* ----------------------------------------------------------
- * キャラ生成関連
- * ---------------------------------------------------------- */
-function randomEdgePos(){const edge=Math.floor(Math.random()*4);switch(edge){case 0:return{x:Math.random()*stageW(),y:-150};case 1:return{x:stageW()+150,y:Math.random()*stageH()};case 2:return{x:Math.random()*stageW(),y:stageH()+150};default:return{x:-150,y:Math.random()*stageH()};}}
-
-function spawnChar(){
-  const wrap=document.createElement("div");wrap.className="char";
-  const img=document.createElement("img");img.src=charImages[Math.floor(Math.random()*charImages.length)];wrap.appendChild(img);
-  const start=randomEdgePos();let end=randomEdgePos();
-  while(Math.abs(start.x-end.x)<200 && Math.abs(start.y-end.y)<200){end=randomEdgePos();}
-  wrap.style.setProperty("--startX",start.x+"px");wrap.style.setProperty("--startY",start.y+"px");wrap.style.setProperty("--endX",end.x+"px");wrap.style.setProperty("--endY",end.y+"px");
-  const dur=5+Math.random()*4;wrap.style.animationDuration=dur+"s";
-  stage.appendChild(wrap);setTimeout(()=>wrap.remove(),dur*1000);
-}
-
-let running=0;setInterval(()=>{if(running<CONCURRENT){spawnChar();running++;setTimeout(()=>running--,7000);}},INTERVAL);
-
-/* ----------------------------------------------------------
- * 背景粒（星）の生成
- * ---------------------------------------------------------- */
-(function generateStars(){const colors=["c1","c2","c3"];const COUNT=60;for(let i=0;i<COUNT;i++){const s=document.createElement("div");s.className="star "+colors[i%colors.length];s.style.top=Math.random()*100+"vh";s.style.left=Math.random()*100+"vw";const size=3+Math.random()*3;s.style.width=s.style.height=size+"px";s.style.animationDelay=Math.random()*4+"s";s.style.animationDuration=4+Math.random()*3+"s";document.body.appendChild(s);}})();
-
-/* ----------------------------------------------------------
- * START ボタンクリックで遷移
- * ---------------------------------------------------------- */
-startBtn.addEventListener("click",()=>{
-  attemptPlay();
-  startBtn.style.pointerEvents="none";
-  startBtn.style.opacity="0";
-  setTimeout(()=>location.href="select.html",500);
-});
+/* START 遷移 */
+startBtn.addEventListener("click",()=>{attemptPlay();startBtn.style.pointerEvents="none";startBtn.style.opacity="0";setTimeout(()=>location.href="select.html",500);});
 </script>
 </body>
 </html>
