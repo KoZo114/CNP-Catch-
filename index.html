@@ -27,8 +27,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 #start-btn:hover{background:rgba(255,255,255,.15);transform:translate(-50%,-50%) scale(1.05);} 
 #start-btn:active{transform:translate(-50%,-50%) scale(.96);} 
 
-.char{position:absolute;width:8vw;min-width:100px;max-width:180px;pointer-events:none;will-change:transform;animation:float linear forwards;}
-@media (max-width: 600px){.char{width:18vw;min-width:90px;}}
+.char{position:absolute;width:10vw;min-width:100px;max-width:180px;pointer-events:none;will-change:transform;animation:float linear forwards;}
+@media (max-width: 600px){.char{width:26vw;min-width:90px;}}
 @keyframes bob{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-1vw)}}
 .char img{width:100%;animation:bob 3s ease-in-out infinite;}
 @keyframes float{from{transform:translate(var(--startX),var(--startY));opacity:0}5%{opacity:1}to{transform:translate(var(--endX),var(--endY));opacity:0}}
