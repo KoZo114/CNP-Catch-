@@ -44,7 +44,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 </style>
 </head>
 <body>
-<audio id="bgm" src="CNP Catch.mp3" preload="auto" loop playsinline></audio>
+<audio id="bgm" src="CNP Catch.mp3" preload="none" loop playsinline></audio>
 <div id="opening-stage">
   <h1 id="game-title">CNP Catch</h1>
   <button id="start-btn">START</button>
@@ -92,7 +92,7 @@ startBtn.addEventListener("click",()=>{
   attemptPlay();
   startBtn.style.pointerEvents="none";
   startBtn.style.opacity="0";
-  setTimeout(()=>location.href="character_select.html",500);
+  setTimeout(()=>location.href="character_select.html",100);
 });
 </script>
 </body>
