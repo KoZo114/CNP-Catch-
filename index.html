@@ -47,8 +47,17 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 /* ============================
    キャラクター共通スタイル
 ============================ */
-.char{position:absolute;width:120px;pointer-events:none;will-change:transform;animation:float linear forwards;}
-@keyframes bob{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-8px)}}
+/* ▼ 旧：width:120px; ------------- */
+.char{
+  position:absolute;
+  width:8vw;           /* 画面幅の 8% に可変 */
+  min-width:100px;     /* スマホで小さくなりすぎないよう下限 */
+  max-width:180px;     /* PC で大きくなりすぎないよう上限 */
+  pointer-events:none;
+  will-change:transform;
+  animation:float linear forwards;
+}
+@keyframes bob{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-1vw)}}
 .char img{width:100%;animation:bob 3s ease-in-out infinite;}
 @keyframes float{from{transform:translate(var(--startX),var(--startY));opacity:0}5%{opacity:1}to{transform:translate(var(--endX),var(--endY));opacity:0}}
 
