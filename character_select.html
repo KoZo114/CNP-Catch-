@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>キャラクター選択 – CNP Catch</title>
   <style>
     /* =============================================
@@ -14,7 +14,7 @@
        レイアウト & 星空背景
     ============================================= */
     html,body{
-      margin:0;height:100%;overflow:hidden;background:#000;
+      margin:0;min-height:100%;background:#000;overflow-y:auto;
       font-family:'M PLUS Rounded 1c','Hiragino Sans','メイリオ',sans-serif;
       display:flex;flex-direction:column;align-items:center;padding:30px 15px;
     }
@@ -26,32 +26,47 @@
     /* =============================================
        見出し
     ============================================= */
-    h1{margin:20px 0 35px;color:#ffdab9;font-size:2.6em;font-weight:700;position:relative;padding-bottom:15px;text-shadow:0 0 10px rgba(255,218,185,.6);}
-    h1::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100px;height:5px;border-radius:3px;background:linear-gradient(to right,#ffb6c1,#ffdab9);}
-
-    /* ---- スマホで見出しを縮小 ---- */
-    @media(max-width:600px){h1{font-size:8vw;}}
+    h1{margin:20px 0 28px;color:#ffdab9;font-size:2.4em;font-weight:700;position:relative;padding-bottom:12px;text-shadow:0 0 10px rgba(255,218,185,.6);}
+    h1::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:90px;height:4px;border-radius:3px;background:linear-gradient(to right,#ffb6c1,#ffdab9);}
+    @media(max-width:600px){h1{font-size:7vw;}}
 
     /* =============================================
-       キャラクターカード
+       キャラクターグリッド
     ============================================= */
-    .container{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;max-width:1000px;width:100%;}
+    .container{
+      display:grid;
+      grid-template-columns:repeat(2,1fr); /* 常に2列 */
+      gap:24px 22px;
+      width:100%;
+      max-width:720px; /* PC でも横2列が中央に収まる */
+    }
 
-    .character{width:210px;padding:18px;border:3px dashed #d2b48c;border-radius:25px;background:#fff8dc;box-shadow:0 5px 10px rgba(0,0,0,.1);cursor:pointer;display:flex;flex-direction:column;align-items:center;transition:transform .3s cubic-bezier(.175,.885,.32,1.275),box-shadow .3s;overflow:visible;position:relative;}
-    .character:hover{transform:translateY(-10px) scale(1.05);border-color:#a0522d;box-shadow:0 12px 25px rgba(210,180,140,.6);} 
-    .character::before{content:'♥';position:absolute;top:-10px;right:-10px;font-size:2.6em;color:#ffb6c1;opacity:.8;transform:rotate(15deg);transition:transform .3s;z-index:-1;}
+    .character{
+      padding:16px;
+      border:3px dashed #d2b48c;border-radius:22px;background:#fff8dc;box-shadow:0 4px 8px rgba(0,0,0,.1);
+      cursor:pointer;display:flex;flex-direction:column;align-items:center;
+      transition:transform .25s cubic-bezier(.175,.885,.32,1.275),box-shadow .25s;
+      position:relative;
+    }
+    .character:hover{transform:translateY(-6px) scale(1.04);border-color:#a0522d;box-shadow:0 10px 22px rgba(210,180,140,.55);} 
+    .character::before{content:'♥';position:absolute;top:-10px;right:-10px;font-size:2.4em;color:#ffb6c1;opacity:.8;transform:rotate(15deg);transition:transform .25s;z-index:-1;}
     .character:hover::before{transform:rotate(5deg) scale(1.1);} 
 
-    .character-image-container{width:140px;height:140px;border-radius:50%;overflow:hidden;margin-bottom:18px;background:#fff;border:5px solid #fff;box-shadow:0 0 0 3px #ffdAB9,0 4px 10px rgba(0,0,0,.15);flex-shrink:0;}
+    .character-image-container{
+      width:120px;height:120px;
+      border-radius:50%;overflow:hidden;margin-bottom:14px;background:#fff;
+      border:5px solid #fff;box-shadow:0 0 0 3px #ffdAB9,0 3px 8px rgba(0,0,0,.12);
+      flex-shrink:0;
+    }
     .character img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;}
 
-    .name{background:#ffebcd;color:#774f38;font-weight:700;font-size:1.15em;padding:10px 15px;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,.05);width:90%;margin-top:auto;text-align:center;}
+    .name{background:#ffebcd;color:#774f38;font-weight:700;font-size:1.05em;padding:8px 12px;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,.05);width:88%;margin-top:auto;text-align:center;}
 
-    /* ---- スマホでカードを 2 列（幅 46%）に縮小 ---- */
+    /* ------------ スマホ調整 ------------ */
     @media(max-width:600px){
-      .character{width:46vw;padding:14px;}
-      .character-image-container{width:34vw;height:34vw;max-width:120px;max-height:120px;}
-      .name{font-size:0.95em;}
+      .character{padding:12px;}
+      .character-image-container{width:28vw;height:28vw;min-width:90px;min-height:90px;}
+      .name{font-size:0.9em;}
     }
   </style>
 </head>
@@ -93,10 +108,10 @@
   </div>
 
   <script>
-    /* 星粒生成 */
+    /* ========= 星粒生成 ========= */
     (function(){const colors=['c1','c2','c3'];for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star '+colors[i%colors.length];s.style.top=Math.random()*100+'vh';s.style.left=Math.random()*100+'vw';const size=3+Math.random()*3;s.style.width=s.style.height=size+'px';s.style.animationDelay=Math.random()*4+'s';s.style.animationDuration=4+Math.random()*3+'s';document.body.appendChild(s);}})();
 
-    /* キャラ選択 → 保存 */
+    /* ========= キャラ選択 ========= */
     function selectCharacter(name,img){localStorage.setItem('selectedName',name);localStorage.setItem('selectedImage',img);location.href='stage.html';}
   </script>
 </body>
