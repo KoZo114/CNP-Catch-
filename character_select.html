@@ -2,100 +2,56 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>キャラクター選択 – CNP Catch</title>
   <style>
-    /* ============================
+    /* =============================================
        フォント
-    ============================ */
+    ============================================= */
     @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap');
 
-    /* ============================
-       レイアウト & 背景（星空）
-    ============================ */
+    /* =============================================
+       レイアウト & 星空背景
+    ============================================= */
     html,body{
-      margin:0;
-      height:100%;
-      overflow:hidden;          /* スクロールバーを隠す（必要なら外してもOK） */
-      background:#000;          /* 真っ黒な夜空 */
+      margin:0;height:100%;overflow:hidden;background:#000;
       font-family:'M PLUS Rounded 1c','Hiragino Sans','メイリオ',sans-serif;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      padding:30px 15px;
+      display:flex;flex-direction:column;align-items:center;padding:30px 15px;
     }
 
-    /* 星空の粒アニメ */
-    @keyframes twinkle{
-      0%,100%{transform:scale(.4);opacity:0;}  
-      10%     {opacity:.8;}                     
-      50%     {opacity:1;}                      
-      90%     {opacity:.8;transform:scale(.6);} 
-    }
+    @keyframes twinkle{0%,100%{transform:scale(.4);opacity:0;}10%{opacity:.8;}50%{opacity:1;}90%{opacity:.8;transform:scale(.6);}}
+    .star{position:fixed;width:4px;height:4px;border-radius:50%;background:#fff;pointer-events:none;animation:twinkle 4.5s linear infinite;filter:blur(1px) drop-shadow(0 0 4px currentColor);z-index:-1;}
+    .star.c1{color:#FFD700;}.star.c2{color:#7FFFD4;}.star.c3{color:#FF69B4;}
 
-    .star{
-      position:fixed;
-      width:4px;height:4px;
-      border-radius:50%;
-      background:#fff;
-      pointer-events:none;
-      animation:twinkle 4.5s linear infinite;
-      filter:blur(1px) drop-shadow(0 0 4px currentColor);
-      z-index:-1;           /* コンテンツより背面に */
-    }
-    .star.c1{color:#FFD700;}   /* ゴールド */
-    .star.c2{color:#7FFFD4;}   /* アクアマリン */
-    .star.c3{color:#FF69B4;}   /* ホットピンク */
-
-    /* ============================
+    /* =============================================
        見出し
-    ============================ */
-    h1{
-      margin:20px 0 40px;
-      color:#ffdab9;           /* ピーチパフ */
-      font-size:2.6em;
-      font-weight:700;
-      position:relative;
-      padding-bottom:15px;
-      text-shadow:0 0 10px rgba(255,218,185,.6);
-    }
-    h1::after{
-      content:"";
-      position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-      width:100px;height:5px;border-radius:3px;
-      background:linear-gradient(to right,#ffb6c1,#ffdab9);
-    }
+    ============================================= */
+    h1{margin:20px 0 35px;color:#ffdab9;font-size:2.6em;font-weight:700;position:relative;padding-bottom:15px;text-shadow:0 0 10px rgba(255,218,185,.6);}
+    h1::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100px;height:5px;border-radius:3px;background:linear-gradient(to right,#ffb6c1,#ffdab9);}
 
-    /* ============================
+    /* ---- スマホで見出しを縮小 ---- */
+    @media(max-width:600px){h1{font-size:8vw;}}
+
+    /* =============================================
        キャラクターカード
-    ============================ */
-    .container{display:flex;flex-wrap:wrap;gap:35px;justify-content:center;max-width:800px;width:100%;}
+    ============================================= */
+    .container{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;max-width:1000px;width:100%;}
 
-    .character{
-      width:230px;padding:20px;
-      border:3px dashed #d2b48c;border-radius:25px;
-      background:#fff8dc;      /* コーンシルク */
-      box-shadow:0 5px 10px rgba(0,0,0,.1);
-      overflow:visible;cursor:pointer;
-      display:flex;flex-direction:column;align-items:center;
-      transition:transform .3s cubic-bezier(.175,.885,.32,1.275),box-shadow .3s;
-    }
-    .character:hover{
-      transform:translateY(-10px) scale(1.05);
-      border-color:#a0522d;
-      box-shadow:0 12px 25px rgba(210,180,140,.6);
-    }
-    .character::before{
-      content:'♥';position:absolute;right:-10px;top:-10px;font-size:2.8em;color:#ffb6c1;opacity:.8;transform:rotate(15deg);z-index:-1;transition:transform .3s;
-    }
-    .character:hover::before{transform:rotate(5deg) scale(1.1);}
+    .character{width:210px;padding:18px;border:3px dashed #d2b48c;border-radius:25px;background:#fff8dc;box-shadow:0 5px 10px rgba(0,0,0,.1);cursor:pointer;display:flex;flex-direction:column;align-items:center;transition:transform .3s cubic-bezier(.175,.885,.32,1.275),box-shadow .3s;overflow:visible;position:relative;}
+    .character:hover{transform:translateY(-10px) scale(1.05);border-color:#a0522d;box-shadow:0 12px 25px rgba(210,180,140,.6);} 
+    .character::before{content:'♥';position:absolute;top:-10px;right:-10px;font-size:2.6em;color:#ffb6c1;opacity:.8;transform:rotate(15deg);transition:transform .3s;z-index:-1;}
+    .character:hover::before{transform:rotate(5deg) scale(1.1);} 
 
-    .character-image-container{width:150px;height:150px;border-radius:50%;overflow:hidden;margin-bottom:20px;background:#fff;border:5px solid #fff;box-shadow:0 0 0 3px #ffdAB9,0 4px 10px rgba(0,0,0,.15);flex-shrink:0;}
+    .character-image-container{width:140px;height:140px;border-radius:50%;overflow:hidden;margin-bottom:18px;background:#fff;border:5px solid #fff;box-shadow:0 0 0 3px #ffdAB9,0 4px 10px rgba(0,0,0,.15);flex-shrink:0;}
     .character img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;}
 
-    .name{
-      background:#ffebcd;color:#774f38;font-weight:700;font-size:1.2em;
-      padding:10px 15px;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,.05);width:90%;margin-top:auto;
+    .name{background:#ffebcd;color:#774f38;font-weight:700;font-size:1.15em;padding:10px 15px;border-radius:12px;box-shadow:0 2px 4px rgba(0,0,0,.05);width:90%;margin-top:auto;text-align:center;}
+
+    /* ---- スマホでカードを 2 列（幅 46%）に縮小 ---- */
+    @media(max-width:600px){
+      .character{width:46vw;padding:14px;}
+      .character-image-container{width:34vw;height:34vw;max-width:120px;max-height:120px;}
+      .name{font-size:0.95em;}
     }
   </style>
 </head>
@@ -110,37 +66,38 @@
       <div class="character-image-container"><img src="sho.PNG" alt="sho"></div>
       <div class="name">sho</div>
     </div>
-    <!-- 追加キャラはこのコメントをコピペして増やせます -->
+    <div class="character" onclick="selectCharacter('lee','lee.PNG')">
+      <div class="character-image-container"><img src="lee.PNG" alt="lee"></div>
+      <div class="name">lee</div>
+    </div>
+    <div class="character" onclick="selectCharacter('luna','luna.PNG')">
+      <div class="character-image-container"><img src="luna.PNG" alt="luna"></div>
+      <div class="name">luna</div>
+    </div>
+    <div class="character" onclick="selectCharacter('mita','mita.PNG')">
+      <div class="character-image-container"><img src="mita.PNG" alt="mita"></div>
+      <div class="name">mita</div>
+    </div>
+    <div class="character" onclick="selectCharacter('naru','naru.PNG')">
+      <div class="character-image-container"><img src="naru.PNG" alt="naru"></div>
+      <div class="name">naru</div>
+    </div>
+    <div class="character" onclick="selectCharacter('oro','oro.PNG')">
+      <div class="character-image-container"><img src="oro.PNG" alt="oro"></div>
+      <div class="name">oro</div>
+    </div>
+    <div class="character" onclick="selectCharacter('yama','yama.PNG')">
+      <div class="character-image-container"><img src="yama.PNG" alt="yama"></div>
+      <div class="name">yama</div>
+    </div>
   </div>
 
   <script>
-    /* =============================================
-       星粒を生成（60 個 / 3 色）
-    ============================================= */
-    (function generateStars(){
-      const colors=['c1','c2','c3'];
-      const COUNT=60;
-      for(let i=0;i<COUNT;i++){
-        const s=document.createElement('div');
-        s.className='star '+colors[i%colors.length];
-        s.style.top =Math.random()*100+'vh';
-        s.style.left=Math.random()*100+'vw';
-        const size=3+Math.random()*3;
-        s.style.width=s.style.height=size+'px';
-        s.style.animationDelay=(Math.random()*4)+'s';
-        s.style.animationDuration=(4+Math.random()*3)+'s';
-        document.body.appendChild(s);
-      }
-    })();
+    /* 星粒生成 */
+    (function(){const colors=['c1','c2','c3'];for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star '+colors[i%colors.length];s.style.top=Math.random()*100+'vh';s.style.left=Math.random()*100+'vw';const size=3+Math.random()*3;s.style.width=s.style.height=size+'px';s.style.animationDelay=Math.random()*4+'s';s.style.animationDuration=4+Math.random()*3+'s';document.body.appendChild(s);}})();
 
-    /* =============================================
-       キャラ選択 → ローカルストレージ保存
-    ============================================= */
-    function selectCharacter(name,img){
-      localStorage.setItem('selectedName',name);
-      localStorage.setItem('selectedImage',img);
-      location.href='stage.html';
-    }
+    /* キャラ選択 → 保存 */
+    function selectCharacter(name,img){localStorage.setItem('selectedName',name);localStorage.setItem('selectedImage',img);location.href='stage.html';}
   </script>
 </body>
 </html>
