@@ -43,22 +43,28 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 /* ▼▼▼ ここから追加するCSS ▼▼▼ */
 .orbiting-star {
   position: absolute;
-  width: ５px; /* 星のサイズ */
-  height: ５px;
-  background-color: #fff;
-  border-radius: 50%;
-  opacity: .8;
-  /* 星の光彩エフェクト */
-  filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px #fff);
-  pointer-events: none; /* 星自体はクリックできないように */
+  width: 5px; /* ご希望の5pxに設定 */
+  height: 5px; /* ご希望の5pxに設定 */
+  background-color: #fff; /* 星本体の色 (白) */
+  border-radius: 50%; /* 円形 */
   
-  /* 初期位置: ボタンの左上角の外側約10pxの地点に星の中心が来るように設定 */
-  /* 星の半径(2px)を考慮して top/left を調整 */
-  top: -12px; /* -(10px枠外オフセット + 2px星半径) */
-  left: -12px; /* -(10px枠外オフセット + 2px星半径) */
+  opacity: 1; /* 透明度 (1で完全に不透明) */
+  
+  /* 光彩効果を調整して、より明るく見えるように */
+  filter: drop-shadow(0 0 3px #ffffff)   /* 内側の強めの白い光 */
+          drop-shadow(0 0 7px #ffffff)   /* 中間の広がる白い光 */
+          drop-shadow(0 0 12px #f0f0f0);  /* 外側のさらに広がる淡い光 */
+  
+  pointer-events: none; /* 星自体はクリックに反応しない */
+  
+  /* 星の大きさに合わせて初期位置を調整 */
+  /* 星の半径(2.5px) + 枠からのオフセット(約10px) = 12.5px */
+  top: -12.5px; 
+  left: -12.5px; 
   
   animation: orbit-square-border 4s linear infinite;
 }
+
 
 @keyframes orbit-square-border {
   0% { /* 左上 (初期位置) */
