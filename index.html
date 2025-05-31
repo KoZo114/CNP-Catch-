@@ -3,95 +3,82 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>テスト用 – START アニメ</title>
+  <title>テスト用 – 星が回るか確認</title>
   <style>
-    /* 画面全体を黒背景にして中央にボタンを配置 */
+    /* ===== 背景を真っ黒にしてボタンを画面中央に表示 ===== */
     html, body {
+      margin: 0;
       width: 100%;
       height: 100%;
-      margin: 0;
       background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
-    /* ==============================
-       START ボタン本体（枠はここだけ）
-       ============================== */
+    /* ===== START ボタン本体 ===== */
     #start-btn {
-      position: absolute;      /* ← ここを必ず absolute にする */
+      position: relative;      /* 疑似要素を「このボタン」を基準にする */
       padding: 16px 48px;
       font-size: 28px;
-      letter-spacing: .08em;
       color: #fff;
-      background: rgba(0, 0, 0, .55);
+      background: rgba(0, 0, 0, 0.55);
 
-      /* ← 枠はここだけに残しておく */
+      /* 枠はボタンだけに表示 */
       border: 2px solid #fff;
       border-radius: 14px;
 
       cursor: pointer;
-      z-index: 20;
-      transition: background .3s, transform .3s, opacity .6s;
     }
 
-    /* ホバー時の挙動 */
+    /* ホバーで少し光らせる */
     #start-btn:hover {
-      background: rgba(255, 255, 255, .15);
-      transform: scale(1.05);
-    }
-    #start-btn:active {
-      transform: scale(.96);
+      background: rgba(255, 255, 255, 0.15);
     }
 
-    /* ========================================================
-       星だけを回転させる疑似要素（枠は回さない）
-       ======================================================== */
+    /* ===== 疑似要素で星を回転 ===== */
     #start-btn::before {
       content: '';
       position: absolute;
 
-      /* 枠の外側に星を少しはみ出させる分の余白 */
-      top: -8px;    /* 枠の太さ(2px) + 星の回転半径(約20px) の一部 */
-      left: -8px;
-      right: -8px;
-      bottom: -8px;
+      /* 枠の外側にちょっとはみ出る余白を確保 */
+      top: -10px;
+      left: -10px;
+      right: -10px;
+      bottom: -10px;
 
-      /* 枠は付けず、ボタン本体と同じ丸みを継承 */
+      /* 枠は付けずに丸みだけ継承 */
       border-radius: inherit;
-
-      /* 星はクリックを邪魔しない */
       pointer-events: none;
 
-      /* 星を 8 つ、box-shadow で配置 */
+      /* 星を８つ、box-shadow で並べる */
       box-shadow:
-        /* 上 */        0  -20px 2px 1px #fff,
-        /* 右上 */     14px -14px 2px 1px #fff,
-        /* 右 */       20px  0   2px 1px #fff,
-        /* 右下 */     14px  14px 2px 1px #fff,
-        /* 下 */        0   20px 2px 1px #fff,
-        /* 左下 */    -14px  14px 2px 1px #fff,
-        /* 左 */      -20px  0   2px 1px #fff,
-        /* 左上 */    -14px -14px 2px 1px #fff;
+        /* 上              */  0  -20px 2px 1px #fff,
+        /* 右上           */  14px -14px 2px 1px #fff,
+        /* 右              */  20px  0   2px 1px #fff,
+        /* 右下           */  14px  14px 2px 1px #fff,
+        /* 下              */   0   20px 2px 1px #fff,
+        /* 左下           */ -14px  14px 2px 1px #fff,
+        /* 左            */ -20px   0   2px 1px #fff,
+        /* 左上           */ -14px -14px 2px 1px #fff;
 
-      /* 星だけを回転させるアニメーション */
+      /* 4秒で一周する回転アニメ */
       animation: rotate-stars 4s linear infinite;
 
       /* 少し光らせる */
-      opacity: .8;
+      opacity: 0.8;
       filter: drop-shadow(0 0 2px #fff);
     }
 
-    /* 回転アニメーション本体 */
+    /* 回転アニメ本体 */
     @keyframes rotate-stars {
       from { transform: rotate(0deg); }
       to   { transform: rotate(360deg); }
     }
 
-    /* ホバー時に回転を速くしたい場合 */
+    /* ホバー時は 2秒で一周 に速く */
     #start-btn:hover::before {
-      animation-duration: 2s;  /* 2 秒で 1 周 → 回転が速くなる */
+      animation-duration: 2s;
     }
   </style>
 </head>
