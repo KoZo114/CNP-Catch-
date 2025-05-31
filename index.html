@@ -24,50 +24,95 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
   }
 }
 
-#start-btn{
-  position: relative; /* ← これを追加してください */
-  position:absolute;left:50%;top:60%;transform:translate(-50%,-50%);
-  padding:16px 48px;font-size:28px;letter-spacing:.08em;color:#fff;
-  background:rgba(0,0,0,.55);border:2px solid #fff;border-radius:14px;
-  cursor:pointer;z-index:20;transition:background .3s,transform .3s,opacity .6s;
+/* ==============================
+   START ボタン本体（枠はここだけ）
+   ============================== */
+#start-btn {
+  position: absolute;   /* ← ここは「absolute」にします */
+  left: 50%;
+  top: 60%;
+  transform: translate(-50%, -50%);
+  padding: 16px 48px;
+  font-size: 28px;
+  letter-spacing: .08em;
+  color: #fff;
+  background: rgba(0, 0, 0, .55);
+
+  /* ← 枠はここで固定しておく */
+  border: 2px solid #fff;
+  border-radius: 14px;
+
+  cursor: pointer;
+  z-index: 20;
+  transition: background .3s, transform .3s, opacity .6s;
+
+  /* 疑似要素の基準には「position: absolute;」だけでOK */
+  /* position: relative; は不要です */
 }
-/* ボタンを取り囲む星を疑似要素で作る */
+
+/* ホバー時の挙動そのまま */
+#start-btn:hover {
+  background: rgba(255, 255, 255, .15);
+  transform: translate(-50%, -50%) scale(1.05);
+}
+#start-btn:active {
+  transform: translate(-50%, -50%) scale(.96);
+}
+
+
+/* ========================================================
+   星だけを回転させる疑似要素（枠は回さない！）
+   ======================================================== */
 #start-btn::before {
   content: '';
   position: absolute;
-  top: -8px;    /* 星の回転半径＋余白 */
+
+  /* 枠の外側に星を少しはみ出させる余白を含めたサイズ */
+  top: -8px;    /* 枠の太さ(2px) + 星の回転半径(約20px) の一部を見せる */
   left: -8px;
   right: -8px;
   bottom: -8px;
-  border-radius: inherit;
+
+  /* 枠は付けない */
+  border-radius: inherit;  /* ボタン本体と同じ丸み */
+
+  /* pointer-events を無視 */
   pointer-events: none;
-  /* 星を８つ、box-shadowで作成 */
+
+  /* 星を 8 つ作る */
   box-shadow:
-    0 -20px 2px 1px #fff,
-    14px -14px 2px 1px #fff,
-    20px 0px 2px 1px #fff,
-    14px 14px 2px 1px #fff,
-    0 20px 2px 1px #fff,
-    -14px 14px 2px 1px #fff,
-    -20px 0px 2px 1px #fff,
-    -14px -14px 2px 1px #fff;
+    /* 上 */       0  -20px 2px 1px #fff,
+    /* 右上 */    14px -14px 2px 1px #fff,
+    /* 右 */      20px  0   2px 1px #fff,
+    /* 右下 */    14px  14px 2px 1px #fff,
+    /* 下 */       0   20px 2px 1px #fff,
+    /* 左下 */   -14px  14px 2px 1px #fff,
+    /* 左 */     -20px  0   2px 1px #fff,
+    /* 左上 */   -14px -14px 2px 1px #fff;
+
+  /* 回転アニメーションだけをかける */
   animation: rotate-stars 4s linear infinite;
-  opacity: 0.8;
+
+  /* 星を少し光らせる */
+  opacity: .8;
   filter: drop-shadow(0 0 2px #fff);
 }
 
-/* 回転アニメーション */
+/* 回転アニメーション本体 */
 @keyframes rotate-stars {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* ホバー時に少しスピードアップさせたいなら */
+/* ホバー時は回転スピードを速く */
 #start-btn:hover::before {
-  animation-duration: 2s;
-}  
-#start-btn:hover{background:rgba(255,255,255,.15);transform:translate(-50%,-50%) scale(1.05);} 
-#start-btn:active{transform:translate(-50%,-50%) scale(.96);} 
+  animation-duration: 2s;  /* 2秒で1周 → 速く回転 */
+}
+ 
 
 .char{position:absolute;width:10vw;min-width:100px;max-width:180px;pointer-events:none;will-change:transform;animation:float linear forwards;}
 @media (max-width: 600px){.char{width:24vw;min-width:90px;}}
