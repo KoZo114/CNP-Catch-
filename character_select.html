@@ -1,84 +1,155 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>キャラクター選択 – CNPCATCH</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;500;700&display=swap');
+<meta charset="utf-8">
+<title>Opening – CNP-Catch</title>
+<style>
+@font-face{font-family:'VerdanaBold';src:url('Verdana Bold.ttf') format('truetype');font-weight:700;font-style:normal;}
 
-    html,body{margin:0;min-height:100%;background:#000;overflow-y:auto;font-family:'M PLUS Rounded 1c','Hiragino Sans','メイリオ',sans-serif;display:flex;flex-direction:column;align-items:center;padding:30px 15px;}
+html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen Kaku Gothic New",sans-serif;}
+#opening-stage{position:relative;width:100%;height:100%;overflow:hidden;}
 
-    @keyframes twinkle{0%,100%{transform:scale(.4);opacity:0;}10%{opacity:.8;}50%{opacity:1;}90%{opacity:.8;transform:scale(.6);}}
-    .star{position:fixed;width:4px;height:4px;border-radius:50%;background:#fff;pointer-events:none;animation:twinkle 4.5s linear infinite;filter:blur(1px) drop-shadow(0 0 4px currentColor);z-index:-1;}
-    .star.c1{color:#FFD700;}.star.c2{color:#7FFFD4;}.star.c3{color:#FF69B4;}
+#game-title{
+  position:absolute;
+  top: 38%; /* タイトルを少し上に調整 */
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:72px;
+  letter-spacing:.05em;
+  color:#fff;
+  font-family:'VerdanaBold','Zen Kaku Gothic New',sans-serif;
+  text-shadow:0 0 12px rgba(255,255,255,.7);
+  pointer-events:none;
+  z-index:15;
+}
 
-    h1{margin:20px 0 28px;color:#ffdab9;font-size:2.4em;font-weight:700;position:relative;padding-bottom:12px;text-shadow:0 0 10px rgba(255,218,185,.6);}    
-    h1::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:90px;height:4px;border-radius:3px;background:linear-gradient(to right,#ffb6c1,#ffdab9);}  
-    @media(max-width:600px){h1{font-size:7vw;}}
+#start-btn{
+  position:absolute;
+  left:50%;
+  top: 62%; /* スタートボタンを少し下に調整 */
+  transform:translate(-50%,-50%);
+  padding:16px 48px;
+  font-size:28px;
+  letter-spacing:.08em;
+  color:#fff;
+  background:rgba(0,0,0,.55);
+  border:2px solid #fff;
+  border-radius:14px;
+  cursor:pointer;
+  z-index:20;
+  transition:background .3s,transform .3s,opacity .6s;
+}
+#start-btn:hover{background:rgba(255,255,255,.15);transform:translate(-50%,-50%) scale(1.05);}
+#start-btn:active{transform:translate(-50%,-50%) scale(.96);}
 
-    .container{display:grid;grid-template-columns:repeat(2,1fr);gap:24px 22px;width:100%;max-width:720px;}
-    .character{padding:16px;border:3px dashed #d2b48c;border-radius:22px;background:#fff8dc;box-shadow:0 4px 8px rgba(0,0,0,.1);cursor:pointer;display:flex;flex-direction:column;align-items:center;transition:transform .25s cubic-bezier(.175,.885,.32,1.275),box-shadow .25s;position:relative;}
-    .character:hover{transform:translateY(-6px) scale(1.04);border-color:#a0522d;box-shadow:0 10px 22px rgba(210,180,140,.55);} 
-    .character::before{content:'♥';position:absolute;top:-10px;right:-10px;font-size:2.4em;color:#ffb6c1;opacity:.8;transform:rotate(15deg);transition:transform .25s;z-index:-1;}
-    .character:hover::before{transform:rotate(5deg) scale(1.1);} 
+.char{position:absolute;width:10vw;min-width:100px;max-width:180px;pointer-events:none;will-change:transform;animation:float linear forwards;}
+@media (max-width: 600px){
+  .char{width:26vw;min-width:90px;}
+}
+@keyframes bob{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-1vw)}}
+.char img{width:100%;animation:bob 3s ease-in-out infinite;}
+@keyframes float{from{transform:translate(var(--startX),var(--startY));opacity:0}5%{opacity:1}to{transform:translate(var(--endX),var(--endY));opacity:0}}
 
-    .character-image-container{width:120px;height:120px;border-radius:50%;overflow:hidden;margin-bottom:14px;background:#fff;border:5px solid #fff;box-shadow:0 0 0 3px #ffdAB9,0 3px 8px rgba(0,0,0,.12);flex-shrink:0;}
-    .character img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%;}
+@keyframes twinkle{0%,100%{transform:scale(.4);opacity:0;}10%{opacity:.8;}50%{opacity:1;}90%{opacity:.8;transform:scale(.6);}}
+.star{position:fixed;width:4px;height:4px;border-radius:50%;background:#fff;pointer-events:none;animation:twinkle 4.5s linear infinite;filter:blur(1px) drop-shadow(0 0 4px currentColor);}
+.star.c1{color:#FFD700;}.star.c2{color:#7FFFD4;}.star.c3{color:#FF69B4;}
 
-    .name{background:#ffebcd;color:#774f38;font-weight:700;font-size:1.05em;padding:8px 12px;border-radius:10px;box-shadow:0 2px 4px rgba(0,0,0,.05);width:88%;margin-top:auto;text-align:center;}
+/* ▼▼▼ 星のCSS ▼▼▼ */
+.orbiting-star {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background-color: #fff;
+  border-radius: 50%;
+  opacity: 1;
+  filter: drop-shadow(0 0 3px #ffffff)
+          drop-shadow(0 0 7px #ffffff)
+          drop-shadow(0 0 12px #f0f0f0);
+  pointer-events: none;
+  top: -12.5px; 
+  left: -12.5px; 
+  animation: orbit-square-border 4s linear infinite;
+}
 
-    @media(max-width:600px){.character{padding:12px;}.character-image-container{width:28vw;height:28vw;min-width:90px;min-height:90px;}.name{font-size:0.9em;}}
-  </style>
+@keyframes orbit-square-border {
+  0% {
+    top: -12.5px;
+    left: -12.5px;
+  }
+  25% {
+    top: -12.5px;
+    left: calc(100% + 7.5px);
+  }
+  50% {
+    top: calc(100% + 7.5px);
+    left: calc(100% + 7.5px);
+  }
+  75% {
+    top: calc(100% + 7.5px);
+    left: -12.5px;
+  }
+  100% {
+    top: -12.5px;
+    left: -12.5px;
+  }
+}
+
+#start-btn:hover .orbiting-star {
+  animation-duration: 2s;
+}
+/* ▲▲▲ 星のCSSここまで ▲▲▲ */
+
+</style>
 </head>
 <body>
-  <h1>キャラクターを選んでね！</h1>
-  <div class="container">
-    <div class="character" onclick="selectCharacter('makami','kmakami.png')">
-      <div class="character-image-container"><img src="kmakami.png" alt="マカミ"></div>
-      <div class="name">マカミ</div>
-    </div>
-    <div class="character" onclick="selectCharacter('luna','kluna.png')">
-      <div class="character-image-container"><img src="kluna.png" alt="ルナ"></div>
-      <div class="name">ルナ</div>
-    </div>
-    <div class="character" onclick="selectCharacter('yama','yama (2).png')">
-      <div class="character-image-container"><img src="yama (2).png" alt="ヤーマ"></div>
-      <div class="name">ヤーマ</div>
-    </div>
-    <div class="character" onclick="selectCharacter('towa','towa (1).png')">
-      <div class="character-image-container"><img src="towa (1).png" alt="トワ"></div>
-      <div class="name">トワ</div>
-    </div>
-    <div class="character" onclick="selectCharacter('setuna','setuna (1).png')">
-      <div class="character-image-container"><img src="setuna (1).png" alt="セツナ"></div>
-      <div class="name">セツナ</div>
-    </div>
-    <div class="character" onclick="selectCharacter('runa','runa (1).png')">
-      <div class="character-image-container"><img src="runa (1).png" alt="ルナ(ピンク)"></div>
-      <div class="name">ルナ(ピンク)</div>
-    </div>
-    <div class="character" onclick="selectCharacter('orochi','oroti (1).png')">
-      <div class="character-image-container"><img src="oroti (1).png" alt="オロチ"></div>
-      <div class="name">オロチ</div>
-    </div>
-    <div class="character" onclick="selectCharacter('narukami','narukamik (1).png')">
-      <div class="character-image-container"><img src="narukamik (1).png" alt="ナルカミ"></div>
-      <div class="name">ナルカミ</div>
-    </div>
-    <div class="character" onclick="selectCharacter('mitama','mitaman (1).png')">
-      <div class="character-image-container"><img src="mitaman (1).png" alt="ミタマ"></div>
-      <div class="name">ミタマ</div>
-    </div>
-    <div class="character" onclick="selectCharacter('leelee','leelee (1).png')">
-      <div class="character-image-container"><img src="leelee (1).png" alt="リーリー"></div>
-      <div class="name">リーリー</div>
-    </div>
+<audio id="bgm" src="CNP Catch.mp3" preload="auto" loop playsinline></audio>
+<div id="opening-stage">
+  <h1 id="game-title">CNP CATCH</h1> <button id="start-btn">START<span class="orbiting-star"></span></button>
   </div>
+<script>
+const charImages=[
+  "Leeleeg (1).png","leelee (1).png","luna (1).png","makamih (1).png",
+  "makamio (1).png","mitaman (1).png","mitamag (1).png","narukami (1).png",
+  "narukamik (1).png","orochi (1).png","oroti (1).png","runa (1).png",
+  "setuna (1).png","towa (1).png","yamar (1).png","yama (2).png",
+];
 
-  <script>
-    (function(){const colors=['c1','c2','c3'];for(let i=0;i<60;i++){const s=document.createElement('div');s.className='star '+colors[i%colors.length];s.style.top=Math.random()*100+'vh';s.style.left=Math.random()*100+'vw';const size=3+Math.random()*3;s.style.width=s.style.height=size+'px';s.style.animationDelay=Math.random()*4+'s';s.style.animationDuration=4+Math.random()*3+'s';document.body.appendChild(s);}})();
-    function selectCharacter(name,img){localStorage.setItem('selectedName',name);localStorage.setItem('selectedImage',img);location.href='stage.html';}
-  </script>
+const activeChars=new Set();
+const CONCURRENT=6;const INTERVAL=900;
+const stage=document.getElementById("opening-stage");
+const bgm=document.getElementById("bgm");
+const startBtn=document.getElementById("start-btn");
+const stageW=()=>stage.clientWidth;const stageH=()=>stage.clientHeight;
+
+function fadeInVolume(){let v=0;bgm.volume=0;const id=setInterval(()=>{v+=0.05;bgm.volume=Math.min(v,1);if(v>=1)clearInterval(id);},100);}
+function attemptPlay(){if(!bgm.paused) return;bgm.play().then(fadeInVolume).catch(err=>{console.warn("Audio play blocked",err);});}
+window.addEventListener("load",attemptPlay);stage.addEventListener("click",attemptPlay);stage.addEventListener("touchstart",attemptPlay,{passive:true});
+
+function randomEdgePos(){const e=Math.floor(Math.random()*4);switch(e){case 0:return{x:Math.random()*stageW(),y:-150};case 1:return{x:stageW()+150,y:Math.random()*stageH()};case 2:return{x:Math.random()*stageW(),y:stageH()+150};default:return{x:-150,y:Math.random()*stageH()};}}
+
+function spawnChar(){
+  const pool=charImages.filter(src=>!activeChars.has(src));
+  const imgSrc=(pool.length?pool:charImages)[Math.floor(Math.random()* (pool.length?pool.length:charImages.length))];
+  const wrap=document.createElement("div");wrap.className="char";
+  const img=document.createElement("img");img.src=imgSrc;wrap.appendChild(img);
+  activeChars.add(imgSrc);
+  const start=randomEdgePos();let end=randomEdgePos();
+  while(Math.abs(start.x-end.x)<200&&Math.abs(start.y-end.y)<200){end=randomEdgePos();}
+  wrap.style.setProperty("--startX",start.x+"px");wrap.style.setProperty("--startY",start.y+"px");wrap.style.setProperty("--endX",end.x+"px");wrap.style.setProperty("--endY",end.y+"px");
+  const d=5+Math.random()*4;wrap.style.animationDuration=d+"s";stage.appendChild(wrap);
+  setTimeout(()=>{wrap.remove();activeChars.delete(imgSrc);},d*1000);
+}
+
+let running=0;setInterval(()=>{if(running<CONCURRENT){spawnChar();running++;setTimeout(()=>running--,7000);}},INTERVAL);
+
+(function(){const colors=["c1","c2","c3"],COUNT=60;for(let i=0;i<COUNT;i++){const s=document.createElement("div");s.className="star "+colors[i%colors.length];s.style.top=Math.random()*100+"vh";s.style.left=Math.random()*100+"vw";const size=3+Math.random()*3;s.style.width=s.style.height=size+"px";s.style.animationDelay=Math.random()*4+"s";s.style.animationDuration=4+Math.random()*3+"s";document.body.appendChild(s);}})();
+
+startBtn.addEventListener("click",()=>{
+  attemptPlay();
+  startBtn.style.pointerEvents="none";
+  startBtn.style.opacity="0";
+  setTimeout(()=>location.href="character_select.html",500);
+});
+</script>
 </body>
 </html>
