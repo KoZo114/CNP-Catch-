@@ -16,70 +16,47 @@
       justify-content: center;
     }
 
-    /* ===== START ボタン本体 ===== */
-    #start-btn {
-      position: relative;      /* 疑似要素を「このボタン」を基準にする */
-      padding: 16px 48px;
-      font-size: 28px;
-      color: #fff;
-      background: rgba(0, 0, 0, 0.55);
+    /* ================================================
+   START ボタン本体（例）-------------------------
+   ================================================ */
+#start-btn {
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  transform: translate(-50%, -50%);
+  padding: 16px 48px;
+  font-size: 28px;
+  letter-spacing: .08em;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
+  border: 2px solid #fff;
+  border-radius: 14px;
+  cursor: pointer;
+  z-index: 20;
+}
 
-      /* 枠はボタンだけに表示 */
-      border: 2px solid #fff;
-      border-radius: 14px;
+/* =================================================
+   まずは疑似要素が見えているか確かめるために
+   枠ではなく半透明の背景を付けてみる
+   ================================================= */
+#start-btn::before {
+  content: '';
+  position: absolute;
 
-      cursor: pointer;
-    }
+  /* ボタンの枠を少し越えるように */
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  /* ボタン本体と同じ丸みを継承 */
+  border-radius: inherit;
 
-    /* ホバーで少し光らせる */
-    #start-btn:hover {
-      background: rgba(255, 255, 255, 0.15);
-    }
+  /* クリックを邪魔しない */
+  pointer-events: none;
 
-    /* ===== 疑似要素で星を回転 ===== */
-    #start-btn::before {
-      content: '';
-      position: absolute;
-
-      /* 枠の外側にちょっとはみ出る余白を確保 */
-      top: -10px;
-      left: -10px;
-      right: -10px;
-      bottom: -10px;
-
-      /* 枠は付けずに丸みだけ継承 */
-      border-radius: inherit;
-      pointer-events: none;
-
-      /* 星を８つ、box-shadow で並べる */
-      box-shadow:
-        /* 上              */  0  -20px 2px 1px #fff,
-        /* 右上           */  14px -14px 2px 1px #fff,
-        /* 右              */  20px  0   2px 1px #fff,
-        /* 右下           */  14px  14px 2px 1px #fff,
-        /* 下              */   0   20px 2px 1px #fff,
-        /* 左下           */ -14px  14px 2px 1px #fff,
-        /* 左            */ -20px   0   2px 1px #fff,
-        /* 左上           */ -14px -14px 2px 1px #fff;
-
-      /* 4秒で一周する回転アニメ */
-      animation: rotate-stars 4s linear infinite;
-
-      /* 少し光らせる */
-      opacity: 0.8;
-      filter: drop-shadow(0 0 2px #fff);
-    }
-
-    /* 回転アニメ本体 */
-    @keyframes rotate-stars {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-
-    /* ホバー時は 2秒で一周 に速く */
-    #start-btn:hover::before {
-      animation-duration: 2s;
-    }
+  /* ここだけ半透明の赤（debug 用） */
+// background: rgba(255, 0, 0, 0.2);  /* ← これを有効にする */
+}
   </style>
 </head>
 <body>
