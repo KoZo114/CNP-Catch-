@@ -1,345 +1,148 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Opening – CNP Catch</title>
-  <style>
-    /* ============================================
-        カスタムフォント
-    ============================================ */
-    @font-face {
-      font-family: 'VerdanaBold';
-      src: url('Verdana Bold.ttf') format('truetype');
-      font-weight: 700;
-    }
+<meta charset="utf-8">
+<title>Opening – CNP-Catch</title>
+<style>
+@font-face{font-family:'VerdanaBold';src:url('Verdana Bold.ttf') format('truetype');font-weight:700;font-style:normal;}
 
-    /* ============================================
-        全体リセット & 背景
-    ============================================ */
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden; /* 全体ははみ出しを隠す */
-      background: #000; /* 真っ黒な背景 */
-      font-family: 'Zen Kaku Gothic New', sans-serif;
-      position: relative;
-    }
+html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen Kaku Gothic New",sans-serif;}
+#opening-stage{position:relative;width:100%;height:100%;overflow:hidden;}
 
-    /* ============================================
-        背景：ほたる風キラキラ（60 個の星を散らす）
-    ============================================ */
-    @keyframes twinkle {
-      0%, 100% { transform: scale(.4); opacity: 0; }
-      10%      { opacity: .8; }
-      50%      { opacity: 1; transform: scale(.6); }
-      90%      { opacity: .8; }
-    }
-    .star {
-      position: fixed;
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: #fff;
-      pointer-events: none;
-      animation: twinkle 4.5s linear infinite;
-      filter: blur(1px) drop-shadow(0 0 4px currentColor);
-      z-index: -1; /* 背景として最背面 */
-    }
-    .star.c1 { color: #FFD700; } /* ゴールド */
-    .star.c2 { color: #7FFFD4; } /* アクアマリン */
-    .star.c3 { color: #FF69B4; } /* ホットピンク */
+#game-title{
+  position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);
+  font-size:72px;letter-spacing:.05em;color:#fff;
+  font-family:'VerdanaBold','Zen Kaku Gothic New',sans-serif;
+  text-shadow:0 0 12px rgba(255,255,255,.7);
+  pointer-events:none;z-index:15;
+}
 
-    /* ============================================
-        キャラクター浮遊アニメーション
-    ============================================ */
-    #opening-stage {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      overflow: hidden; /* キャラはこの範囲内で動く */
-    }
-    .char {
-      position: absolute;
-      width: 8vw; /* PC で自動サイズ（最小 100px, 最大 180px） */
-      min-width: 100px;
-      max-width: 180px;
-      pointer-events: none;
-      will-change: transform;
-      animation: float linear forwards;
-    }
-    @media (max-width: 600px) {
-      .char {
-        width: 18vw; /* スマホなら 18vw、最小 90px */
-        min-width: 90px;
-      }
-    }
-    @keyframes bob {
-      0%, 100% { transform: translate(-50%, -50%) translateY(0); }
-      50%      { transform: translate(-50%, -50%) translateY(-1vw); }
-    }
-    .char img {
-      width: 100%;
-      animation: bob 3s ease-in-out infinite;
-    }
-    @keyframes float {
-      from { transform: translate(var(--startX), var(--startY)); opacity: 0; }
-      5%   { opacity: 1; }
-      to   { transform: translate(var(--endX), var(--endY)); opacity: 0; }
-    }
+#start-btn{
+  position:absolute;left:50%;top:60%;transform:translate(-50%,-50%);
+  padding:16px 48px;font-size:28px;letter-spacing:.08em;color:#fff;
+  background:rgba(0,0,0,.55);border:2px solid #fff;border-radius:14px;
+  cursor:pointer;z-index:20;transition:background .3s,transform .3s,opacity .6s;
+  /* position: relative; を追加しておくと、中の絶対配置要素の基準としてより明確になります (既存のabsoluteでも機能しますが) */
+  /* position: relative; */ 
+}
+#start-btn:hover{background:rgba(255,255,255,.15);transform:translate(-50%,-50%) scale(1.05);}
+#start-btn:active{transform:translate(-50%,-50%) scale(.96);}
 
-    /* ============================================
-        ゲームタイトル
-    ============================================ */
-    #game-title {
-      position: absolute;
-      top: 30%;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 68px; /* PC 固定 */
-      letter-spacing: .05em;
-      color: #fff;
-      font-family: 'VerdanaBold', 'Zen Kaku Gothic New', sans-serif;
-      text-shadow: 0 0 12px rgba(255, 255, 255, .7);
-      pointer-events: none;
-      z-index: 5;
-    }
-    @media (max-width: 600px) {
-      #game-title {
-        font-size: 12vw; /* スマホは画面幅の 12% */
-        top: 35%; /* 少し下げてバランス調整 */
-      }
-    }
+.char{position:absolute;width:１０vw;min-width:100px;max-width:180px;pointer-events:none;will-change:transform;animation:float linear forwards;}
+@media (max-width: 600px){
+  .char{width:２６vw;min-width:90px;}
+}
+@keyframes bob{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-1vw)}}
+.char img{width:100%;animation:bob 3s ease-in-out infinite;}
+@keyframes float{from{transform:translate(var(--startX),var(--startY));opacity:0}5%{opacity:1}to{transform:translate(var(--endX),var(--endY));opacity:0}}
 
-    /* ============================================
-        START ボタンを包むラッパー
-        （overflow: visible; で星をはみ出させる）
-    ============================================ */
-    #button-wrapper {
-      position: absolute;
-      top: 55%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      overflow: visible; /* 星がはみ出しても表示 */
-      z-index: 10; /* タイトルより前に出す */
-      pointer-events: none; /* ラッパー自体はクリックしない */
-    }
+@keyframes twinkle{0%,100%{transform:scale(.4);opacity:0;}10%{opacity:.8;}50%{opacity:1;}90%{opacity:.8;transform:scale(.6);}}
+.star{position:fixed;width:4px;height:4px;border-radius:50%;background:#fff;pointer-events:none;animation:twinkle 4.5s linear infinite;filter:blur(1px) drop-shadow(0 0 4px currentColor);}
+.star.c1{color:#FFD700;}.star.c2{color:#7FFFD4;}.star.c3{color:#FF69B4;}
 
-    /* ============================================
-        START ボタン本体（枠だけは固定）
-    ============================================ */
-    #start-btn {
-      position: relative; /* 疑似要素や中の星の基準 */
-      padding: 16px 48px;
-      font-size: 28px;
-      letter-spacing: .08em;
-      color: #fff;
-      background: rgba(0, 0, 0, .55);
-      border: 2px solid #fff; /* 枠はここだけ */
-      border-radius: 14px;
-      cursor: pointer;
-      pointer-events: auto; /* 実際にクリックできるように */
-      transition: background .3s, transform .3s, opacity .6s;
-    }
-    #start-btn:hover {
-      background: rgba(255, 255, 255, .15);
-      transform: scale(1.05);
-    }
-    #start-btn:active {
-      transform: scale(.96);
-    }
+/* ▼▼▼ ここから追加するCSS ▼▼▼ */
+.orbiting-star {
+  position: absolute;
+  width: 4px; /* 星のサイズ */
+  height: 4px;
+  background-color: #fff;
+  border-radius: 50%;
+  opacity: .8;
+  /* 星の光彩エフェクト */
+  filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px #fff);
+  pointer-events: none; /* 星自体はクリックできないように */
+  
+  /* 初期位置: ボタンの左上角の外側約10pxの地点に星の中心が来るように設定 */
+  /* 星の半径(2px)を考慮して top/left を調整 */
+  top: -12px; /* -(10px枠外オフセット + 2px星半径) */
+  left: -12px; /* -(10px枠外オフセット + 2px星半径) */
+  
+  animation: orbit-square-border 4s linear infinite;
+}
 
-    /* ============================================
-        枠の周りを回る星 (新しいスタイル)
-    ============================================ */
-    .orbiting-star {
-      position: absolute;
-      width: 4px; /* 星のサイズ */
-      height: 4px;
-      background-color: #fff;
-      border-radius: 50%;
-      opacity: .8;
-      /* 星の光彩エフェクト */
-      filter: drop-shadow(0 0 3px #fff) drop-shadow(0 0 6px #fff);
-      pointer-events: none; /* 星自体はクリックできないように */
-      
-      /* 初期位置: ボタンの左上角の外側約10pxの地点に星の中心が来るように設定 */
-      /* 星の半径(2px)を考慮して top/left を調整 */
-      top: -12px; /* -(10px枠外オフセット + 2px星半径) */
-      left: -12px; /* -(10px枠外オフセット + 2px星半径) */
-      
-      animation: orbit-square-border 4s linear infinite;
-    }
+@keyframes orbit-square-border {
+  0% { /* 左上 (初期位置) */
+    top: -12px;
+    left: -12px;
+  }
+  25% { /* 上辺を右へ移動し、右上に到達 */
+    top: -12px;
+    /* ボタン右端から10px外側 (ボタン幅100% + 10pxオフセット - 星半径2px) */
+    left: calc(100% + 8px); 
+  }
+  50% { /* 右辺を下へ移動し、右下に到達 */
+    top: calc(100% + 8px);
+    left: calc(100% + 8px);
+  }
+  75% { /* 下辺を左へ移動し、左下に到達 */
+    top: calc(100% + 8px);
+    left: -12px;
+  }
+  100% { /* 左辺を上へ移動し、左上に戻る (ループ) */
+    top: -12px;
+    left: -12px;
+  }
+}
 
-    @keyframes orbit-square-border {
-      0% { /* 左上 (初期位置) */
-        top: -12px;
-        left: -12px;
-      }
-      25% { /* 上辺を右へ移動し、右上に到達 */
-        top: -12px;
-        /* ボタン右端から10px外側 (ボタン幅100% + 10pxオフセット - 星半径2px) */
-        left: calc(100% + 8px); 
-      }
-      50% { /* 右辺を下へ移動し、右下に到達 */
-        top: calc(100% + 8px);
-        left: calc(100% + 8px);
-      }
-      75% { /* 下辺を左へ移動し、左下に到達 */
-        top: calc(100% + 8px);
-        left: -12px;
-      }
-      100% { /* 左辺を上へ移動し、左上に戻る (ループ) */
-        top: -12px;
-        left: -12px;
-      }
-    }
+/* ホバー時に星の回転を速くする */
+#start-btn:hover .orbiting-star {
+  animation-duration: 2s;
+}
+/* ▲▲▲ ここまで追加するCSS ▲▲▲ */
 
-    /* ホバー時に星の回転を速くする */
-    #start-btn:hover .orbiting-star {
-      animation-duration: 2s;
-    }
-
-    /* 元の #start-btn::before と @keyframes rotate-stars は不要なので削除またはコメントアウト
-    #start-btn::before {
-      content: '';
-      position: absolute;
-      top: -8px;
-      left: -8px;
-      right: -8px;
-      bottom: -8px;
-      border-radius: inherit;
-      pointer-events: none;
-      box-shadow:
-          0  -20px 2px 1px #fff,
-         14px -14px 2px 1px #fff,
-         20px  0  2px 1px #fff,
-         14px  14px 2px 1px #fff,
-          0  20px 2px 1px #fff,
-        -14px  14px 2px 1px #fff,
-        -20px  0  2px 1px #fff,
-        -14px -14px 2px 1px #fff;
-      animation: rotate-stars 4s linear infinite;
-      opacity: .8;
-      filter: drop-shadow(0 0 2px #fff);
-    }
-    @keyframes rotate-stars {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-    #start-btn:hover::before {
-      animation-duration: 2s;
-    }
-    */
-
-  </style>
+</style>
 </head>
 <body>
-  <div id="opening-stage">
-    <h1 id="game-title">CNP Catch</h1>
+<audio id="bgm" src="CNP Catch.mp3" preload="auto" loop playsinline></audio>
+<div id="opening-stage">
+  <h1 id="game-title">CNP Catch</h1>
+  <button id="start-btn">START<span class="orbiting-star"></span></button>
+  </div>
+<script>
+const charImages=[
+  "Leeleeg (1).png","leelee (1).png","luna (1).png","makamih (1).png",
+  "makamio (1).png","mitaman (1).png","mitamag (1).png","narukami (1).png",
+  "narukamik (1).png","orochi (1).png","oroti (1).png","runa (1).png",
+  "setuna (1).png","towa (1).png","yamar (1).png","yama (2).png",
+];
 
-    <div id="button-wrapper">
-      <button id="start-btn">
-        START
-        <span class="orbiting-star"></span> </button>
-    </div>
+/* 現在画面に出ているキャラを追跡して重複を避ける */
+const activeChars=new Set();
 
-    </div>
+const CONCURRENT=6;const INTERVAL=900;
+const stage=document.getElementById("opening-stage");
+const bgm=document.getElementById("bgm");
+const startBtn=document.getElementById("start-btn");
+const stageW=()=>stage.clientWidth;const stageH=()=>stage.clientHeight;
 
-  <script>
-    /* ============================
-        背景ほたる（星）を生成
-    ============================ */
-    (function generateBackgroundStars() {
-      const colors = ['c1', 'c2', 'c3'];
-      const COUNT = 60;
-      for (let i = 0; i < COUNT; i++) {
-        const s = document.createElement('div');
-        s.className = 'star ' + colors[i % colors.length];
-        s.style.top = Math.random() * 100 + 'vh';
-        s.style.left = Math.random() * 100 + 'vw';
-        const size = 3 + Math.random() * 3;
-        s.style.width = s.style.height = size + 'px';
-        s.style.animationDelay = Math.random() * 4 + 's';
-        s.style.animationDuration = (4 + Math.random() * 3) + 's';
-        document.body.appendChild(s);
-      }
-    })();
+function fadeInVolume(){let v=0;bgm.volume=0;const id=setInterval(()=>{v+=0.05;bgm.volume=Math.min(v,1);if(v>=1)clearInterval(id);},100);}
+function attemptPlay(){if(!bgm.paused) return;bgm.play().then(fadeInVolume).catch(err=>{console.warn("Audio play blocked",err);});}
+window.addEventListener("load",attemptPlay);stage.addEventListener("click",attemptPlay);stage.addEventListener("touchstart",attemptPlay,{passive:true});
 
-    /* ============================
-        キャラクター画像一覧
-    ============================ */
-    const charImages = [
-      "Leeleeg (1).png", "leelee (1).png", "luna (1).png", "makamih (1).png",
-      "makamio (1).png", "mitaman (1).png", "mitamag (1).png", "narukami (1).png",
-      "narukamik (1).png", "orochi (1).png", "oroti (1).png", "runa (1).png",
-      "setuna (1).png", "towa (1).png", "yamar (1).png", "yama (2).png"
-    ];
+function randomEdgePos(){const e=Math.floor(Math.random()*4);switch(e){case 0:return{x:Math.random()*stageW(),y:-150};case 1:return{x:stageW()+150,y:Math.random()*stageH()};case 2:return{x:Math.random()*stageW(),y:stageH()+150};default:return{x:-150,y:Math.random()*stageH()};}}
 
-    /* 浮游キャラクターの同時表示数と間隔 */
-    const CONCURRENT = 6;
-    const INTERVAL   = 900; // ms
+function spawnChar(){
+  /* ユニークな画像を選択 */
+  const pool=charImages.filter(src=>!activeChars.has(src));
+  const imgSrc=(pool.length?pool:charImages)[Math.floor(Math.random()* (pool.length?pool.length:charImages.length))];
 
-    const stage = document.getElementById("opening-stage");
-    const stageW = () => stage.clientWidth;
-    const stageH = () => stage.clientHeight;
+  const wrap=document.createElement("div");wrap.className="char";
+  const img=document.createElement("img");img.src=imgSrc;wrap.appendChild(img);
 
-    /* 端から端へランダムに出現する座標を返す */
-    function randomEdgePos() {
-      const edge = Math.floor(Math.random() * 4); // 0:上,1:右,2:下,3:左
-      switch (edge) {
-        case 0: return { x: Math.random() * stageW(), y: -150 };        // 上
-        case 1: return { x: stageW() + 150, y: Math.random() * stageH() }; // 右
-        case 2: return { x: Math.random() * stageW(), y: stageH() + 150 }; // 下
-        default: return { x: -150, y: Math.random() * stageH() };       // 左
-      }
-    }
+  activeChars.add(imgSrc);
 
-    /* 1 体のキャラクターを生成して流す */
-    function spawnChar() {
-      const wrap = document.createElement("div");
-      wrap.className = "char";
+  const start=randomEdgePos();let end=randomEdgePos();
+  while(Math.abs(start.x-end.x)<200&&Math.abs(start.y-end.y)<200){end=randomEdgePos();}
+  wrap.style.setProperty("--startX",start.x+"px");wrap.style.setProperty("--startY",start.y+"px");wrap.style.setProperty("--endX",end.x+"px");wrap.style.setProperty("--endY",end.y+"px");
+  const d=5+Math.random()*4;wrap.style.animationDuration=d+"s";stage.appendChild(wrap);
+  setTimeout(()=>{wrap.remove();activeChars.delete(imgSrc);},d*1000);
+}
 
-      const img = document.createElement("img");
-      img.src = charImages[Math.floor(Math.random() * charImages.length)];
-      wrap.appendChild(img);
+let running=0;setInterval(()=>{if(running<CONCURRENT){spawnChar();running++;setTimeout(()=>running--,7000);}},INTERVAL);
 
-      const start = randomEdgePos();
-      let end = randomEdgePos();
-      while (Math.abs(start.x - end.x) < 200 && Math.abs(start.y - end.y) < 200) {
-        end = randomEdgePos();
-      }
+(function(){const colors=["c1","c2","c3"],COUNT=60;for(let i=0;i<COUNT;i++){const s=document.createElement("div");s.className="star "+colors[i%colors.length];s.style.top=Math.random()*100+"vh";s.style.left=Math.random()*100+"vw";const size=3+Math.random()*3;s.style.width=s.style.height=size+"px";s.style.animationDelay=Math.random()*4+"s";s.style.animationDuration=4+Math.random()*3+"s";document.body.appendChild(s);}})();
 
-      wrap.style.setProperty("--startX", start.x + "px");
-      wrap.style.setProperty("--startY", start.y + "px");
-      wrap.style.setProperty("--endX", end.x + "px");
-      wrap.style.setProperty("--endY", end.y + "px");
-
-      const dur = 5 + Math.random() * 4;
-      wrap.style.animationDuration = dur + "s";
-
-      stage.appendChild(wrap);
-      setTimeout(() => wrap.remove(), dur * 1000);
-    }
-
-    /* 一定間隔でキャラクターをスポーン */
-    let running = 0;
-    setInterval(() => {
-      if (running < CONCURRENT) {
-        spawnChar();
-        running++;
-        setTimeout(() => running--, 7000); // アニメーション時間より少し長めに
-      }
-    }, INTERVAL);
-
-    /* ============================
-        START ボタンをクリックで遷移
-    ============================ */
-    document.getElementById("start-btn").addEventListener("click", () => {
-      window.location.href = "character_select.html";
-    });
-  </script>
+startBtn.addEventListener("click",()=>{attemptPlay();startBtn.style.pointerEvents="none";startBtn.style.opacity="0";setTimeout(()=>location.href="select.html",500);});
+</script>
 </body>
 </html>
