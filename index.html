@@ -10,27 +10,41 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 #opening-stage{position:relative;width:100%;height:100%;overflow:hidden;}
 
 #game-title{
-  position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);
-  font-size:72px;letter-spacing:.05em;color:#fff;
+  position:absolute;
+  top: 38%; /* タイトルを少し上に調整 */
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:72px;
+  letter-spacing:.05em;
+  color:#fff;
   font-family:'VerdanaBold','Zen Kaku Gothic New',sans-serif;
   text-shadow:0 0 12px rgba(255,255,255,.7);
-  pointer-events:none;z-index:15;
+  pointer-events:none;
+  z-index:15;
 }
 
 #start-btn{
-  position:absolute;left:50%;top:60%;transform:translate(-50%,-50%);
-  padding:16px 48px;font-size:28px;letter-spacing:.08em;color:#fff;
-  background:rgba(0,0,0,.55);border:2px solid #fff;border-radius:14px;
-  cursor:pointer;z-index:20;transition:background .3s,transform .3s,opacity .6s;
-  /* position: relative; を追加しておくと、中の絶対配置要素の基準としてより明確になります (既存のabsoluteでも機能しますが) */
-  /* position: relative; */ 
+  position:absolute;
+  left:50%;
+  top: 62%; /* スタートボタンを少し下に調整 */
+  transform:translate(-50%,-50%);
+  padding:16px 48px;
+  font-size:28px;
+  letter-spacing:.08em;
+  color:#fff;
+  background:rgba(0,0,0,.55);
+  border:2px solid #fff;
+  border-radius:14px;
+  cursor:pointer;
+  z-index:20;
+  transition:background .3s,transform .3s,opacity .6s;
 }
 #start-btn:hover{background:rgba(255,255,255,.15);transform:translate(-50%,-50%) scale(1.05);}
 #start-btn:active{transform:translate(-50%,-50%) scale(.96);}
 
-.char{position:absolute;width:１０vw;min-width:100px;max-width:180px;pointer-events:none;will-change:transform;animation:float linear forwards;}
+.char{position:absolute;width:10vw;min-width:100px;max-width:180px;pointer-events:none;will-change:transform;animation:float linear forwards;}
 @media (max-width: 600px){
-  .char{width:２６vw;min-width:90px;}
+  .char{width:26vw;min-width:90px;}
 }
 @keyframes bob{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-1vw)}}
 .char img{width:100%;animation:bob 3s ease-in-out infinite;}
@@ -40,69 +54,57 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 .star{position:fixed;width:4px;height:4px;border-radius:50%;background:#fff;pointer-events:none;animation:twinkle 4.5s linear infinite;filter:blur(1px) drop-shadow(0 0 4px currentColor);}
 .star.c1{color:#FFD700;}.star.c2{color:#7FFFD4;}.star.c3{color:#FF69B4;}
 
-/* ▼▼▼ ここから追加するCSS ▼▼▼ */
+/* ▼▼▼ 星のCSS ▼▼▼ */
 .orbiting-star {
   position: absolute;
-  width: 5px; /* ご希望の5pxに設定 */
-  height: 5px; /* ご希望の5pxに設定 */
-  background-color: #fff; /* 星本体の色 (白) */
-  border-radius: 50%; /* 円形 */
-  
-  opacity: 1; /* 透明度 (1で完全に不透明) */
-  
-  /* 光彩効果を調整して、より明るく見えるように */
-  filter: drop-shadow(0 0 3px #ffffff)   /* 内側の強めの白い光 */
-          drop-shadow(0 0 7px #ffffff)   /* 中間の広がる白い光 */
-          drop-shadow(0 0 12px #f0f0f0);  /* 外側のさらに広がる淡い光 */
-  
-  pointer-events: none; /* 星自体はクリックに反応しない */
-  
-  /* 星の大きさに合わせて初期位置を調整 */
-  /* 星の半径(2.5px) + 枠からのオフセット(約10px) = 12.5px */
+  width: 5px;
+  height: 5px;
+  background-color: #fff;
+  border-radius: 50%;
+  opacity: 1;
+  filter: drop-shadow(0 0 3px #ffffff)
+          drop-shadow(0 0 7px #ffffff)
+          drop-shadow(0 0 12px #f0f0f0);
+  pointer-events: none;
   top: -12.5px; 
   left: -12.5px; 
-  
   animation: orbit-square-border 4s linear infinite;
 }
 
-
 @keyframes orbit-square-border {
-  0% { /* 左上 (初期位置) */
-    top: -12px;
-    left: -12px;
+  0% {
+    top: -12.5px;
+    left: -12.5px;
   }
-  25% { /* 上辺を右へ移動し、右上に到達 */
-    top: -12px;
-    /* ボタン右端から10px外側 (ボタン幅100% + 10pxオフセット - 星半径2px) */
-    left: calc(100% + 8px); 
+  25% {
+    top: -12.5px;
+    left: calc(100% + 7.5px);
   }
-  50% { /* 右辺を下へ移動し、右下に到達 */
-    top: calc(100% + 8px);
-    left: calc(100% + 8px);
+  50% {
+    top: calc(100% + 7.5px);
+    left: calc(100% + 7.5px);
   }
-  75% { /* 下辺を左へ移動し、左下に到達 */
-    top: calc(100% + 8px);
-    left: -12px;
+  75% {
+    top: calc(100% + 7.5px);
+    left: -12.5px;
   }
-  100% { /* 左辺を上へ移動し、左上に戻る (ループ) */
-    top: -12px;
-    left: -12px;
+  100% {
+    top: -12.5px;
+    left: -12.5px;
   }
 }
 
-/* ホバー時に星の回転を速くする */
 #start-btn:hover .orbiting-star {
   animation-duration: 2s;
 }
-/* ▲▲▲ ここまで追加するCSS ▲▲▲ */
+/* ▲▲▲ 星のCSSここまで ▲▲▲ */
 
 </style>
 </head>
 <body>
 <audio id="bgm" src="CNP Catch.mp3" preload="auto" loop playsinline></audio>
 <div id="opening-stage">
-  <h1 id="game-title">CNP Catch</h1>
-  <button id="start-btn">START<span class="orbiting-star"></span></button>
+  <h1 id="game-title">CNP CATCH</h1> <button id="start-btn">START<span class="orbiting-star"></span></button>
   </div>
 <script>
 const charImages=[
@@ -112,9 +114,7 @@ const charImages=[
   "setuna (1).png","towa (1).png","yamar (1).png","yama (2).png",
 ];
 
-/* 現在画面に出ているキャラを追跡して重複を避ける */
 const activeChars=new Set();
-
 const CONCURRENT=6;const INTERVAL=900;
 const stage=document.getElementById("opening-stage");
 const bgm=document.getElementById("bgm");
@@ -128,15 +128,11 @@ window.addEventListener("load",attemptPlay);stage.addEventListener("click",attem
 function randomEdgePos(){const e=Math.floor(Math.random()*4);switch(e){case 0:return{x:Math.random()*stageW(),y:-150};case 1:return{x:stageW()+150,y:Math.random()*stageH()};case 2:return{x:Math.random()*stageW(),y:stageH()+150};default:return{x:-150,y:Math.random()*stageH()};}}
 
 function spawnChar(){
-  /* ユニークな画像を選択 */
   const pool=charImages.filter(src=>!activeChars.has(src));
   const imgSrc=(pool.length?pool:charImages)[Math.floor(Math.random()* (pool.length?pool.length:charImages.length))];
-
   const wrap=document.createElement("div");wrap.className="char";
   const img=document.createElement("img");img.src=imgSrc;wrap.appendChild(img);
-
   activeChars.add(imgSrc);
-
   const start=randomEdgePos();let end=randomEdgePos();
   while(Math.abs(start.x-end.x)<200&&Math.abs(start.y-end.y)<200){end=randomEdgePos();}
   wrap.style.setProperty("--startX",start.x+"px");wrap.style.setProperty("--startY",start.y+"px");wrap.style.setProperty("--endX",end.x+"px");wrap.style.setProperty("--endY",end.y+"px");
@@ -148,7 +144,12 @@ let running=0;setInterval(()=>{if(running<CONCURRENT){spawnChar();running++;setT
 
 (function(){const colors=["c1","c2","c3"],COUNT=60;for(let i=0;i<COUNT;i++){const s=document.createElement("div");s.className="star "+colors[i%colors.length];s.style.top=Math.random()*100+"vh";s.style.left=Math.random()*100+"vw";const size=3+Math.random()*3;s.style.width=s.style.height=size+"px";s.style.animationDelay=Math.random()*4+"s";s.style.animationDuration=4+Math.random()*3+"s";document.body.appendChild(s);}})();
 
-startBtn.addEventListener("click",()=>{attemptPlay();startBtn.style.pointerEvents="none";startBtn.style.opacity="0";setTimeout(()=>location.href="select.html",500);});
+startBtn.addEventListener("click",()=>{
+  attemptPlay();
+  startBtn.style.pointerEvents="none";
+  startBtn.style.opacity="0";
+  setTimeout(()=>location.href="character_select.html",500);
+});
 </script>
 </body>
 </html>
