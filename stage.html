@@ -6,7 +6,7 @@
   <title>Reborn catch - 究極版</title>
   <style>
     /* ─────────────────────────
-       共通リセット & フォント
+        共通リセット & フォント
     ───────────────────────── */
     *{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
@@ -17,22 +17,23 @@
     }
 
     /* ─────────────────────────
-       レイアウト
+        レイアウト
     ───────────────────────── */
     #page-wrapper{
       width:100%;height:100%;
-      background:#1a1a1a;
+      background:#000; /* 背景を黒に変更 */
       display:flex;justify-content:center;align-items:center;
       position:relative;overflow:hidden;
     }
     #game-container{
       position:relative;width:100%;max-width:380px;height:100%;
-      background:linear-gradient(135deg,#fffacd 0%,#f5deb3 50%,#ffe4b5 100%);
-      overflow:hidden;box-shadow:0 0 20px rgba(255,228,181,.5);
+      background:#000; /* ゲーム内背景を黒に変更 */
+      overflow:hidden;
+      /* box-shadow:0 0 20px rgba(255,228,181,.5); */ /* 黒背景に合わせて影を削除 */
     }
 
     /* ─────────────────────────
-       背景エフェクト
+        背景エフェクト
     ───────────────────────── */
     .bg-bubble-particle{position:absolute;border-radius:50%;pointer-events:none;animation:float-bubble linear infinite;z-index:1;opacity:0}
     .bg-bubble-particle.yellow{background:rgba(255,215,0,.15)}
@@ -56,7 +57,7 @@
     }
 
     /* ─────────────────────────
-       キャラクター
+        キャラクター
     ───────────────────────── */
     #character{
       position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
@@ -75,7 +76,7 @@
     }
 
     /* ─────────────────────────
-       アイテム（卵・爆弾・他）
+        アイテム（卵・爆弾・他）
     ───────────────────────── */
     .egg,.bomb,.power-up,.time-plus,.helper-mgchan{
       position:absolute;pointer-events:none;z-index:40;
@@ -85,8 +86,8 @@
     /* ▼▼▼ ここが今回の変更点 ▼▼▼ */
     /* 白い卵（小） */
     .egg{
-      --start-rot-z: 0deg;   /* 角度の初期値 */
- 　　　　　　　　 --end-rot-z  : 0deg;   /* 終点角度      */
+      --start-rot-z: 0deg;  /* 角度の初期値 */
+              --end-rot-z  : 0deg;  /* 終点角度       */
       width:26px;height:34px;
       background-image:url("egg_white.png");
       animation-name:fall-egg;animation-timing-function:linear;
@@ -152,7 +153,7 @@
     }
 
     /* ─────────────────────────
-       その他 UI（スコア等）
+        その他 UI（スコア等）
     ───────────────────────── */
     #scoreboard,#level-display,.control-btn,.power-effect,.combo-display,.level-up-effect{position:fixed;z-index:200}
     #scoreboard{
@@ -209,7 +210,7 @@
     }
 
     /* ─────────────────────────
-       アニメーション定義（変更なし）
+        アニメーション定義（変更なし）
     ───────────────────────── */
     @keyframes bomb-pulse{0%{transform:translate(-50%,-50%) scale(1)}100%{transform:translate(-50%,-50%) scale(1.2)}}
     @keyframes star-spin{0%{transform:translate(-50%,-50%) rotate(0) scale(1)}50%{transform:translate(-50%,-50%) rotate(180deg) scale(1.2)}100%{transform:translate(-50%,-50%) rotate(360deg) scale(1)}}
@@ -228,7 +229,6 @@
   </style>
 </head>
 <body>
-  <!-- 画面レイアウト -->
   <div id="page-wrapper">
     <div id="game-container">
       <img id="character" src="" alt="キャラクター">
@@ -249,28 +249,27 @@
   <div id="scoreboard">スコア:<span id="score">0</span><br>ハイスコア:<span id="highscore">0</span><br>残り:<span id="timer">60</span>秒<br>コンボ:<span id="combo">0</span></div>
   <div id="level-display">レベル:<span id="level">1</span></div>
 
-  <!-- ゲームロジック -->
   <script>
     /* ===== 省略せず全コード ===== */
     document.addEventListener('contextmenu',e=>{e.preventDefault()},{passive:false});
     document.addEventListener('selectstart',e=>{e.preventDefault()},{passive:false});
     document.addEventListener('dragstart',e=>{e.preventDefault()},{passive:false});
 
-    const pageWrapper         = document.getElementById("page-wrapper");
-    const gameContainer       = document.getElementById("game-container");
-    const character           = document.getElementById("character");
-    const scoreDisplay        = document.getElementById("score");
-    const highscoreDisplay    = document.getElementById("highscore");
-    const timerDisplay        = document.getElementById("timer");
-    const levelDisplay        = document.getElementById("level");
-    const comboCountDisplay   = document.getElementById("combo");
-    const comboPopup          = document.getElementById("combo-display-popup");
-    const powerEffect         = document.getElementById("power-effect");
-    const levelUpEffect       = document.getElementById("level-up-effect");
-    const gameover            = document.getElementById("gameover");
-    const finalScore          = document.getElementById("final-score");
-    const finalLevel          = document.getElementById("final-level");
-    const returnToSelectBtn   = document.getElementById("return-to-select-btn");
+    const pageWrapper          = document.getElementById("page-wrapper");
+    const gameContainer        = document.getElementById("game-container");
+    const character            = document.getElementById("character");
+    const scoreDisplay         = document.getElementById("score");
+    const highscoreDisplay     = document.getElementById("highscore");
+    const timerDisplay         = document.getElementById("timer");
+    const levelDisplay         = document.getElementById("level");
+    const comboCountDisplay    = document.getElementById("combo");
+    const comboPopup           = document.getElementById("combo-display-popup");
+    const powerEffect          = document.getElementById("power-effect");
+    const levelUpEffect        = document.getElementById("level-up-effect");
+    const gameover             = document.getElementById("gameover");
+    const finalScore           = document.getElementById("final-score");
+    const finalLevel           = document.getElementById("final-level");
+    const returnToSelectBtn    = document.getElementById("return-to-select-btn");
 
     /* キャラクター画像設定 */
     const selectedImageFile = localStorage.getItem("selectedImage");
@@ -279,15 +278,15 @@
       character.src = selectedImageFile;
       character.alt = selectedCharName;
     }else{
-      character.src = "hide.PNG";
-      character.alt = "hideya";
+      character.src = "hide.PNG"; // フォールバック画像
+      character.alt = "hideya";   // フォールバックのaltテキスト
     }
 
     /* ゲームステート */
     let score=0,highscore=0,timeLeft=60;
     const MAX_TIME_LEFT=90,MAX_LEVEL=5;
     let level=1,combo=0,maxCombo=0;
-    const levelThresholds=[0,30,80,150,250];
+    const levelThresholds=[0,30,80,150,250]; // レベル0は実質開始前、レベル1の閾値が30点
     let itemSpawnerId,gameBgParticleInterval,outerEffectInterval;
     let isPowerUpActive=false,powerUpEndTime=0;
     let characterX,powerUpTimerId=null;
@@ -296,7 +295,7 @@
     let seEggCollect,bgm,seTimePlus,seBomb,sePowerUp,seHelperMG;
     try{
       seEggCollect=new Audio("kirarin.mp3");
-      bgm         =new Audio("Reborn Egg Catch.mp3");
+      bgm           =new Audio("Reborn Egg Catch.mp3");
       seTimePlus  =new Audio("tm.mp3");
       seBomb      =new Audio("bom.mp3");
       sePowerUp   =new Audio("st.mp3");
@@ -304,9 +303,9 @@
       bgm.loop=true;bgm.volume=.3;
     }catch(e){
       console.error("Audio init error:",e);
-      const dummy={play:()=>{},currentTime:0};
+      const dummy={play:()=>{},currentTime:0}; // ダミーの音声オブジェクト
       seEggCollect=seTimePlus=seBomb=sePowerUp=seHelperMG=dummy;
-      bgm={play:()=>Promise.resolve(),pause:()=>{},loop:true,volume:.3};
+      bgm={play:()=>Promise.resolve(),pause:()=>{},loop:true,volume:.3}; // ダミーのBGMオブジェクト
     }
     try{highscore=parseInt(localStorage.getItem("rebornCatchHighscore"))||0}catch(e){}
     highscoreDisplay.textContent=highscore;
@@ -324,7 +323,7 @@
       p.style.animationDuration=Math.random()*8+10+"s";
       p.style.animationDelay=Math.random()*10+"s";
       gameContainer.appendChild(p);
-      setTimeout(()=>p.remove(),25000);
+      setTimeout(()=>p.remove(),25000); // 寿命を延ばすか、アニメーション完了時に削除
     }
     /* 外縁パーティクル */
     function createOuterShellParticle(){
@@ -345,12 +344,12 @@
       p.style.animationDelay=Math.random()*15+"s";
       pageWrapper.appendChild(p);
       const ttl=(parseFloat(p.style.animationDuration)+parseFloat(p.style.animationDelay))*1000;
-      setTimeout(()=>p.remove(),ttl+1000);
+      setTimeout(()=>p.remove(),ttl+1000); // アニメーション終了後に確実に削除
     }
 
     /* レベル計算／間隔計算 */
     const calcLevel=()=>Math.min(levelThresholds.filter(t=>score>=t).length,MAX_LEVEL);
-    const spawnRate =()=>Math.max(150,700-level*40);
+    const spawnRate =()=>Math.max(150,700-level*40); // レベルに応じてスポーン間隔を短縮
 
     /* スコア＆UI更新 */
     function updateScore(pt=1,type){
@@ -361,8 +360,8 @@
       const prev=level;level=calcLevel();levelDisplay.textContent=level;
       if(level>prev)showLevelUp(level===MAX_LEVEL?`MAX LEVEL ${MAX_LEVEL} 到達!`:`LEVEL ${level}!`);
       if(combo>1)showComboPopup();
-      if(pt>=5 && type==="goldenEgg")showSpecialEffect();
-      if(combo>maxCombo)maxCombo=combo;
+      if(pt>=5 && type==="goldenEgg")showSpecialEffect(); // 例: 金卵で高得点の場合
+      if(combo>maxCombo)maxCombo=combo; // 最大コンボ記録
     }
     const resetCombo=()=>{combo=0;comboCountDisplay.textContent=combo};
     const showComboPopup=()=>{comboPopup.textContent=`${combo} COMBO!`;comboPopup.style.display='block';setTimeout(()=>comboPopup.style.display='none',1000)};
@@ -371,7 +370,7 @@
 
     /* パワーアップ */
     function activatePowerUp(){
-      if(isPowerUpActive){powerUpEndTime+=10000;clearInterval(powerUpTimerId)}
+      if(isPowerUpActive){powerUpEndTime+=10000;clearInterval(powerUpTimerId)} // 重複取得で時間延長
       else{isPowerUpActive=true;powerUpEndTime=Date.now()+10000;character.classList.add("powerup");powerEffect.style.display='block'}
       powerUpTimerId=setInterval(()=>{
         const remain=Math.ceil((powerUpEndTime-Date.now())/1000);
@@ -384,52 +383,52 @@
       powerEffect.style.display='none';clearInterval(powerUpTimerId);
     }
 
-    /*  アイテム生成  */
+    /* アイテム生成  */
 function createItem () {
   if (timeLeft <= 0) return;
 
   /* ── 1. 抽選 ───────────────── */
   const r = Math.random();
-  const prob = { bomb: 0, timePlus: .08, powerUp: 0, helper: .06, gold: .10, special: .15 };
-  if (level >= 2) {                 // レベル 2 以降で上昇する確率
-    prob.bomb    = Math.min(.05 + (level - 2) * .03, .14);
-    prob.powerUp = .07;
+  const prob = { bomb: 0, timePlus: .08, powerUp: 0, helper: .06, gold: .10, special: .15 }; // 基本確率
+  if (level >= 2) {             // レベル 2 以降で上昇する確率
+    prob.bomb    = Math.min(.05 + (level - 2) * .03, .14); // 爆弾は徐々に増え、最大14%
+    prob.powerUp = .07; // パワーアップはレベル2から7%
   }
   let sum  = 0;
-  let type = "normalEgg";
+  let type = "normalEgg"; // デフォルトは白卵
   const pick = (p, t) => { sum += p; return r < sum && (type = t); };
-  pick(prob.bomb,   "bomb"     ) ||
+  pick(prob.bomb,   "bomb"      ) ||
   pick(prob.timePlus,"timePlus") ||
-  pick(prob.powerUp,"powerup"  ) ||
-  pick(prob.helper, "helperMG" ) ||
+  pick(prob.powerUp,"powerup"   ) ||
+  pick(prob.helper, "helperMG"  ) ||
   pick(prob.gold,   "goldenEgg") ||
   pick(prob.special,"specialEgg");
 
   /* ── 2. 種類別の設定 ────────── */
   const item = document.createElement("div");
-  let w;   // 幅（left 計算用）
+  let w;    // 幅（left 計算用）
 
   switch (type) {
-    case "bomb"      : item.className = "bomb";        item.dataset.points = "-10"; w = 40; break;
-    case "timePlus"  : item.className = "time-plus";   item.dataset.points = "0";   w = 40; break;
-    case "powerup"   : item.className = "power-up";    item.dataset.points = "0";   w = 45; break;
-    case "helperMG"  : item.className = "helper-mgchan"; item.dataset.points = "25"; w = 60; break;
-    case "goldenEgg" : item.className = "egg golden";  item.dataset.points = "5";   w = 40; break;
-    case "specialEgg": item.className = "egg special"; item.dataset.points = "2";   w = 32; break;
-    default          : item.className = "egg";         item.dataset.points = "1";   w = 26;
+    case "bomb"       : item.className = "bomb";         item.dataset.points = "-10"; w = 40; break;
+    case "timePlus"   : item.className = "time-plus";   item.dataset.points = "0";   w = 40; break;
+    case "powerup"    : item.className = "power-up";    item.dataset.points = "0";   w = 45; break;
+    case "helperMG"   : item.className = "helper-mgchan"; item.dataset.points = "25";  w = 60; break;
+    case "goldenEgg"  : item.className = "egg golden";  item.dataset.points = "5";   w = 40; break;
+    case "specialEgg" : item.className = "egg special"; item.dataset.points = "2";   w = 32; break;
+    default           : item.className = "egg";          item.dataset.points = "1";   w = 26;
   }
   item.dataset.type = type;
 
   /* ── 3. 落下アニメーション ─────── */
-  const dur = Math.max(1.5, 2.5 + Math.random() * 2 - level * 0.15);
+  const dur = Math.max(1.5, 2.5 + Math.random() * 2 - level * 0.15); // 落下時間（レベルで短縮）
 
-  item.style.left              = Math.random() * (gameContainer.offsetWidth - w) + "px";
+  item.style.left            = Math.random() * (gameContainer.offsetWidth - w) + "px";
   item.style.animationDuration = dur + "s";
-  item.style.animationName =
+  item.style.animationName = // CSS側と合わせる
         type === "specialEgg" ? "fall-special-egg" :
         type === "goldenEgg"  ? "fall-golden-egg"  :
         type === "helperMG"   ? "fall-helper"      :
-        "fall-egg"; // normalEgg を含むデフォルト
+        "fall-egg"; // normalEgg を含むデフォルト (bomb, powerup, timeplus は汎用fall-eggで代用 or 個別定義)
 
   /* カスタム変数（白卵の回転など） */
   item.style.setProperty("--start-rot-z",  ((Math.random() - .5) * 60).toFixed(1) + "deg");
@@ -446,24 +445,24 @@ function createItem () {
     const a = item.getBoundingClientRect();
     const b = character.getBoundingClientRect();
 
-    if (a.top < b.bottom && a.bottom > b.top && a.left < b.right && a.right > b.left) {
+    if (a.top < b.bottom && a.bottom > b.top && a.left < b.right && a.right > b.left) { // 衝突判定
       const pts = parseInt(item.dataset.points) || 0;
 
       switch (type) {
         case "bomb":
-          score = Math.max(0, score + pts);
+          score = Math.max(0, score + pts); // スコアはマイナスさせない
           scoreDisplay.textContent = score;
           resetCombo();
           seBomb?.play().catch(()=>{});
-          gameContainer.style.background = "rgba(150,50,50,.7)";
+          gameContainer.style.background = "rgba(150,50,50,.7)"; // 一瞬赤く
           setTimeout(() => {
             gameContainer.style.background =
-              "linear-gradient(135deg,#fffacd 0%,#f5deb3 50%,#ffe4b5 100%)";
+              "linear-gradient(135deg,#fffacd 0%,#f5deb3 50%,#ffe4b5 100%)"; // 元に戻す
           }, 150);
           break;
 
         case "timePlus":
-          timeLeft = Math.min(timeLeft + 5, MAX_TIME_LEFT);
+          timeLeft = Math.min(timeLeft + 5, MAX_TIME_LEFT); // 時間増加（上限あり）
           timerDisplay.textContent = timeLeft;
           seTimePlus?.play().catch(()=>{});
           break;
@@ -476,6 +475,7 @@ function createItem () {
         case "helperMG":
           updateScore(pts, "helperMG");
           seHelperMG?.play().catch(()=>{});
+          // 画面上の爆弾を2つまで消す
           [...gameContainer.querySelectorAll(".bomb")].slice(0, 2).forEach(b => b.remove());
           break;
 
@@ -484,75 +484,78 @@ function createItem () {
           seEggCollect?.play().catch(()=>{});
       }
 
-      item.remove();
-      clearInterval(hit);
+      item.remove(); // アイテム消去
+      clearInterval(hit); // 衝突判定ループ解除
     }
-  }, 30);
+  }, 30); // 30ms ごとに判定（負荷と精度のバランス）
 
   /* ── 5. 落下し終わったら掃除 ─── */
   setTimeout(() => {
-    if (item.parentNode) {
+    if (item.parentNode) { // まだ画面にあれば
       item.remove();
-      if (item.dataset.type.includes("Egg")) resetCombo(); // 取り損ねたらコンボ切れ
+      if (item.dataset.type.includes("Egg")) resetCombo(); // 卵を取り損ねたらコンボ切れ
     }
-    clearInterval(hit);
-  }, dur * 1000 + 300);
+    clearInterval(hit); //念のためループ解除
+  }, dur * 1000 + 300); // アニメーション時間+αで確実に削除
 }
 
-       /* ゲーム開始・終了 */
+        /* ゲーム開始・終了 */
     function startGame(){
       characterX=gameContainer.offsetWidth/2;character.style.left=characterX+"px";
-      bgm.play().catch(()=>{});
-      itemSpawnerId=setInterval(createItem,spawnRate());
-      gameBgParticleInterval=setInterval(createBgBubbleParticle,700);
-      outerEffectInterval=setInterval(createOuterShellParticle,500);
-      gameTimerId=setInterval(()=>{
-        if(timeLeft<=0){
+      bgm.play().catch(()=>{}); // BGM再生
+      itemSpawnerId=setInterval(createItem,spawnRate()); // アイテム生成開始
+      gameBgParticleInterval=setInterval(createBgBubbleParticle,700); // 背景バブル
+      outerEffectInterval=setInterval(createOuterShellParticle,500); // 外縁エフェクト
+      gameTimerId=setInterval(()=>{ // メインゲームループ（タイマー）
+        if(timeLeft<=0){ // 時間切れ
           clearInterval(gameTimerId);clearInterval(itemSpawnerId);
           clearInterval(gameBgParticleInterval);clearInterval(outerEffectInterval);
           if(powerUpTimerId)clearInterval(powerUpTimerId);endGame();return;
         }
         timeLeft--;timerDisplay.textContent=timeLeft;
+        // レベルに応じてスポーン間隔を再設定
         clearInterval(itemSpawnerId);itemSpawnerId=setInterval(createItem,spawnRate());
       },1000);
     }
     function endGame(){
       bgm.pause();finalScore.textContent=score;finalLevel.textContent=level;
-      gameover.style.display="block";
+      gameover.style.display="block"; // ゲームオーバー表示
       if(score>highscore){highscore=score;localStorage.setItem("rebornCatchHighscore",highscore);highscoreDisplay.textContent=highscore}
+      // 残っているアイテム類を掃除
       [...gameContainer.children].forEach(c=>{
         if(!["character","gameover","combo-display-popup","level-up-effect","power-effect"].includes(c.id)){
           if(c.classList.contains("egg")||c.classList.contains("bomb")||c.classList.contains("power-up")||c.classList.contains("time-plus")||c.classList.contains("helper-mgchan")||c.classList.contains("bg-bubble-particle"))c.remove();
         }
       });
       pageWrapper.querySelectorAll('.outer-shell-particle').forEach(e=>e.remove());
-      returnToSelectBtn.onclick=()=>location.href="index.html";
+      returnToSelectBtn.onclick=()=>location.href="index.html"; // キャラ選択画面へ
     }
 
     /* 操作系 */
-    document.addEventListener("keydown",e=>{
+    document.addEventListener("keydown",e=>{ // キーボード操作
       if(timeLeft<=0)return;
-      const w=character.offsetWidth||120;
+      const w=character.offsetWidth||120; // キャラクター幅
       if(e.key==="ArrowLeft"){characterX-=30}
       else if(e.key==="ArrowRight"){characterX+=30}
-      else if(e.key===" "||e.key==="ArrowUp"){e.preventDefault();jump()}
-      characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX));
+      else if(e.key===" "||e.key==="ArrowUp"){e.preventDefault();jump()} // ジャンプ
+      characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX)); // 画面端制限
       character.style.left=characterX+"px";
     });
-    function jump(){
-      if(character.classList.contains("jump")||timeLeft<=0)return;
+    function jump(){ // ジャンプ処理
+      if(character.classList.contains("jump")||timeLeft<=0)return; // ジャンプ中や時間切れは不可
       character.classList.add("jump");setTimeout(()=>character.classList.remove("jump"),600);
     }
-    character.addEventListener("click",e=>{if(timeLeft>0){e.preventDefault();jump()}},{passive:false});
+    character.addEventListener("click",e=>{if(timeLeft>0){e.preventDefault();jump()}},{passive:false}); // キャラクタークリックでジャンプ
 
+    // タッチ操作用ボタン
     const leftBtn=document.createElement("button"),rightBtn=document.createElement("button");
     leftBtn.textContent="◀";rightBtn.textContent="▶";
     leftBtn.className=rightBtn.className="control-btn";
     leftBtn.style.left="20px";rightBtn.style.right="20px";
     pageWrapper.append(leftBtn,rightBtn);
 
-    let moveInt=null;
-    const startMove=dir=>{
+    let moveInt=null; // ボタン長押し移動用インターバル
+    const startMove=dir=>{ // 移動開始
       if(moveInt||timeLeft<=0)return;
       const w=character.offsetWidth||120;
       moveInt=setInterval(()=>{
@@ -561,31 +564,31 @@ function createItem () {
         character.style.left=characterX+"px";
       },30);
     };
-    const stopMove=()=>{clearInterval(moveInt);moveInt=null};
+    const stopMove=()=>{clearInterval(moveInt);moveInt=null}; // 移動停止
     leftBtn.addEventListener("touchstart",e=>{e.preventDefault();startMove("left")},{passive:false});
     rightBtn.addEventListener("touchstart",e=>{e.preventDefault();startMove("right")},{passive:false});
-    leftBtn.onmousedown=()=>startMove("left");
+    leftBtn.onmousedown=()=>startMove("left"); // PC マウス操作
     rightBtn.onmousedown=()=>startMove("right");
-    ["mouseup","touchend"].forEach(ev=>document.addEventListener(ev,stopMove,{passive:false}));
+    ["mouseup","touchend"].forEach(ev=>document.addEventListener(ev,stopMove,{passive:false})); // 離したら停止
 
     /* スワイプ移動+ジャンプ */
-    let sx=null,sy=null,thr=30;
-    const relX=cl=>cl-gameContainer.getBoundingClientRect().left;
+    let sx=null,sy=null,thr=30; // スワイプ開始座標、閾値
+    const relX=cl=>cl-gameContainer.getBoundingClientRect().left; // gameContainer 内の相対 X 座標
     gameContainer.addEventListener("touchstart",e=>{
       if(timeLeft<=0)return;
       const t=e.changedTouches[0];sx=relX(t.clientX);sy=t.clientY;
     },{passive:true});
-    gameContainer.addEventListener("touchmove",e=>{
+    gameContainer.addEventListener("touchmove",e=>{ // スワイプ中
       if(timeLeft<=0||sx==null)return;
-      const x=relX(e.changedTouches[0].clientX),dx=x-sx;characterX+=dx;sx=x;
+      const x=relX(e.changedTouches[0].clientX),dx=x-sx;characterX+=dx;sx=x; // X座標移動
       const w=character.offsetWidth||120;
       characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX));
       character.style.left=characterX+"px";
     },{passive:true});
-    gameContainer.addEventListener("touchend",e=>{
+    gameContainer.addEventListener("touchend",e=>{ // スワイプ終了
       if(timeLeft<=0||sx==null||sy==null){sx=sy=null;return}
       const dx=relX(e.changedTouches[0].clientX)-sx,dy=e.changedTouches[0].clientY-sy;
-      if(Math.abs(dy)>Math.abs(dx)&&dy<-thr)jump();
+      if(Math.abs(dy)>Math.abs(dx)&&dy<-thr)jump(); // 上スワイプでジャンプ
       sx=sy=null;
     },{passive:true});
 
@@ -596,12 +599,12 @@ function createItem () {
       character.style.left=characterX+"px";
     });
 
-    /* ユーザ操作で BGM 再生解禁 */
+    /* ユーザ操作で BGM 再生解禁 (ブラウザの自動再生ポリシー対策) */
     const tryPlay=()=>{
       bgm.play().then(()=>{
         document.body.removeEventListener('click',tryPlay);
         document.body.removeEventListener('touchstart',tryPlay);
-      }).catch(()=>{});
+      }).catch(()=>{}); // エラーは無視
     };
     document.body.addEventListener('click',tryPlay,{once:true});
     document.body.addEventListener('touchstart',tryPlay,{once:true});
