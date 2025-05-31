@@ -19,52 +19,80 @@
     }
 
     /* ==============================
-       START ボタン本体（枠だけ）
-       ============================== */
-    #start-btn {
-      position: relative;    /* 疑似要素::before の基準にするため相対配置 */
-      padding: 16px 48px;
-      font-size: 28px;
-      color: #fff;
-      background: rgba(0,0,0,.55);
+   START ボタン本体（枠はここだけ）
+   ============================== */
+#start-btn {
+  position: relative;   /* 疑似要素をこの要素基準に配置する */
+  padding: 16px 48px;
+  font-size: 28px;
+  letter-spacing: .08em;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.55);
 
-      /* 枠だけボタン本体に付ける */
-      border: 2px solid #fff;
-      border-radius: 14px;
+  /* 枠だけ本体に残す */
+  border: 2px solid #fff;
+  border-radius: 14px;
 
-      cursor: pointer;
-      z-index: 10;
-    }
+  cursor: pointer;
+  z-index: 10;
+  transition: background .3s, transform .3s, opacity .6s;
+}
 
-    /* ホバー時の挙動（とりあえず動きが分かる程度） */
-    #start-btn:hover {
-      background: rgba(255,255,255,.15);
-      transform: scale(1.05);
-      transition: transform .2s, background .2s;
-    }
+/* ホバー時（枠は固定） */
+#start-btn:hover {
+  background: rgba(255,255,255,.15);
+  transform: scale(1.05);
+}
 
-    /* =================================================
-       まずは疑似要素を「赤い半透明レイヤー」にしてみる
-       ================================================= */
-    #start-btn::before {
-      content: '';
-      position: absolute;
+/* ========================================================
+   疑似要素：星を８つ並べて回転させる（枠は固定）
+   ======================================================== */
+#start-btn::before {
+  content: '';
+  position: absolute;
 
-      /* ボタン枠を少しはみ出す余白を確保 */
-      top: -8px;
-      left: -8px;
-      right: -8px;
-      bottom: -8px;
+  /* ボタン枠を少しはみ出る分を確保 */
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
 
-      /* ボタン本体と同じ丸み */
-      border-radius: inherit;
+  /* 本体と同じ丸み */
+  border-radius: inherit;
 
-      /* クリックを邪魔しない */
-      pointer-events: none;
+  /* 星はクリックを邪魔しない */
+  pointer-events: none;
 
-      /* debug 用：赤い半透明背景を表示 */
-      background: rgba(255, 0, 0, 0.2);
-    }
+  /* 白い星をボード上に８つ配置 */
+  box-shadow:
+    0  -20px 2px 1px #fff,
+    14px -14px 2px 1px #fff,
+    20px  0   2px 1px #fff,
+    14px  14px 2px 1px #fff,
+    0    20px 2px 1px #fff,
+    -14px 14px 2px 1px #fff,
+    -20px  0   2px 1px #fff,
+    -14px -14px 2px 1px #fff;
+
+  /* 星だけを 4秒かけて１周回転 */
+  animation: rotate-stars 4s linear infinite;
+
+  /* ぼかして光らせる */
+  opacity: 0.8;
+  filter: drop-shadow(0 0 2px #fff);
+}
+
+/* 回転アニメーションの定義 */
+@keyframes rotate-stars {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ホバーすると星が 2秒で１周に速く回る */
+#start-btn:hover::before {
+  animation-duration: 2s;
+}
+
   </style>
 </head>
 <body>
