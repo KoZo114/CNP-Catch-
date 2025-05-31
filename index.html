@@ -12,10 +12,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 
 #game-title{
   position:absolute;
-  top:36%; /* PC表示時のtopを調整 */
+  top:36%; 
   left:50%;
   transform:translate(-50%,-50%);
-  font-size:71px; /* PC表示時のfont-sizeを調整 */
+  font-size:71px; 
   letter-spacing:.05em;
   color:#fff;
   font-family:'VerdanaBold','Zen Kaku Gothic New',sans-serif;
@@ -26,18 +26,33 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 /* スマートフォン表示用のスタイル */
 @media (max-width: 600px){
   #game-title{
-    font-size:8vw; 
-    top: 40%; /* 全角から半角に修正 */
+    font-size: 7vw; /* タイトルのフォントサイズを調整 (例: 8vw から 7vw へ) */
+    /* letter-spacing: .03em; */ /* 必要であれば文字間隔も少し詰める */
+    top: 40%; 
+  }
+
+  /* ▼▼▼ スマートフォン用のスタートボタンスタイルを追加 ▼▼▼ */
+  #start-btn{
+    padding: 12px 32px; /* 上下左右の余白を少し小さくする */
+    font-size: 22px;   /* フォントサイズを少し小さくする */
+    /* letter-spacing: .06em; */ /* 必要であれば文字間隔も調整 */
+  }
+  /* ▲▲▲ スマートフォン用のスタートボタンスタイルここまで ▲▲▲ */
+
+  .char{
+    width:24vw; 
+    min-width:90px;
   }
 }
 
+/* PC表示用のスタートボタンスタイル (メディアクエリの外) */
 #start-btn{
   position:absolute;
   left:50%;
-  top:60%; /* PC表示時のtopを調整 */
+  top:60%; 
   transform:translate(-50%,-50%);
-  padding:16px 48px;
-  font-size:28px;
+  padding:16px 48px; /* PC用のpadding */
+  font-size:28px;   /* PC用のfont-size */
   letter-spacing:.08em;
   color:#fff;
   background:rgba(0,0,0,.55);
@@ -50,23 +65,17 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 #start-btn:hover{background:rgba(255,255,255,.15);transform:translate(-50%,-50%) scale(1.05);}
 #start-btn:active{transform:translate(-50%,-50%) scale(.96);}
 
-/* キャラクターの基本スタイル */
+/* キャラクターの基本スタイル (PC用) */
 .char{
   position:absolute;
-  width:10vw; /* PC表示時のwidth */
+  width:10vw; 
   min-width:100px;
   max-width:180px;
   pointer-events:none;
   will-change:transform;
   animation:float linear forwards;
 }
-/* スマートフォン表示用のキャラクタースタイル */
-@media (max-width: 600px){
-  .char{
-    width:24vw; /* スマホ表示時のwidth */
-    min-width:90px;
-  }
-}
+
 
 @keyframes bob{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-1vw)}}
 .char img{width:100%;animation:bob 3s ease-in-out infinite;}
