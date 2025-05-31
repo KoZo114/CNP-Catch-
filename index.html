@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>テスト用 – 星が回るか確認</title>
+  <title>Debug: 疑似要素のテスト</title>
   <style>
-    /* ===== 背景を真っ黒にしてボタンを画面中央に表示 ===== */
+    /* ================================================
+       画面全体を真っ黒にして、中央にボタンを表示
+       ================================================ */
     html, body {
       margin: 0;
       width: 100%;
@@ -16,47 +18,53 @@
       justify-content: center;
     }
 
-    /* ================================================
-   START ボタン本体（例）-------------------------
-   ================================================ */
-#start-btn {
-  position: absolute;
-  left: 50%;
-  top: 60%;
-  transform: translate(-50%, -50%);
-  padding: 16px 48px;
-  font-size: 28px;
-  letter-spacing: .08em;
-  color: #fff;
-  background: rgba(0, 0, 0, 0.55);
-  border: 2px solid #fff;
-  border-radius: 14px;
-  cursor: pointer;
-  z-index: 20;
-}
+    /* ==============================
+       START ボタン本体（枠だけ）
+       ============================== */
+    #start-btn {
+      position: relative;    /* 疑似要素::before の基準にするため相対配置 */
+      padding: 16px 48px;
+      font-size: 28px;
+      color: #fff;
+      background: rgba(0,0,0,.55);
 
-/* =================================================
-   まずは疑似要素が見えているか確かめるために
-   枠ではなく半透明の背景を付けてみる
-   ================================================= */
-#start-btn::before {
-  content: '';
-  position: absolute;
+      /* 枠だけボタン本体に付ける */
+      border: 2px solid #fff;
+      border-radius: 14px;
 
-  /* ボタンの枠を少し越えるように */
-  top: -8px;
-  left: -8px;
-  right: -8px;
-  bottom: -8px;
-  /* ボタン本体と同じ丸みを継承 */
-  border-radius: inherit;
+      cursor: pointer;
+      z-index: 10;
+    }
 
-  /* クリックを邪魔しない */
-  pointer-events: none;
+    /* ホバー時の挙動（とりあえず動きが分かる程度） */
+    #start-btn:hover {
+      background: rgba(255,255,255,.15);
+      transform: scale(1.05);
+      transition: transform .2s, background .2s;
+    }
 
-  /* ここだけ半透明の赤（debug 用） */
-// background: rgba(255, 0, 0, 0.2);  /* ← これを有効にする */
-}
+    /* =================================================
+       まずは疑似要素を「赤い半透明レイヤー」にしてみる
+       ================================================= */
+    #start-btn::before {
+      content: '';
+      position: absolute;
+
+      /* ボタン枠を少しはみ出す余白を確保 */
+      top: -8px;
+      left: -8px;
+      right: -8px;
+      bottom: -8px;
+
+      /* ボタン本体と同じ丸み */
+      border-radius: inherit;
+
+      /* クリックを邪魔しない */
+      pointer-events: none;
+
+      /* debug 用：赤い半透明背景を表示 */
+      background: rgba(255, 0, 0, 0.2);
+    }
   </style>
 </head>
 <body>
