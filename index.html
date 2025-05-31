@@ -1,174 +1,101 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<title>Opening – CNPCATCH</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-@font-face{font-family:'VerdanaBold';src:url('Verdana Bold.ttf') format('truetype');font-weight:700;font-style:normal;}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>テスト用 – START アニメ</title>
+  <style>
+    /* 画面全体を黒背景にして中央にボタンを配置 */
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen Kaku Gothic New",sans-serif;}
-#opening-stage{position:relative;width:100%;height:100%;overflow:hidden;}
+    /* ==============================
+       START ボタン本体（枠はここだけ）
+       ============================== */
+    #start-btn {
+      position: absolute;      /* ← ここを必ず absolute にする */
+      padding: 16px 48px;
+      font-size: 28px;
+      letter-spacing: .08em;
+      color: #fff;
+      background: rgba(0, 0, 0, .55);
 
-#game-title{
-  position:absolute;top:36%;left:50%;transform:translate(-50%,-50%);
-  font-size:71px;letter-spacing:.05em;color:#fff;
-  font-family:'VerdanaBold','Zen Kaku Gothic New',sans-serif;
-  text-shadow:0 0 12px rgba(255,255,255,.7);
-  pointer-events:none;z-index:15;
-}
-  @media (max-width: 600px){
-  #game-title{
-    font-size:8vw; /* 例: 幅 390px → 約 47px */
-    top:４0%;        /* 小さくなる分だけ少し下げる */
-  }
-}
+      /* ← 枠はここだけに残しておく */
+      border: 2px solid #fff;
+      border-radius: 14px;
 
-/* ==============================
-   START ボタン本体（枠はここだけ）
-   ============================== */
-#start-btn {
-  position: absolute;   /* 疑似要素の基準は「絶対配置」で OK */
-  left: 50%;
-  top: 60%;
-  transform: translate(-50%, -50%);
-  padding: 16px 48px;
-  font-size: 28px;
-  letter-spacing: .08em;
-  color: #fff;
-  background: rgba(0, 0, 0, .55);
+      cursor: pointer;
+      z-index: 20;
+      transition: background .3s, transform .3s, opacity .6s;
+    }
 
-  /* ← 枠はここで表示 */
-  border: 2px solid #fff;
-  border-radius: 14px;
+    /* ホバー時の挙動 */
+    #start-btn:hover {
+      background: rgba(255, 255, 255, .15);
+      transform: scale(1.05);
+    }
+    #start-btn:active {
+      transform: scale(.96);
+    }
 
-  cursor: pointer;
-  z-index: 20;
-  transition: background .3s, transform .3s, opacity .6s;
-}
+    /* ========================================================
+       星だけを回転させる疑似要素（枠は回さない）
+       ======================================================== */
+    #start-btn::before {
+      content: '';
+      position: absolute;
 
-/* ホバー時の挙動 */
-#start-btn:hover {
-  background: rgba(255, 255, 255, .15);
-  transform: translate(-50%, -50%) scale(1.05);
-}
-#start-btn:active {
-  transform: translate(-50%, -50%) scale(.96);
-}
+      /* 枠の外側に星を少しはみ出させる分の余白 */
+      top: -8px;    /* 枠の太さ(2px) + 星の回転半径(約20px) の一部 */
+      left: -8px;
+      right: -8px;
+      bottom: -8px;
 
+      /* 枠は付けず、ボタン本体と同じ丸みを継承 */
+      border-radius: inherit;
 
-/* ========================================================
-   星だけを回転させる疑似要素（枠は回さない）
-   ======================================================== */
-#start-btn::before {
-  content: '';
-  position: absolute;
+      /* 星はクリックを邪魔しない */
+      pointer-events: none;
 
-  /* 枠の外側に星を少しはみ出させる余白を含めたサイズ */
-  top: -8px;     /* 枠の太さ(2px)＋星の回転半径(約20px) の一部 */
-  left: -8px;
-  right: -8px;
-  bottom: -8px;
+      /* 星を 8 つ、box-shadow で配置 */
+      box-shadow:
+        /* 上 */        0  -20px 2px 1px #fff,
+        /* 右上 */     14px -14px 2px 1px #fff,
+        /* 右 */       20px  0   2px 1px #fff,
+        /* 右下 */     14px  14px 2px 1px #fff,
+        /* 下 */        0   20px 2px 1px #fff,
+        /* 左下 */    -14px  14px 2px 1px #fff,
+        /* 左 */      -20px  0   2px 1px #fff,
+        /* 左上 */    -14px -14px 2px 1px #fff;
 
-  /* 枠は付けず、ボタン本体と同じ丸みを継承 */
-  border-radius: inherit;
+      /* 星だけを回転させるアニメーション */
+      animation: rotate-stars 4s linear infinite;
 
-  /* 星はクリックを邪魔しない */
-  pointer-events: none;
+      /* 少し光らせる */
+      opacity: .8;
+      filter: drop-shadow(0 0 2px #fff);
+    }
 
-  /* 星を 8 つ、box-shadow で並べる */
-  box-shadow:
-    0  -20px 2px 1px #fff,
-    14px -14px 2px 1px #fff,
-    20px   0   2px 1px #fff,
-    14px  14px 2px 1px #fff,
-    0    20px 2px 1px #fff,
-    -14px 14px 2px 1px #fff,
-    -20px  0   2px 1px #fff,
-    -14px -14px 2px 1px #fff;
+    /* 回転アニメーション本体 */
+    @keyframes rotate-stars {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
 
-  /* 星だけを回転させるアニメーション */
-  animation: rotate-stars 4s linear infinite;
-
-  /* 少し光らせる */
-  opacity: .8;
-  filter: drop-shadow(0 0 2px #fff);
-}
-
-/* 回転アニメーション本体 */
-@keyframes rotate-stars {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-/* ホバー時は回転を速く（任意） */
-#start-btn:hover::before {
-  animation-duration: 2s;
-}
-
- 
-
-.char{position:absolute;width:10vw;min-width:100px;max-width:180px;pointer-events:none;will-change:transform;animation:float linear forwards;}
-@media (max-width: 600px){.char{width:24vw;min-width:90px;}}
-@keyframes bob{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-1vw)}}
-.char img{width:100%;animation:bob 3s ease-in-out infinite;}
-@keyframes float{from{transform:translate(var(--startX),var(--startY));opacity:0}5%{opacity:1}to{transform:translate(var(--endX),var(--endY));opacity:0}}
-
-@keyframes twinkle{0%,100%{transform:scale(.4);opacity:0;}10%{opacity:.8;}50%{opacity:1;}90%{opacity:.8;transform:scale(.6);}}
-.star{position:fixed;width:4px;height:4px;border-radius:50%;background:#fff;pointer-events:none;animation:twinkle 4.5s linear infinite;filter:blur(1px) drop-shadow(0 0 4px currentColor);} .star.c1{color:#FFD700;} .star.c2{color:#7FFFD4;} .star.c3{color:#FF69B4;}
-</style>
+    /* ホバー時に回転を速くしたい場合 */
+    #start-btn:hover::before {
+      animation-duration: 2s;  /* 2 秒で 1 周 → 回転が速くなる */
+    }
+  </style>
 </head>
 <body>
-<audio id="bgm" src="CNP Catch.mp3" preload="none" loop playsinline></audio>
-<div id="opening-stage">
-  <h1 id="game-title">CNP Catch</h1>
   <button id="start-btn">START</button>
-</div>
-<script>
-const charImages=[
-  "Leeleeg (1).png","leelee (1).png","luna (1).png","makamih (1).png",
-  "makamio (1).png","mitaman (1).png","mitamag (1).png","narukami (1).png",
-  "narukamik (1).png","orochi (1).png","oroti (1).png","runa (1).png",
-  "setuna (1).png","towa (1).png","yamar (1).png","yama (2).png",
-];
-
-const activeChars=new Set();
-const CONCURRENT=6, INTERVAL=900;
-const stage=document.getElementById("opening-stage");
-const bgm=document.getElementById("bgm");
-const startBtn=document.getElementById("start-btn");
-const stageW=()=>stage.clientWidth, stageH=()=>stage.clientHeight;
-
-function fadeInVolume(){let v=0;bgm.volume=0;const id=setInterval(()=>{v+=0.05;bgm.volume=Math.min(v,1);if(v>=1)clearInterval(id);},100);} 
-function attemptPlay(){if(!bgm.paused)return;bgm.play().then(fadeInVolume).catch(err=>console.warn("Audio play blocked",err));}
-window.addEventListener("load",attemptPlay);stage.addEventListener("click",attemptPlay);stage.addEventListener("touchstart",attemptPlay,{passive:true});
-
-function randomEdgePos(){switch(Math.floor(Math.random()*4)){case 0:return{x:Math.random()*stageW(),y:-150};case 1:return{x:stageW()+150,y:Math.random()*stageH()};case 2:return{x:Math.random()*stageW(),y:stageH()+150};default:return{x:-150,y:Math.random()*stageH()};}}
-
-function spawnChar(){
-  const pool=charImages.filter(src=>!activeChars.has(src));
-  const list=pool.length?pool:charImages;
-  const imgSrc=list[Math.floor(Math.random()*list.length)];
-  const wrap=document.createElement("div");wrap.className="char";
-  const img=document.createElement("img");img.src=imgSrc;wrap.appendChild(img);
-  activeChars.add(imgSrc);
-  const start=randomEdgePos();let end=randomEdgePos();
-  while(Math.abs(start.x-end.x)<200&&Math.abs(start.y-end.y)<200){end=randomEdgePos();}
-  wrap.style.setProperty("--startX",start.x+"px");wrap.style.setProperty("--startY",start.y+"px");wrap.style.setProperty("--endX",end.x+"px");wrap.style.setProperty("--endY",end.y+"px");
-  const dur=5+Math.random()*4;wrap.style.animationDuration=dur+"s";stage.appendChild(wrap);
-  setTimeout(()=>{wrap.remove();activeChars.delete(imgSrc);},dur*1000);
-}
-
-let running=0;setInterval(()=>{if(running<CONCURRENT){spawnChar();running++;setTimeout(()=>running--,7000);}},INTERVAL);
-
-(function(){const colors=["c1","c2","c3"],COUNT=60;for(let i=0;i<COUNT;i++){const s=document.createElement("div");s.className="star "+colors[i%colors.length];s.style.top=Math.random()*100+"vh";s.style.left=Math.random()*100+"vw";const size=3+Math.random()*3;s.style.width=s.style.height=size+"px";s.style.animationDelay=Math.random()*4+"s";s.style.animationDuration=4+Math.random()*3+"s";document.body.appendChild(s);}})();
-
-startBtn.addEventListener("click",()=>{
-  attemptPlay();
-  startBtn.style.pointerEvents="none";
-  startBtn.style.opacity="0";
-  setTimeout(()=>location.href="character_select.html",100);
-});
-</script>
 </body>
 </html>
