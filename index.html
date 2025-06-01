@@ -23,36 +23,28 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
   pointer-events:none;
   z-index:15;
 }
-/* スマートフォン表示用のスタイル */
 @media (max-width: 600px){
   #game-title{
-    font-size: 7vw; /* タイトルのフォントサイズを調整 (例: 8vw から 7vw へ) */
-    /* letter-spacing: .03em; */ /* 必要であれば文字間隔も少し詰める */
+    font-size: 7vw; 
     top: 40%; 
   }
-
-  /* ▼▼▼ スマートフォン用のスタートボタンスタイルを追加 ▼▼▼ */
   #start-btn{
-    padding: 12px 32px; /* 上下左右の余白を少し小さくする */
-    font-size: 22px;   /* フォントサイズを少し小さくする */
-    /* letter-spacing: .06em; */ /* 必要であれば文字間隔も調整 */
+    padding: 12px 32px; 
+    font-size: 22px;   
   }
-  /* ▲▲▲ スマートフォン用のスタートボタンスタイルここまで ▲▲▲ */
-
   .char{
     width:24vw; 
     min-width:90px;
   }
 }
 
-/* PC表示用のスタートボタンスタイル (メディアクエリの外) */
 #start-btn{
   position:absolute;
   left:50%;
   top:60%; 
   transform:translate(-50%,-50%);
-  padding:16px 48px; /* PC用のpadding */
-  font-size:28px;   /* PC用のfont-size */
+  padding:16px 48px; 
+  font-size:28px;   
   letter-spacing:.08em;
   color:#fff;
   background:rgba(0,0,0,.55);
@@ -65,7 +57,6 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 #start-btn:hover{background:rgba(255,255,255,.15);transform:translate(-50%,-50%) scale(1.05);}
 #start-btn:active{transform:translate(-50%,-50%) scale(.96);}
 
-/* キャラクターの基本スタイル (PC用) */
 .char{
   position:absolute;
   width:10vw; 
@@ -75,7 +66,6 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
   will-change:transform;
   animation:float linear forwards;
 }
-
 
 @keyframes bob{0%,100%{transform:translate(-50%,-50%) translateY(0)}50%{transform:translate(-50%,-50%) translateY(-1vw)}}
 .char img{width:100%;animation:bob 3s ease-in-out infinite;}
@@ -87,7 +77,6 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 .star.c2{color:#7FFFD4;}
 .star.c3{color:#FF69B4;}
 
-/* ▼▼▼ 星のCSS ▼▼▼ */
 .orbiting-star {
   position: absolute;
   width: 5px;
@@ -105,33 +94,16 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
 }
 
 @keyframes orbit-square-border {
-  0% {
-    top: -12.5px;
-    left: -12.5px;
-  }
-  25% {
-    top: -12.5px;
-    left: calc(100% + 7.5px);
-  }
-  50% {
-    top: calc(100% + 7.5px);
-    left: calc(100% + 7.5px);
-  }
-  75% {
-    top: calc(100% + 7.5px);
-    left: -12.5px;
-  }
-  100% {
-    top: -12.5px;
-    left: -12.5px;
-  }
+  0% { top: -12.5px; left: -12.5px; }
+  25% { top: -12.5px; left: calc(100% + 7.5px); }
+  50% { top: calc(100% + 7.5px); left: calc(100% + 7.5px); }
+  75% { top: calc(100% + 7.5px); left: -12.5px; }
+  100% { top: -12.5px; left: -12.5px; }
 }
 
 #start-btn:hover .orbiting-star {
   animation-duration: 2s;
 }
-/* ▲▲▲ 星のCSSここまで ▲▲▲ */
-
 </style>
 </head>
 <body>
@@ -141,12 +113,27 @@ html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:"Zen 
   <button id="start-btn">START<span class="orbiting-star"></span></button>
   </div>
 <script>
+// ▼▼▼ キャラクター画像リストに新しいファイル名を追加 ▼▼▼
 const charImages=[
-  "Leeleeg (1).png","leelee (1).png","luna (1).png","makamih (1).png",
-  "makamio (1).png","mitaman (1).png","mitamag (1).png","narukami (1).png",
-  "narukamik (1).png","orochi (1).png","oroti (1).png","runa (1).png",
-  "setuna (1).png","towa (1).png","yamar (1).png","yama (2).png",
+  "ikehaya.webp",
+  "leelee.webp",
+  "Leeleeg.webp", 
+  "luna.webp", // 前回更新したリストのluna.webp
+  "makamih.webp",
+  "makamio.webp",
+  "mitamag.webp",
+  "mitaman.webp",
+  "narukami.webp",
+  "narukamik.webp",
+  // 今回追加する6体
+  "Road.webp",
+  "runa.webp",   // 今回追加するruna.webp (前回のリストにも同名がある点に注意)
+  "setuna.webp",
+  "towa.webp",
+  "yama.webp",
+  "yamar.webp"
 ];
+// ▲▲▲ 更新ここまで ▲▲▲
 
 const activeChars=new Set();
 const CONCURRENT=6;const INTERVAL=900;
@@ -162,6 +149,10 @@ window.addEventListener("load",attemptPlay);stage.addEventListener("click",attem
 function randomEdgePos(){const e=Math.floor(Math.random()*4);switch(e){case 0:return{x:Math.random()*stageW(),y:-150};case 1:return{x:stageW()+150,y:Math.random()*stageH()};case 2:return{x:Math.random()*stageW(),y:stageH()+150};default:return{x:-150,y:Math.random()*stageH()};}}
 
 function spawnChar(){
+  if (charImages.length === 0) {
+    console.warn("charImages array is empty. No characters to spawn.");
+    return;
+  }
   const pool=charImages.filter(src=>!activeChars.has(src));
   const imgSrc=(pool.length?pool:charImages)[Math.floor(Math.random()* (pool.length?pool.length:charImages.length))];
   const wrap=document.createElement("div");wrap.className="char";
