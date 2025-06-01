@@ -101,30 +101,41 @@
       background-position:center;background-repeat:no-repeat;background-size:contain;
     }
 
-    /* 白い卵（小） */
+    /* ▼▼▼ 卵を星に変更 ▼▼▼ */
+    /* 星の基本スタイル（旧：白い卵） */
     .egg{
-      --start-rot-z: 0deg;
-              --end-rot-z  : 0deg;
-      width:26px;height:34px;
-      background-image:url("egg_white.png");
+      --start-rot-z: 0deg;  /* 角度の初期値 */
+      --end-rot-z  : 0deg;  /* 終点角度       */
+      /* background-image:url("egg_white.png"); を削除 */
+      background-color: #fff; /* 星の色を白に */
+      width:30px;  /* 星の幅 (元の卵 26x34px を参考に調整) */
+      height:30px; /* 星の高さ */
+      /* CSSで5ポイントの星形を作成 */
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
       animation-name:fall-egg;animation-timing-function:linear;
       filter:drop-shadow(0 2px 2px rgba(0,0,0,.15));
     }
-    /* 水色卵（中） */
+    /* 水色の星（旧：水色卵） */
     .egg.special{
-      width:32px;height:44px;
-      background-image:url("egg_blue.png");
+      /* background-image:url("egg_blue.png"); を削除 */
+      background-color: #87CEEB; /* 星の色を水色に (例: SkyBlue) */
+      width:38px;  /* 星の幅 (元の卵 32x44px を参考に調整) */
+      height:38px; /* 星の高さ */
+      /* clip-path は .egg から継承 */
       animation-name:fall-special-egg;animation-timing-function:linear;
       filter:drop-shadow(0 2px 4px rgba(0,0,0,.2));
     }
-    /* ゴールド卵（大） */
+    /* 金色の星（旧：ゴールド卵） */
     .egg.golden{
-      width:40px;height:52px;
-      background-image:url("egg_gold.png");
+      /* background-image:url("egg_gold.png"); を削除 */
+      background-color: #FFD700; /* 星の色を金色に (例: Gold) */
+      width:46px;  /* 星の幅 (元の卵 40x52px を参考に調整) */
+      height:46px; /* 星の高さ */
+      /* clip-path は .egg から継承 */
       animation-name:fall-golden-egg;animation-timing-function:linear;
-      filter:drop-shadow(0 0 15px gold) drop-shadow(0 0 5px white);
+      filter:drop-shadow(0 0 15px gold) drop-shadow(0 0 5px white); /* 既存のfilterを維持 */
     }
-
+    /* ▲▲▲ 変更ここまで ▲▲▲ */
     .helper-mgchan{
       width:60px;height:60px;
       background-image:url("MG Chan.PNG");
