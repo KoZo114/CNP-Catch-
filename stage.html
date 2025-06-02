@@ -95,7 +95,8 @@
     }
     /* ★ 雷による感電アニメーション用クラスとキーフレーム */
     #character.electrocuted {
-      animation: electric-shock 0.08s infinite;
+      /*animation: electric-shock 0.08s infinite;*/
+      filter: drop-shadow(0 0 5px yellow);
     }
     @keyframes electric-shock {
       /* パワーアップ時のscale(1.5)を考慮したtransformを設定 */
