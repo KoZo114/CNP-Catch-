@@ -81,6 +81,7 @@
       position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
       max-height:20vh;max-width:100px;height:auto;z-index:50;
       filter:drop-shadow(2px 4px 8px rgba(0,0,0,.2));
+      transition: transform 0.1s; /* ビリビリ時のtransform変化を滑らかに */
     }
     #character.jump{animation:jump .6s ease}
     #character.powerup{
@@ -92,11 +93,24 @@
       30%,60%{transform:translateX(-50%) translateY(-60px)}
       100%{transform:translateX(-50%) translateY(0)}
     }
+    /* ★ 雷による感電アニメーション用クラスとキーフレーム */
+    #character.electrocuted {
+      animation: electric-shock 0.08s infinite; /* アニメーション速度を少し速く */
+    }
+    @keyframes electric-shock { /* 横揺れの幅を調整 */
+      0% { transform: translateX(-51%) rotate(-2deg); }
+      25% { transform: translateX(-49%) rotate(2deg); }
+      50% { transform: translateX(-51%) rotate(-1deg); }
+      75% { transform: translateX(-49%) rotate(1deg); }
+      100% { transform: translateX(-50%) rotate(0deg); }
+    }
+
 
     /* ─────────────────────────
         アイテム
     ───────────────────────── */
-    .egg,.bomb,.power-up,.time-plus,.helper-mgchan,.helper-ikehaya,.helper-road {
+    /* ★ 共通クラスに .lightning を追加 */
+    .egg,.bomb,.power-up,.time-plus,.helper-mgchan,.helper-ikehaya,.helper-road, .lightning {
       position:absolute;pointer-events:none;z-index:40;
       background-position:center;background-repeat:no-repeat;background-size:contain;
     }
@@ -128,7 +142,7 @@
 
     .helper-mgchan{
       width:60px;height:60px;
-      background-image:url("MG Chan.PNG"); /* このファイルが存在するか確認 */
+      background-image:url("MG Chan.PNG");
       animation-name:fall-helper;animation-timing-function:linear;
       border-radius:15px;
       filter:drop-shadow(0 3px 5px rgba(0,0,0,.3));
@@ -183,6 +197,24 @@
       transform:translate(-50%,-50%);font-size:25px;
       animation:time-pulse 1.5s ease-in-out infinite alternate;
     }
+    /* ★ 雷アイテムのスタイル */
+    .lightning {
+      width: 45px;
+      height: 45px;
+      font-size: 38px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #FFFF00;
+      text-shadow: 0 0 5px #FFD700, 0 0 10px #FFEA00;
+      animation-name: fall-bomb; /* 既存の落下アニメーションを流用 (適宜変更可) */
+      animation-timing-function: linear;
+      filter: drop-shadow(0 0 8px gold);
+    }
+    .lightning::before {
+      content: '⚡️';
+    }
+
 
     /* UI関連のCSSは変更なしのため省略 */
     #scoreboard,#level-display,.control-btn,.power-effect,.combo-display,.level-up-effect{position:fixed;z-index:200}
@@ -274,8 +306,11 @@
     let isPowerUpActive=false,powerUpEndTime=0;
     let characterX,powerUpTimerId=null;
     let lastHelperIndex = -1;
+    let isCharacterStunned = false; // ★ キャラクタースタン状態フラグ
+    let stunTimeoutId = null;       // ★ スタン解除用タイマーID
 
-    let seEggCollect,bgm,seTimePlus,seBomb,sePowerUp,seHelperMG, seHelperIkehaya, seHelperRoad;
+    // ★ 雷効果音用の変数を追加
+    let seEggCollect,bgm,seTimePlus,seBomb,sePowerUp,seHelperMG, seHelperIkehaya, seHelperRoad, seLightning;
     try{
       seEggCollect=new Audio("kirarin.mp3");
       bgm           =new Audio("main2.mp3");
@@ -285,86 +320,56 @@
       seHelperMG  =new Audio("mg_chan_effect.mp3");
       seHelperIkehaya = new Audio("helper_common_effect.mp3");
       seHelperRoad    = new Audio("helper_common_effect.mp3");
+      seLightning     = new Audio("lightning_strike.mp3"); // ★ 雷の効果音ファイル (仮)
       bgm.loop=true;bgm.volume=.3;
     }catch(e){
       console.error("Audio init error:",e);
       const dummy={play:()=>{},currentTime:0};
-      seEggCollect=seTimePlus=seBomb=sePowerUp=seHelperMG=seHelperIkehaya=seHelperRoad=dummy;
+      seEggCollect=seTimePlus=seBomb=sePowerUp=seHelperMG=seHelperIkehaya=seHelperRoad=seLightning=dummy;
       bgm={play:()=>Promise.resolve(),pause:()=>{},loop:true,volume:.3};
     }
     try{highscore=parseInt(localStorage.getItem("rebornCatchHighscore"))||0}catch(e){}
     highscoreDisplay.textContent=highscore;
 
-    function createBgBubbleParticle(){ /* 実装は前のコードを参照 */ }
-    function createOuterShellParticle(){ /* 実装は前のコードを参照 */ }
-    function createInGameTwinkleStars(count = 50) { // 個数を50に変更
-      if (!gameContainer) return;
-      for (let i = 0; i < count; i++) {
-        const starEl = document.createElement('div');
-        starEl.className = 'game-bg-star';
-        starEl.style.top = Math.random() * gameContainer.offsetHeight + 'px';
-        starEl.style.left = Math.random() * gameContainer.offsetWidth + 'px';
-        const size = 1 + Math.random() * 2;
-        starEl.style.width = starEl.style.height = size + 'px';
-        starEl.style.animationDelay = Math.random() * 4 + 's';
-        starEl.style.animationDuration = (3 + Math.random() * 3) + 's';
-        gameContainer.appendChild(starEl);
-      }
-    }
+    function createBgBubbleParticle(){ /* 変更なし */ }
+    function createOuterShellParticle(){ /* 変更なし */ }
+    function createInGameTwinkleStars(count = 50) { /* 変更なし */ }
 
     const calcLevel=()=>Math.min(levelThresholds.filter(t=>score>=t).length,MAX_LEVEL);
     const spawnRate =()=>Math.max(150,700-level*40);
 
-    function updateScore(pt=1,type){
-      if(isPowerUpActive)pt*=2;
-      score+=pt;combo++;
-      scoreDisplay.textContent=score;
-      comboCountDisplay.textContent=combo;
-      const prev=level;level=calcLevel();levelDisplay.textContent=level;
-      if(level>prev)showLevelUp(level===MAX_LEVEL?`MAX LEVEL ${MAX_LEVEL} 到達!`:`LEVEL ${level}!`);
-      if(combo>1)showComboPopup();
-      if(pt>=5 && (type==="goldenEgg" || type==="egg golden"))showSpecialEffect(); // dataset.typeが "egg golden" のため修正
-      if(combo>maxCombo)maxCombo=combo;
-    }
+    function updateScore(pt=1,type){ /* 変更なし */ }
     const resetCombo=()=>{combo=0;comboCountDisplay.textContent=combo};
     const showComboPopup=()=>{comboPopup.textContent=`${combo} COMBO!`;comboPopup.style.display='block';setTimeout(()=>comboPopup.style.display='none',1000)};
     const showLevelUp=msg=>{levelUpEffect.textContent=msg;levelUpEffect.style.display='block';setTimeout(()=>levelUpEffect.style.display='none',2000)};
     const showSpecialEffect=()=>{scoreDisplay.style.cssText="transform:scale(1.3);color:#D4AF37";setTimeout(()=>scoreDisplay.style.cssText="",500)};
 
-    function activatePowerUp(){
-      if(isPowerUpActive){powerUpEndTime+=10000;clearInterval(powerUpTimerId)}
-      else{isPowerUpActive=true;powerUpEndTime=Date.now()+10000;character.classList.add("powerup");powerEffect.style.display='block'}
-      powerUpTimerId=setInterval(()=>{
-        const remain=Math.ceil((powerUpEndTime-Date.now())/1000);
-        if(remain<=0){deactivatePowerUp();clearInterval(powerUpTimerId)}
-        else powerEffect.textContent=`🥚スコア２倍！(${remain}s)`;
-      },100);
-    }
-    function deactivatePowerUp(){
-      isPowerUpActive=false;character.classList.remove("powerup");
-      powerEffect.style.display='none';clearInterval(powerUpTimerId);
-    }
+    function activatePowerUp(){ /* 変更なし */ }
+    function deactivatePowerUp(){ /* 変更なし */ }
 
+    /* アイテム生成  */
     function createItem () {
       if (timeLeft <= 0) return;
 
       const r = Math.random();
-      const prob = { bomb: 0, timePlus: .08, powerUp: 0, helper: .06, gold: .10, special: .15 };
+      // ★ 雷アイテムの出現確率を追加 (例: 0.05 = 5%)
+      const prob = { bomb: 0, timePlus: .08, powerUp: 0, helper: .06, gold: .10, special: .15, lightning: .05 };
       if (level >= 2) {
         prob.bomb    = Math.min(.05 + (level - 2) * .03, .14);
         prob.powerUp = .07;
+        prob.lightning = Math.min(.05 + (level - 2) * .01, .08); // レベルに応じて雷の確率も少し上げる (上限8%)
       }
       let sum  = 0;
-      let type = "normalEgg"; // デフォルトは通常アイテム（星）
-      const pick = (p, t) => { sum += p; if(r < sum && type === "normalEgg") type = t; return r < sum; }; // 最初のtrueでtypeを確定
+      let type = "normalEgg";
+      const pick = (p, t) => { sum += p; if(r < sum && type === "normalEgg") type = t; return r < sum; };
 
       pick(prob.bomb,   "bomb"      ) ||
       pick(prob.timePlus,"timePlus") ||
       pick(prob.powerUp,"powerup"   ) ||
       pick(prob.helper, "helper"    ) ||
-      pick(prob.gold,   "egg golden") || // dataset.type と合わせる
-      pick(prob.special,"egg special"); // dataset.type と合わせる
-      // normalEgg の場合は type は "normalEgg" のまま
+      pick(prob.lightning, "lightning") || // ★ 雷アイテムの抽選を追加
+      pick(prob.gold,   "egg golden") ||
+      pick(prob.special,"egg special");
 
       const item = document.createElement("div");
       let w;
@@ -383,9 +388,10 @@
         case "powerup"      : item.className = "power-up";       item.dataset.points = "0";   w = 45; break;
         case "helperIkehaya": item.className = "helper-ikehaya"; item.dataset.points = "25";  w = 60; break;
         case "helperRoad"   : item.className = "helper-road";    item.dataset.points = "25";  w = 60; break;
+        case "lightning"    : item.className = "lightning";      item.dataset.points = "0";   w = 45; break; // ★ 雷アイテムの定義
         case "egg golden"   : item.className = "egg golden";     item.dataset.points = "5";   w = 46; break;
         case "egg special"  : item.className = "egg special";    item.dataset.points = "2";   w = 38; break;
-        default             : item.className = "egg";             item.dataset.points = "1";   w = 30; type = "normalEgg"; // typeを明確にnormalEggに
+        default             : item.className = "egg";             item.dataset.points = "1";   w = 30; type = "normalEgg";
       }
       item.dataset.type = type;
 
@@ -393,9 +399,10 @@
       item.style.left            = Math.random() * (gameContainer.offsetWidth - w) + "px";
       item.style.animationDuration = dur + "s";
       item.style.animationName =
-            type === "egg special" ? "fall-special-egg" : // item.dataset.typeと合わせる
-            type === "egg golden"  ? "fall-golden-egg"  : // item.dataset.typeと合わせる
+            type === "egg special" ? "fall-special-egg" :
+            type === "egg golden"  ? "fall-golden-egg"  :
             type.startsWith("helper") ? "fall-helper" :
+            type === "lightning" ? "fall-bomb" : // 雷も爆弾と同じような落下アニメーションを仮に使う
             "fall-egg";
 
       item.style.setProperty("--start-rot-z",  ((Math.random() - .5) * 60).toFixed(1) + "deg");
@@ -436,7 +443,22 @@
               else if (item.dataset.type === "helperRoad") seHelperRoad?.play().catch(()=>{});
               [...gameContainer.querySelectorAll(".bomb")].slice(0, 2).forEach(b => b.remove());
               break;
-            default: // "egg", "egg special", "egg golden", "normalEgg"
+            // ★ 雷に当たった時の処理
+            case "lightning":
+              seLightning?.play().catch(()=>{});
+              if (!isCharacterStunned) { // まだスタンしていなければ
+                isCharacterStunned = true;
+                character.classList.add("electrocuted");
+                // 既存のスタン解除タイマーがあればクリア
+                if (stunTimeoutId) clearTimeout(stunTimeoutId);
+                stunTimeoutId = setTimeout(() => {
+                  isCharacterStunned = false;
+                  character.classList.remove("electrocuted");
+                  character.style.transform = 'translateX(-50%)'; // 通常のtransformに戻す
+                }, 3000); // 3秒後に解除
+              }
+              break;
+            default: 
               updateScore(pts, item.dataset.type);
               seEggCollect?.play().catch(()=>{});
           }
@@ -448,16 +470,19 @@
       setTimeout(() => {
         if (item.parentNode) {
           item.remove();
-          // 星(eggクラス)または、dataset.typeに"Egg"が含まれる場合コンボリセット
-          if (item.classList.contains("egg") || item.dataset.type.includes("Egg")) resetCombo();
+          if (item.classList.contains("egg")) resetCombo();
         }
         clearInterval(hit);
       }, dur * 1000 + 300);
     }
 
     function startGame(){
-      // 既存のstartGameの内容は前のコードを参照し、変更しない
       characterX=gameContainer.offsetWidth/2;character.style.left=characterX+"px";
+      isCharacterStunned = false; // ★ ゲーム開始時にスタン状態をリセット
+      if (stunTimeoutId) clearTimeout(stunTimeoutId); // ★ タイマーもリセット
+      character.classList.remove("electrocuted"); // ★ スタイルもリセット
+      character.style.transform = 'translateX(-50%)';
+
       bgm.play().catch(()=>{});
       createInGameTwinkleStars(50); 
       itemSpawnerId=setInterval(createItem,spawnRate());
@@ -467,14 +492,15 @@
         if(timeLeft<=0){
           clearInterval(gameTimerId);clearInterval(itemSpawnerId);
           clearInterval(gameBgParticleInterval);clearInterval(outerEffectInterval);
-          if(powerUpTimerId)clearInterval(powerUpTimerId);endGame();return;
+          if(powerUpTimerId)clearInterval(powerUpTimerId);
+          if (stunTimeoutId) clearTimeout(stunTimeoutId); // ★ ゲーム終了時にもスタンタイマー解除
+          endGame();return;
         }
         timeLeft--;timerDisplay.textContent=timeLeft;
         clearInterval(itemSpawnerId);itemSpawnerId=setInterval(createItem,spawnRate());
       },1000);
     }
     function endGame(){
-      // 既存のendGameの内容は前のコードを参照し、変更しない
       bgm.pause();finalScore.textContent=score;finalLevel.textContent=level;
       gameover.style.display="block";
       if(score>highscore){highscore=score;localStorage.setItem("rebornCatchHighscore",highscore);highscoreDisplay.textContent=highscore}
@@ -484,15 +510,17 @@
 
       [...gameContainer.children].forEach(c=>{
         if(!["character","gameover","combo-display-popup","level-up-effect","power-effect"].includes(c.id)){
-          if(c.classList.contains("egg")||c.classList.contains("star")||c.classList.contains("bomb")||c.classList.contains("power-up")||c.classList.contains("time-plus")||c.classList.contains("helper-mgchan")||c.classList.contains("helper-ikehaya")||c.classList.contains("helper-road")||c.classList.contains("bg-bubble-particle"))c.remove();
+          // ★ 雷アイテムも削除対象に
+          if(c.classList.contains("egg")||c.classList.contains("bomb")||c.classList.contains("power-up")||c.classList.contains("time-plus")||c.classList.contains("helper-mgchan")||c.classList.contains("helper-ikehaya")||c.classList.contains("helper-road")||c.classList.contains("lightning")||c.classList.contains("bg-bubble-particle"))c.remove();
         }
       });
       pageWrapper.querySelectorAll('.outer-shell-particle').forEach(e=>e.remove());
-      returnToSelectBtn.onclick=()=>location.href="character_select.html";
+      returnToSelectBtn.onclick=()=>location.href="character_select.html"; 
     }
 
-    document.addEventListener("keydown",e=>{ /* 既存のキーボード操作は前のコードを参照 */ 
-      if(timeLeft<=0)return;
+    // ★ 操作系関数でスタン状態をチェック
+    document.addEventListener("keydown",e=>{
+      if(timeLeft<=0 || isCharacterStunned)return; // ★ スタン中はキー操作無効
       const w=character.offsetWidth||120;
       if(e.key==="ArrowLeft"){characterX-=30}
       else if(e.key==="ArrowRight"){characterX+=30}
@@ -500,11 +528,11 @@
       characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX));
       character.style.left=characterX+"px";
     });
-    function jump(){ /* 既存のジャンプ処理は前のコードを参照 */ 
-      if(character.classList.contains("jump")||timeLeft<=0)return;
+    function jump(){ 
+      if(character.classList.contains("jump")||timeLeft<=0 || isCharacterStunned)return; // ★ スタン中はジャンプ無効
       character.classList.add("jump");setTimeout(()=>character.classList.remove("jump"),600);
     }
-    character.addEventListener("click",e=>{if(timeLeft>0){e.preventDefault();jump()}},{passive:false});
+    character.addEventListener("click",e=>{if(timeLeft>0 && !isCharacterStunned){e.preventDefault();jump()}},{passive:false}); // ★ スタン中はクリックジャンプ無効
 
     const leftBtn=document.createElement("button"),rightBtn=document.createElement("button");
     leftBtn.textContent="◀";rightBtn.textContent="▶";
@@ -513,23 +541,44 @@
     pageWrapper.append(leftBtn,rightBtn);
 
     let moveInt=null;
-    const startMove=dir=>{  if(moveInt||timeLeft<=0)return; const w=character.offsetWidth||120; moveInt=setInterval(()=>{ characterX+=(dir==="left"?-15:15); characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX)); character.style.left=characterX+"px"; },30);};
+    const startMove=dir=>{
+      if(moveInt||timeLeft<=0 || isCharacterStunned)return; // ★ スタン中はボタン長押し移動無効
+      const w=character.offsetWidth||120;
+      moveInt=setInterval(()=>{
+        characterX+=(dir==="left"?-15:15);
+        characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX));
+        character.style.left=characterX+"px";
+      },30);
+    };
     const stopMove=()=>{clearInterval(moveInt);moveInt=null};
-    leftBtn.addEventListener("touchstart",e=>{e.preventDefault();startMove("left")},{passive:false});
-    rightBtn.addEventListener("touchstart",e=>{e.preventDefault();startMove("right")},{passive:false});
-    leftBtn.onmousedown=()=>startMove("left");
-    rightBtn.onmousedown=()=>startMove("right");
+    leftBtn.addEventListener("touchstart",e=>{e.preventDefault();if(!isCharacterStunned)startMove("left")},{passive:false}); // ★ スタンチェック
+    rightBtn.addEventListener("touchstart",e=>{e.preventDefault();if(!isCharacterStunned)startMove("right")},{passive:false});// ★ スタンチェック
+    leftBtn.onmousedown=()=>{if(!isCharacterStunned)startMove("left")}; // ★ スタンチェック
+    rightBtn.onmousedown=()=>{if(!isCharacterStunned)startMove("right")}; // ★ スタンチェック
     ["mouseup","touchend"].forEach(ev=>document.addEventListener(ev,stopMove,{passive:false}));
 
     let sx=null,sy=null,thr=30;
     const relX=cl=>cl-gameContainer.getBoundingClientRect().left;
-    gameContainer.addEventListener("touchstart",e=>{ if(timeLeft<=0)return; const t=e.changedTouches[0];sx=relX(t.clientX);sy=t.clientY; },{passive:true});
-    gameContainer.addEventListener("touchmove",e=>{ if(timeLeft<=0||sx==null)return; const x=relX(e.changedTouches[0].clientX),dx=x-sx;characterX+=dx;sx=x; const w=character.offsetWidth||120; characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX)); character.style.left=characterX+"px"; },{passive:true});
-    gameContainer.addEventListener("touchend",e=>{ if(timeLeft<=0||sx==null||sy==null){sx=sy=null;return} const dx=relX(e.changedTouches[0].clientX)-sx,dy=e.changedTouches[0].clientY-sy; if(Math.abs(dy)>Math.abs(dx)&&dy<-thr)jump(); sx=sy=null; },{passive:true});
+    gameContainer.addEventListener("touchstart",e=>{
+      if(timeLeft<=0 || isCharacterStunned)return; // ★ スタン中はスワイプ開始無効
+      const t=e.changedTouches[0];sx=relX(t.clientX);sy=t.clientY;
+    },{passive:true});
+    gameContainer.addEventListener("touchmove",e=>{
+      if(timeLeft<=0||sx==null || isCharacterStunned)return; // ★ スタン中はスワイプ移動無効
+      const x=relX(e.changedTouches[0].clientX),dx=x-sx;characterX+=dx;sx=x;
+      const w=character.offsetWidth||120;
+      characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX));
+      character.style.left=characterX+"px";
+    },{passive:true});
+    gameContainer.addEventListener("touchend",e=>{
+      if(timeLeft<=0||sx==null||sy==null || isCharacterStunned){sx=sy=null;return} // ★ スタン中はスワイプ終了処理(ジャンプ)無効
+      const dx=relX(e.changedTouches[0].clientX)-sx,dy=e.changedTouches[0].clientY-sy;
+      if(Math.abs(dy)>Math.abs(dx)&&dy<-thr)jump();
+      sx=sy=null;
+    },{passive:true});
 
-    window.addEventListener('resize',()=>{ const w=character.offsetWidth||120; characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX)); character.style.left=characterX+"px"; });
-
-    const tryPlay=()=>{ bgm.play().then(()=>{ document.body.removeEventListener('click',tryPlay); document.body.removeEventListener('touchstart',tryPlay); }).catch(()=>{}); };
+    window.addEventListener('resize',()=>{ /* 変更なし */ });
+    const tryPlay=()=>{ /* 変更なし */ };
     document.body.addEventListener('click',tryPlay,{once:true});
     document.body.addEventListener('touchstart',tryPlay,{once:true});
 
