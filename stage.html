@@ -78,16 +78,26 @@
         キャラクター
     ───────────────────────── */
     #character{
-      position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
-      max-height:20vh;max-width:100px;height:auto;z-index:50;
-      filter:drop-shadow(2px 4px 8px rgba(0,0,0,.2));
-      transition: transform 0.1s;
-    }
-    #character.jump{animation:jump .6s ease}
-    #character.powerup{
-      filter:drop-shadow(0 0 15px #FFD700) drop-shadow(2px 4px 8px rgba(0,0,0,.2));
-      transform:translateX(-50%) scale(1.5);transition:.2s ease-out;
-    }
+  position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
+  max-height: 18vh; /* 例: 20vh から 18vh に変更（少し小さく） */
+  max-width: 90px;  /* 例: 100px から 90px に変更（少し小さく） */
+  height:auto;z-index:50;
+  filter:drop-shadow(2px 4px 8px rgba(0,0,0,.2));
+  transition: transform 0.2s ease-out, max-height 0.2s ease-out, max-width 0.2s ease-out; /* サイズ変更もトランジション対象に */
+}
+#character.jump{animation:jump .6s ease}
+#character.powerup{
+  filter:drop-shadow(0 0 15px #FFD700) drop-shadow(2px 4px 8px rgba(0,0,0,.2));
+  transform:translateX(-50%) scale(1.5); /* 通常時が小さくなった分、1.5倍でも以前よりは少し小さくなります */
+                                          /* もしパワーアップ時の絶対的なサイズを維持したい場合は、scale値を大きくするか、
+                                             下記のようにmax-height/max-widthを直接指定します */
+  /* 例: パワーアップ時に特定の大きさにしたい場合
+  max-height: 22vh;
+  max-width: 110px;
+  transform:translateX(-50%); /* scale(1) にするか、微調整 */
+  */
+  transition: transform .2s ease-out, max-height .2s ease-out, max-width .2s ease-out; /* transitionも調整 */
+}
     @keyframes jump{
       0%{transform:translateX(-50%) translateY(0)}
       30%,60%{transform:translateX(-50%) translateY(-60px)}
