@@ -93,7 +93,7 @@
       30%,60%{transform:translateX(-50%) translateY(-60px)}
       100%{transform:translateX(-50%) translateY(0)}
     }
-    /* 雷による感電アニメーション用クラスとキーフレーム */
+    /* ★ 雷による感電アニメーション用クラスとキーフレーム */
     #character.electrocuted {
       animation: electric-shock 0.08s infinite;
     }
@@ -110,7 +110,7 @@
     /* ─────────────────────────
         アイテム
     ───────────────────────── */
-    /* 共通クラスに .lightning を追加 */
+    /* ★ 共通クラスに .lightning を追加 */
     .egg,.bomb,.power-up,.time-plus,.helper-mgchan,.helper-ikehaya,.helper-road, .lightning {
       position:absolute;pointer-events:none;z-index:40;
       background-position:center;background-repeat:no-repeat;background-size:contain;
@@ -198,7 +198,7 @@
       transform:translate(-50%,-50%);font-size:25px;
       animation:time-pulse 1.5s ease-in-out infinite alternate;
     }
-    /* 雷アイテムのスタイル */
+    /* ★ 雷アイテムのスタイル */
     .lightning {
       width: 45px;
       height: 45px;
@@ -474,19 +474,20 @@
               seHelperMG?.play().catch(()=>{}); 
               [...gameContainer.querySelectorAll(".bomb")].slice(0, 2).forEach(b => b.remove());
               break;
-            case "lightning":
+            case "lightning": // ★ 雷ヒット処理
               seLightning?.play().catch(()=>{});
               if (!isCharacterStunned) {
                 isCharacterStunned = true;
+                // 現在のスケールをCSS変数として設定
                 const currentScale = character.classList.contains("powerup") ? 1.5 : 1;
-                character.style.setProperty('--current-scale', currentScale); // CSS変数で現在のスケールを渡す
+                character.style.setProperty('--current-scale', currentScale);
                 character.classList.add("electrocuted");
                 if (stunTimeoutId) clearTimeout(stunTimeoutId);
                 stunTimeoutId = setTimeout(() => {
                   isCharacterStunned = false;
                   character.classList.remove("electrocuted");
-                  character.style.removeProperty('--current-scale'); // CSS変数を削除
-                  // CSSクラスに基づいてtransformが再計算されるように、style.transformをリセット
+                  character.style.removeProperty('--current-scale');
+                  // スタン解除時に、CSSクラスに基づいた正しいtransformを再適用
                   if (character.classList.contains("powerup")) {
                      character.style.transform = 'translateX(-50%) scale(1.5)';
                   } else {
@@ -518,8 +519,9 @@
       isCharacterStunned = false; 
       if (stunTimeoutId) clearTimeout(stunTimeoutId); 
       character.classList.remove("electrocuted"); 
-      character.style.removeProperty('--current-scale'); // CSS変数を削除
+      character.style.removeProperty('--current-scale'); // ★ ゲーム開始時にCSS変数をクリア
 
+      // ★ ゲーム開始時にキャラクターのtransformをCSSクラスに基づいて正しく設定
       if (character.classList.contains("powerup")) {
         character.style.transform = 'translateX(-50%) scale(1.5)';
       } else {
