@@ -78,28 +78,27 @@
         キャラクター
     ───────────────────────── */
     #character{
-      position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
+      position:absolute;bottom:80px;left:50%;
+      transform:translateX(-50%) scale(1); /* ★ scale(1) を明示 */
       max-height:20vh;max-width:100px;height:auto;z-index:50;
       filter:drop-shadow(2px 4px 8px rgba(0,0,0,.2));
-      transition: transform 0.1s;
+      transition: transform .2s ease-out, filter .2s ease-out; /* transitionをシンプルに */
     }
     #character.jump{animation:jump .6s ease}
     #character.powerup{
       filter:drop-shadow(0 0 15px #FFD700) drop-shadow(2px 4px 8px rgba(0,0,0,.2));
-      transform:translateX(-50%) scale(1.5);transition:.2s ease-out;
+      transform:translateX(-50%) scale(1.5); /* ★ パワーアップ時のスケール */
     }
-    @keyframes jump{
-      0%{transform:translateX(-50%) translateY(0)}
-      30%,60%{transform:translateX(-50%) translateY(-60px)}
-      100%{transform:translateX(-50%) translateY(0)}
+    @keyframes jump{ /* ジャンプアニメーションはtranslateXとtranslateYのみ */
+      0%{transform:translateX(-50%) translateY(0) scale(var(--current-scale, 1));}
+      30%,60%{transform:translateX(-50%) translateY(-60px) scale(var(--current-scale, 1));}
+      100%{transform:translateX(-50%) translateY(0) scale(var(--current-scale, 1));}
     }
-    /* ★ 雷による感電アニメーション用クラスとキーフレーム 
     #character.electrocuted {
       animation: electric-shock 0.08s infinite;
-      filter: drop-shadow(0 0 5px yellow);
-    }*/
+    }
     @keyframes electric-shock {
-      /* パワーアップ時のscale(1.5)を考慮したtransformを設定 */
+      /* translateXとrotateのみ変更し、scaleはCSS変数で現在の状態を維持 */
       0% { transform: translateX(-51%) rotate(-2deg) scale(var(--current-scale, 1)); }
       25% { transform: translateX(-49%) rotate(2deg) scale(var(--current-scale, 1)); }
       50% { transform: translateX(-51%) rotate(-1deg) scale(var(--current-scale, 1)); }
@@ -111,7 +110,6 @@
     /* ─────────────────────────
         アイテム
     ───────────────────────── */
-    /* ★ 共通クラスに .lightning を追加 */
     .egg,.bomb,.power-up,.time-plus,.helper-mgchan,.helper-ikehaya,.helper-road, .lightning {
       position:absolute;pointer-events:none;z-index:40;
       background-position:center;background-repeat:no-repeat;background-size:contain;
@@ -199,7 +197,6 @@
       transform:translate(-50%,-50%);font-size:25px;
       animation:time-pulse 1.5s ease-in-out infinite alternate;
     }
-    /* ★ 雷アイテムのスタイル 
     .lightning {
       width: 45px;
       height: 45px;
@@ -215,7 +212,7 @@
     }
     .lightning::before {
       content: '⚡️';
-    }*/
+    }
 
     /* UI CSSは変更なし */
     #scoreboard,#level-display,.control-btn,.power-effect,.combo-display,.level-up-effect{position:fixed;z-index:200}
@@ -331,8 +328,8 @@
     try{highscore=parseInt(localStorage.getItem("rebornCatchHighscore"))||0}catch(e){}
     highscoreDisplay.textContent=highscore;
 
-    function createBgBubbleParticle(){ /* 実装済みのため省略 */ }
-    function createOuterShellParticle(){ /* 実装済みのため省略 */ }
+    function createBgBubbleParticle(){ /* 実装済み */ }
+    function createOuterShellParticle(){ /* 実装済み */ }
     function createInGameTwinkleStars(count = 50) {
       if (!gameContainer) return;
       for (let i = 0; i < count; i++) {
@@ -369,8 +366,16 @@
     const showSpecialEffect=()=>{scoreDisplay.style.cssText="transform:scale(1.3);color:#D4AF37";setTimeout(()=>scoreDisplay.style.cssText="",500)};
 
     function activatePowerUp(){
-      if(isPowerUpActive){powerUpEndTime+=10000;clearInterval(powerUpTimerId)}
-      else{isPowerUpActive=true;powerUpEndTime=Date.now()+10000;character.classList.add("powerup");powerEffect.style.display='block'}
+      if(isPowerUpActive){
+        powerUpEndTime+=10000; // 効果時間延長
+        clearInterval(powerUpTimerId); // 既存タイマーリセット
+      } else {
+        isPowerUpActive=true;
+        powerUpEndTime=Date.now()+10000;
+        character.classList.add("powerup"); // CSSで transform: scale(1.5) が適用される
+        powerEffect.style.display='block';
+      }
+      // タイマーを（再）設定
       powerUpTimerId=setInterval(()=>{
         const remain=Math.ceil((powerUpEndTime-Date.now())/1000);
         if(remain<=0){deactivatePowerUp();clearInterval(powerUpTimerId)}
@@ -378,8 +383,14 @@
       },100);
     }
     function deactivatePowerUp(){
-      isPowerUpActive=false;character.classList.remove("powerup");
-      powerEffect.style.display='none';clearInterval(powerUpTimerId);
+      isPowerUpActive=false;
+      character.classList.remove("powerup"); // これでCSSのscale(1.5)が解除されるはず
+      powerEffect.style.display='none';
+      clearInterval(powerUpTimerId);
+      // ★ パワーアップ解除時に通常時のtransformを確実に適用
+      if (!character.classList.contains("electrocuted")) { // スタン中でなければ
+         character.style.transform = 'translateX(-50%) scale(1)';
+      }
     }
 
     function createItem () {
@@ -421,7 +432,7 @@
         case "powerup"      : item.className = "power-up";       item.dataset.points = "0";   w = 45; break;
         case "helperIkehaya": item.className = "helper-ikehaya"; item.dataset.points = "25";  w = 60; break;
         case "helperRoad"   : item.className = "helper-road";    item.dataset.points = "25";  w = 60; break;
-        /*case "lightning"    : item.className = "lightning";      item.dataset.points = "0";   w = 45; break;*/
+        case "lightning"    : item.className = "lightning";      item.dataset.points = "0";   w = 45; break;
         case "egg golden"   : item.className = "egg golden";     item.dataset.points = "5";   w = 46; break;
         case "egg special"  : item.className = "egg special";    item.dataset.points = "2";   w = 38; break;
         default             : item.className = "egg";             item.dataset.points = "1";   w = 30; type = "normalEgg";
@@ -435,8 +446,8 @@
             type === "egg special" ? "fall-special-egg" :
             type === "egg golden"  ? "fall-golden-egg"  :
             type.startsWith("helper") ? "fall-helper" :
-            /*type === "lightning" ? "fall-bomb" :
-            "fall-egg";*/
+            type === "lightning" ? "fall-bomb" :
+            "fall-egg";
 
       item.style.setProperty("--start-rot-z",  ((Math.random() - .5) * 60).toFixed(1) + "deg");
       item.style.setProperty("--end-rot-z",    ((Math.random() - .5) * 90).toFixed(1) + "deg");
@@ -475,11 +486,10 @@
               seHelperMG?.play().catch(()=>{}); 
               [...gameContainer.querySelectorAll(".bomb")].slice(0, 2).forEach(b => b.remove());
               break;
-            /*case "lightning": // ★ 雷ヒット処理
+            case "lightning":
               seLightning?.play().catch(()=>{});
               if (!isCharacterStunned) {
                 isCharacterStunned = true;
-                // 現在のスケールをCSS変数として設定
                 const currentScale = character.classList.contains("powerup") ? 1.5 : 1;
                 character.style.setProperty('--current-scale', currentScale);
                 character.classList.add("electrocuted");
@@ -488,13 +498,12 @@
                   isCharacterStunned = false;
                   character.classList.remove("electrocuted");
                   character.style.removeProperty('--current-scale');
-                  // スタン解除時に、CSSクラスに基づいた正しいtransformを再適用
                   if (character.classList.contains("powerup")) {
                      character.style.transform = 'translateX(-50%) scale(1.5)';
                   } else {
-                     character.style.transform = 'translateX(-50%)';
+                     character.style.transform = 'translateX(-50%) scale(1)'; // ★ 通常時もscale(1)を明示
                   }
-                }, 3000);*/
+                }, 3000);
               }
               break;
             default: 
@@ -520,14 +529,12 @@
       isCharacterStunned = false; 
       if (stunTimeoutId) clearTimeout(stunTimeoutId); 
       character.classList.remove("electrocuted"); 
-      character.style.removeProperty('--current-scale'); // ★ ゲーム開始時にCSS変数をクリア
+      character.style.removeProperty('--current-scale'); 
 
-      // ★ ゲーム開始時にキャラクターのtransformをCSSクラスに基づいて正しく設定
-      if (character.classList.contains("powerup")) {
-        character.style.transform = 'translateX(-50%) scale(1.5)';
-      } else {
-        character.style.transform = 'translateX(-50%)';
-      }
+      // ★ ゲーム開始時、パワーアップクラスがもし残っていたら剥がし、transformを通常にリセット
+      character.classList.remove("powerup");
+      character.style.transform = 'translateX(-50%) scale(1)';
+
 
       bgm.play().catch(()=>{});
       createInGameTwinkleStars(50); 
