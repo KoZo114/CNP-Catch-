@@ -93,11 +93,11 @@
       30%,60%{transform:translateX(-50%) translateY(-60px)}
       100%{transform:translateX(-50%) translateY(0)}
     }
-    /* ★ 雷による感電アニメーション用クラスとキーフレーム */
+    /* ★ 雷による感電アニメーション用クラスとキーフレーム 
     #character.electrocuted {
-      /*animation: electric-shock 0.08s infinite;*/
+      animation: electric-shock 0.08s infinite;
       filter: drop-shadow(0 0 5px yellow);
-    }
+    }*/
     @keyframes electric-shock {
       /* パワーアップ時のscale(1.5)を考慮したtransformを設定 */
       0% { transform: translateX(-51%) rotate(-2deg) scale(var(--current-scale, 1)); }
@@ -199,7 +199,7 @@
       transform:translate(-50%,-50%);font-size:25px;
       animation:time-pulse 1.5s ease-in-out infinite alternate;
     }
-    /* ★ 雷アイテムのスタイル */
+    /* ★ 雷アイテムのスタイル 
     .lightning {
       width: 45px;
       height: 45px;
@@ -215,7 +215,7 @@
     }
     .lightning::before {
       content: '⚡️';
-    }
+    }*/
 
     /* UI CSSは変更なし */
     #scoreboard,#level-display,.control-btn,.power-effect,.combo-display,.level-up-effect{position:fixed;z-index:200}
@@ -421,7 +421,7 @@
         case "powerup"      : item.className = "power-up";       item.dataset.points = "0";   w = 45; break;
         case "helperIkehaya": item.className = "helper-ikehaya"; item.dataset.points = "25";  w = 60; break;
         case "helperRoad"   : item.className = "helper-road";    item.dataset.points = "25";  w = 60; break;
-        case "lightning"    : item.className = "lightning";      item.dataset.points = "0";   w = 45; break;
+        /*case "lightning"    : item.className = "lightning";      item.dataset.points = "0";   w = 45; break;*/
         case "egg golden"   : item.className = "egg golden";     item.dataset.points = "5";   w = 46; break;
         case "egg special"  : item.className = "egg special";    item.dataset.points = "2";   w = 38; break;
         default             : item.className = "egg";             item.dataset.points = "1";   w = 30; type = "normalEgg";
@@ -435,8 +435,8 @@
             type === "egg special" ? "fall-special-egg" :
             type === "egg golden"  ? "fall-golden-egg"  :
             type.startsWith("helper") ? "fall-helper" :
-            type === "lightning" ? "fall-bomb" :
-            "fall-egg";
+            /*type === "lightning" ? "fall-bomb" :
+            "fall-egg";*/
 
       item.style.setProperty("--start-rot-z",  ((Math.random() - .5) * 60).toFixed(1) + "deg");
       item.style.setProperty("--end-rot-z",    ((Math.random() - .5) * 90).toFixed(1) + "deg");
@@ -475,7 +475,7 @@
               seHelperMG?.play().catch(()=>{}); 
               [...gameContainer.querySelectorAll(".bomb")].slice(0, 2).forEach(b => b.remove());
               break;
-            case "lightning": // ★ 雷ヒット処理
+            /*case "lightning": // ★ 雷ヒット処理
               seLightning?.play().catch(()=>{});
               if (!isCharacterStunned) {
                 isCharacterStunned = true;
@@ -494,7 +494,7 @@
                   } else {
                      character.style.transform = 'translateX(-50%)';
                   }
-                }, 3000);
+                }, 3000);*/
               }
               break;
             default: 
