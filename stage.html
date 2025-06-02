@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
@@ -77,14 +77,14 @@
     /* ─────────────────────────
         キャラクター
     ───────────────────────── */
-    #character{ /* ★ お客様のコードの値を維持 */
+    #character{
       position:absolute;bottom:80px;left:50%;transform:translateX(-50%);
       max-height:20vh;max-width:100px;height:auto;z-index:50;
       filter:drop-shadow(2px 4px 8px rgba(0,0,0,.2));
-      transition: transform 0.1s; /* transitionは元の0.1sのまま */
+      transition: transform 0.1s;
     }
     #character.jump{animation:jump .6s ease}
-    #character.powerup{ /* ★ お客様のコードの値を維持 */
+    #character.powerup{
       filter:drop-shadow(0 0 15px #FFD700) drop-shadow(2px 4px 8px rgba(0,0,0,.2));
       transform:translateX(-50%) scale(1.5);transition:.2s ease-out;
     }
@@ -98,11 +98,12 @@
       animation: electric-shock 0.08s infinite;
     }
     @keyframes electric-shock {
-      0% { transform: translateX(-51%) rotate(-2deg); } /* パワーアップ時のscaleも考慮する場合は調整が必要かも */
-      25% { transform: translateX(-49%) rotate(2deg); }
-      50% { transform: translateX(-51%) rotate(-1deg); }
-      75% { transform: translateX(-49%) rotate(1deg); }
-      100% { transform: translateX(-50%) rotate(0deg); } /* パワーアップ状態なら scale(1.5) を維持するように */
+      /* パワーアップ時のscale(1.5)を考慮したtransformを設定 */
+      0% { transform: translateX(-51%) rotate(-2deg) scale(var(--current-scale, 1)); }
+      25% { transform: translateX(-49%) rotate(2deg) scale(var(--current-scale, 1)); }
+      50% { transform: translateX(-51%) rotate(-1deg) scale(var(--current-scale, 1)); }
+      75% { transform: translateX(-49%) rotate(1deg) scale(var(--current-scale, 1)); }
+      100% { transform: translateX(-50%) rotate(0deg) scale(var(--current-scale, 1)); }
     }
 
 
@@ -207,7 +208,7 @@
       align-items: center;
       color: #FFFF00;
       text-shadow: 0 0 5px #FFD700, 0 0 10px #FFEA00;
-      animation-name: fall-bomb; /* 既存の落下アニメーションを流用 (適宜変更可) */
+      animation-name: fall-bomb; 
       animation-timing-function: linear;
       filter: drop-shadow(0 0 8px gold);
     }
@@ -331,7 +332,20 @@
 
     function createBgBubbleParticle(){ /* 実装済みのため省略 */ }
     function createOuterShellParticle(){ /* 実装済みのため省略 */ }
-    function createInGameTwinkleStars(count = 50) { /* 実装済みのため省略 */ }
+    function createInGameTwinkleStars(count = 50) {
+      if (!gameContainer) return;
+      for (let i = 0; i < count; i++) {
+        const starEl = document.createElement('div');
+        starEl.className = 'game-bg-star';
+        starEl.style.top = Math.random() * gameContainer.offsetHeight + 'px';
+        starEl.style.left = Math.random() * gameContainer.offsetWidth + 'px';
+        const size = 1 + Math.random() * 2;
+        starEl.style.width = starEl.style.height = size + 'px';
+        starEl.style.animationDelay = Math.random() * 4 + 's';
+        starEl.style.animationDuration = (3 + Math.random() * 3) + 's';
+        gameContainer.appendChild(starEl);
+      }
+    }
 
     const calcLevel=()=>Math.min(levelThresholds.filter(t=>score>=t).length,MAX_LEVEL);
     const spawnRate =()=>Math.max(150,700-level*40);
@@ -457,19 +471,22 @@
             case "helperIkehaya":
             case "helperRoad":
               updateScore(pts, item.dataset.type);
-              seHelperMG?.play().catch(()=>{});
+              seHelperMG?.play().catch(()=>{}); 
               [...gameContainer.querySelectorAll(".bomb")].slice(0, 2).forEach(b => b.remove());
               break;
             case "lightning":
               seLightning?.play().catch(()=>{});
               if (!isCharacterStunned) {
                 isCharacterStunned = true;
+                const currentScale = character.classList.contains("powerup") ? 1.5 : 1;
+                character.style.setProperty('--current-scale', currentScale); // CSS変数で現在のスケールを渡す
                 character.classList.add("electrocuted");
                 if (stunTimeoutId) clearTimeout(stunTimeoutId);
                 stunTimeoutId = setTimeout(() => {
                   isCharacterStunned = false;
                   character.classList.remove("electrocuted");
-                  // パワーアップ状態なら、パワーアップ時のスケールを維持
+                  character.style.removeProperty('--current-scale'); // CSS変数を削除
+                  // CSSクラスに基づいてtransformが再計算されるように、style.transformをリセット
                   if (character.classList.contains("powerup")) {
                      character.style.transform = 'translateX(-50%) scale(1.5)';
                   } else {
@@ -501,13 +518,13 @@
       isCharacterStunned = false; 
       if (stunTimeoutId) clearTimeout(stunTimeoutId); 
       character.classList.remove("electrocuted"); 
-      // ゲーム開始時にキャラクターのtransformをリセット（パワーアップ状態も考慮）
+      character.style.removeProperty('--current-scale'); // CSS変数を削除
+
       if (character.classList.contains("powerup")) {
         character.style.transform = 'translateX(-50%) scale(1.5)';
       } else {
         character.style.transform = 'translateX(-50%)';
       }
-
 
       bgm.play().catch(()=>{});
       createInGameTwinkleStars(50); 
@@ -523,7 +540,6 @@
           endGame();return;
         }
         timeLeft--;timerDisplay.textContent=timeLeft;
-        // スタン中でなければスポーンレートを更新 (スタン中にアイテム間隔が変わるのを防ぐ)
         if (!isCharacterStunned) {
             clearInterval(itemSpawnerId);itemSpawnerId=setInterval(createItem,spawnRate());
         }
