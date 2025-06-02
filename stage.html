@@ -55,6 +55,7 @@
       100%{transform:translateY(110vh) translateX(var(--outer-end-x)) rotateZ(var(--outer-rotate-z-end)) rotateY(var(--outer-rotate-y-end));opacity:0}
     }
 
+    /* ★ 背景の星のきらめき - CSS定義 */
     @keyframes game-twinkle {
       0%, 100% { transform: scale(.3); opacity: 0; }
       10%      { opacity: .6; }
@@ -63,14 +64,14 @@
     }
     .game-bg-star {
       position: absolute;
-      width: 2px;
+      width: 2px; /* 星の基本サイズ */
       height: 2px;
       border-radius: 50%;
       background: #fff;
       pointer-events: none;
       animation: game-twinkle 4s linear infinite;
       filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #fff);
-      z-index: 0;
+      z-index: 0; /* 他の背景要素より奥、ゲームコンテナの背景色の上 */
     }
 
 
@@ -82,27 +83,24 @@
       transform:translateX(-50%) scale(1); /* ★ 通常時は scale(1) を明示 */
       max-height:20vh;max-width:100px;height:auto;z-index:50;
       filter:drop-shadow(2px 4px 8px rgba(0,0,0,.2));
-      transition: transform .2s ease-out, filter .2s ease-out; /* ★ transition 調整 */
+      transition: transform 0.2s ease-out, filter 0.2s ease-out;
     }
     #character.jump{
-        animation:jump-anim .6s ease; /* ★ ジャンプアニメーション名を変更 */
+        animation:jump-anim .6s ease;
     }
     #character.powerup{
       filter:drop-shadow(0 0 15px #FFD700) drop-shadow(2px 4px 8px rgba(0,0,0,.2));
       transform:translateX(-50%) scale(1.5); /* ★ パワーアップ時のスケール */
     }
-    /* ★ ジャンプアニメーションは現在のスケールを維持するように修正 */
     @keyframes jump-anim{
       0% { transform: translateX(-50%) translateY(0) scale(var(--current-scale, 1)); }
       30%, 60% { transform: translateX(-50%) translateY(-60px) scale(var(--current-scale, 1)); }
       100% { transform: translateX(-50%) translateY(0) scale(var(--current-scale, 1)); }
     }
-    /* ★ 雷による感電アニメーション用クラスとキーフレーム */
     #character.electrocuted {
       animation: electric-shock 0.08s infinite;
     }
     @keyframes electric-shock {
-      /* translateXとrotateのみ変更し、scaleはCSS変数で現在の状態を維持 */
       0% { transform: translateX(-51%) rotate(-2deg) scale(var(--current-scale, 1)); }
       25% { transform: translateX(-49%) rotate(2deg) scale(var(--current-scale, 1)); }
       50% { transform: translateX(-51%) rotate(-1deg) scale(var(--current-scale, 1)); }
@@ -114,7 +112,6 @@
     /* ─────────────────────────
         アイテム
     ───────────────────────── */
-    /* ★ 共通クラスに .lightning を追加 */
     .egg,.bomb,.power-up,.time-plus,.helper-mgchan,.helper-ikehaya,.helper-road, .lightning {
       position:absolute;pointer-events:none;z-index:40;
       background-position:center;background-repeat:no-repeat;background-size:contain;
@@ -202,7 +199,6 @@
       transform:translate(-50%,-50%);font-size:25px;
       animation:time-pulse 1.5s ease-in-out infinite alternate;
     }
-    /* ★ 雷アイテムのスタイル */
     .lightning {
       width: 45px;
       height: 45px;
@@ -310,11 +306,11 @@
     let isPowerUpActive=false,powerUpEndTime=0;
     let characterX,powerUpTimerId=null;
     let lastHelperIndex = -1;
-    // ★ 雷関連の変数を元に戻す
+    // ★ 雷関連の変数を追加
     let isCharacterStunned = false; 
     let stunTimeoutId = null;       
 
-    // ★ seLightning の宣言を元に戻す
+    // ★ seLightning の宣言を追加
     let seEggCollect,bgm,seTimePlus,seBomb,sePowerUp,seHelperMG, seHelperIkehaya, seHelperRoad, seLightning;
     try{
       seEggCollect=new Audio("kirarin.mp3");
@@ -325,7 +321,7 @@
       seHelperMG  =new Audio("mg_chan_effect.mp3"); 
       seHelperIkehaya = new Audio("mg_chan_effect.mp3"); 
       seHelperRoad    = new Audio("mg_chan_effect.mp3"); 
-      seLightning     = new Audio("lightning_strike.mp3"); // ★ 雷効果音を再度有効化
+      seLightning     = new Audio("lightning_strike.mp3"); // ★ 雷効果音 (仮のファイル名)
       bgm.loop=true;bgm.volume=.3;
     }catch(e){
       console.error("Audio init error:",e);
@@ -338,7 +334,20 @@
 
     function createBgBubbleParticle(){ /* 実装済み */ }
     function createOuterShellParticle(){ /* 実装済み */ }
-    function createInGameTwinkleStars(count = 50) { /* 実装済み */ }
+    function createInGameTwinkleStars(count = 50) {
+      if (!gameContainer) return;
+      for (let i = 0; i < count; i++) {
+        const starEl = document.createElement('div');
+        starEl.className = 'game-bg-star';
+        starEl.style.top = Math.random() * gameContainer.offsetHeight + 'px';
+        starEl.style.left = Math.random() * gameContainer.offsetWidth + 'px';
+        const size = 1 + Math.random() * 2;
+        starEl.style.width = starEl.style.height = size + 'px';
+        starEl.style.animationDelay = Math.random() * 4 + 's';
+        starEl.style.animationDuration = (3 + Math.random() * 3) + 's';
+        gameContainer.appendChild(starEl);
+      }
+    }
 
     const calcLevel=()=>Math.min(levelThresholds.filter(t=>score>=t).length,MAX_LEVEL);
     const spawnRate =()=>Math.max(150,700-level*40);
@@ -362,8 +371,8 @@
 
     function activatePowerUp(){
       if(isPowerUpActive){
-        powerUpEndTime+=10000;
-        clearInterval(powerUpTimerId);
+        powerUpEndTime+=10000; 
+        clearInterval(powerUpTimerId); 
       } else {
         isPowerUpActive=true;
         powerUpEndTime=Date.now()+10000;
@@ -381,9 +390,10 @@
       character.classList.remove("powerup"); 
       powerEffect.style.display='none';
       clearInterval(powerUpTimerId);
-      // ★ パワーアップ解除時は、スタン中でなければ通常時のtransform (scale(1)) を明示的に設定
+      // ★ パワーアップ解除時、スタン中でなければ通常時のtransform (scale(1)) をCSSに任せるため、style.transformをリセット
       if (!character.classList.contains("electrocuted")) {
-         character.style.transform = 'translateX(-50%) scale(1)';
+         // character.style.transform = 'translateX(-50%) scale(1)'; // CSSの#character定義に任せる
+         character.style.transform = ''; // インラインのtransformをクリアしてCSSの指定を有効に
       }
     }
 
@@ -391,7 +401,7 @@
       if (timeLeft <= 0) return;
 
       const r = Math.random();
-      // ★ 雷アイテムの出現確率を再度有効化
+      // ★ 雷アイテムの出現確率を追加
       const prob = { bomb: 0, timePlus: .08, powerUp: 0, helper: .06, gold: .10, special: .15, lightning: .05 };
       if (level >= 2) {
         prob.bomb    = Math.min(.05 + (level - 2) * .03, .14);
@@ -406,7 +416,7 @@
       pick(prob.timePlus,"timePlus") ||
       pick(prob.powerUp,"powerup"   ) ||
       pick(prob.helper, "helper"    ) ||
-      pick(prob.lightning, "lightning") || // ★ 雷アイテムの抽選を再度有効化
+      pick(prob.lightning, "lightning") || // ★ 雷アイテムの抽選を追加
       pick(prob.gold,   "egg golden") ||
       pick(prob.special,"egg special");
 
@@ -427,7 +437,7 @@
         case "powerup"      : item.className = "power-up";       item.dataset.points = "0";   w = 45; break;
         case "helperIkehaya": item.className = "helper-ikehaya"; item.dataset.points = "25";  w = 60; break;
         case "helperRoad"   : item.className = "helper-road";    item.dataset.points = "25";  w = 60; break;
-        case "lightning"    : item.className = "lightning";      item.dataset.points = "0";   w = 45; break; // ★ 雷アイテムの定義を再度有効化
+        case "lightning"    : item.className = "lightning";      item.dataset.points = "0";   w = 45; break; // ★ 雷アイテムの定義
         case "egg golden"   : item.className = "egg golden";     item.dataset.points = "5";   w = 46; break;
         case "egg special"  : item.className = "egg special";    item.dataset.points = "2";   w = 38; break;
         default             : item.className = "egg";             item.dataset.points = "1";   w = 30; type = "normalEgg";
@@ -441,7 +451,7 @@
             type === "egg special" ? "fall-special-egg" :
             type === "egg golden"  ? "fall-golden-egg"  :
             type.startsWith("helper") ? "fall-helper" :
-            type === "lightning" ? "fall-bomb" : // ★ 雷のアニメーション指定を再度有効化
+            type === "lightning" ? "fall-bomb" :
             "fall-egg";
 
       item.style.setProperty("--start-rot-z",  ((Math.random() - .5) * 60).toFixed(1) + "deg");
@@ -481,7 +491,7 @@
               seHelperMG?.play().catch(()=>{}); 
               [...gameContainer.querySelectorAll(".bomb")].slice(0, 2).forEach(b => b.remove());
               break;
-            // ★ 雷に当たった時の処理を再度有効化し、修正
+            // ★ 雷に当たった時の処理
             case "lightning":
               seLightning?.play().catch(()=>{});
               if (!isCharacterStunned) {
@@ -494,17 +504,17 @@
                   isCharacterStunned = false;
                   character.classList.remove("electrocuted");
                   character.style.removeProperty('--current-scale');
-                  // スタン解除時は、CSSクラスに基づいてtransformが再計算されることを期待
-                  // .powerup クラスがあれば scale(1.5) が、なければ scale(1) がCSSから適用される
-                  // 明示的にJSでstyle.transformを設定するとCSSの詳細度で負けることがあるため、クラス操作に任せる
-                  // ただし、強制的に再描画を促すために、現在のtransformを再設定することもできるが、
-                  // 基本的にはクラスの付け外しで対応できるはず。
-                  // 状態に応じて正しいtransformをCSSから読み込ませるために、
-                  // 一旦クリアするか、あるいは現在の状態に合わせたtransformを明示的に設定。
+                  // ★ スタン解除時、CSSの .powerup または #character の transform に戻す
+                  //    明示的にJSでstyle.transformを設定すると、CSSの詳細度によっては期待通りにならないことがあるため、
+                  //    クラスの付け外しとCSS定義に任せるのが基本。
+                  //    ただし、アニメーション直後にスタイルが再計算されない場合があるので、
+                  //    一度 transform を空にしてから再設定するか、あるいは何もしなくてもクラスで制御されることを期待。
+                  //    ここでは、CSSクラスで制御されることを期待し、JSでの直接のtransform操作は避ける。
+                  //    どうしても必要なら、現在の状態に合わせて明示的に設定。
                   if (character.classList.contains("powerup")) {
-                     character.style.transform = 'translateX(-50%) scale(1.5)';
+                     // .powerupクラスがscale(1.5)を持っているので、electrocutedが外れればこれが適用されるはず
                   } else {
-                     character.style.transform = 'translateX(-50%) scale(1)';
+                     // .powerupクラスがなければ、#characterのscale(1)が適用されるはず
                   }
                 }, 3000);
               }
@@ -536,7 +546,7 @@
       character.style.removeProperty('--current-scale'); 
 
       character.classList.remove("powerup"); // ★ ゲーム開始時にパワーアップ状態も解除
-      character.style.transform = 'translateX(-50%) scale(1)'; // ★ 通常状態のtransformを確実に設定
+      // character.style.transform = 'translateX(-50%) scale(1)'; // ★ 通常状態のtransformをCSSに任せるためコメントアウト (CSSの#characterで定義)
 
       bgm.play().catch(()=>{});
       createInGameTwinkleStars(50); 
@@ -586,7 +596,14 @@
     });
     function jump(){ 
       if(character.classList.contains("jump")||timeLeft<=0 || isCharacterStunned)return; // ★ isCharacterStunned のチェックを再度有効化
-      character.classList.add("jump");setTimeout(()=>character.classList.remove("jump"),600);
+      // ★ ジャンプ時にも現在のスケールをCSS変数にセット
+      const currentScaleValue = character.classList.contains("powerup") ? 1.5 : 1;
+      character.style.setProperty('--current-scale', currentScaleValue);
+      character.classList.add("jump");
+      setTimeout(()=>{
+          character.classList.remove("jump");
+          character.style.removeProperty('--current-scale'); // ジャンプが終わったら不要なので削除
+      },600);
     }
     character.addEventListener("click",e=>{if(timeLeft>0 && !isCharacterStunned){e.preventDefault();jump()}},{passive:false}); // ★ isCharacterStunned のチェックを再度有効化
 
