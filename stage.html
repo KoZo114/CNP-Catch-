@@ -472,8 +472,20 @@ let stunTimeoutId = null;
 
 
     const calcLevel=()=>Math.min(levelThresholds.filter(t=>score>=t).length,MAX_LEVEL);
-    const spawnRate =()=>Math.max(150, (isFeverModeActive ? 400 : 700) - level * 40 ); // フィーバー中は少しアイテム出現間隔を調整(お好みで)
+    // グローバル変数や他の関数の定義がある場所に、この spawnRate 関数を記述（または既存のものを置き換え）
+　　　　const spawnRate = () => {
+  let baseIntervalNormal = 800; // 通常時の基本出現間隔 (ミリ秒) - 例: 800ms
+  let baseIntervalFever = 500;  // フィーバー中の基本出現間隔 - 例: 500ms
+  
+  let reductionPerLevel = 20;   // 1レベル上がるごとに短縮される間隔 - 例: 20ms
+  let minInterval = 300;        // これ以上は短くならない最小出現間隔 - 例: 300ms
 
+  let currentBaseInterval = isFeverModeActive ? baseIntervalFever : baseIntervalNormal;
+  
+  let interval = currentBaseInterval - (level - 1) * reductionPerLevel; // (level - 1) にしてレベル1では減少しないように
+
+  return Math.max(minInterval, interval);
+};
     function updateScore(pt=1,type){
       // ★フィーバー修正: フィーバー中のスコアアップ
       if (isFeverModeActive) {
