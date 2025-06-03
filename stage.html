@@ -326,7 +326,7 @@
     const finalScore           = document.getElementById("final-score");
     const finalLevel           = document.getElementById("final-level");
     const returnToSelectBtn    = document.getElementById("return-to-select-btn");
-    const feverModeDisplay     = document.getElementById("fever-mode-display"); // ★フィーバー追加
+    const feverModeDisplay     = document.getElementById("fever-mode-display");
 
     const selectedImageFile = localStorage.getItem("selectedImage");
     const selectedCharName  = localStorage.getItem("selectedName");
@@ -339,15 +339,16 @@
     }
 
     let score=0,highscore=0,timeLeft=60;
-    // ★レベルシステム変更: MAX_LEVEL を 15 に変更
-    const MAX_TIME_LEFT=90, MAX_LEVEL=15; 
+    // ★★★★★ レベルシステム変更箇所 ★★★★★
+    const MAX_TIME_LEFT=90, MAX_LEVEL=15; // 最大レベルを15に変更
     let level=1,combo=0,maxCombo=0;
-    // ★レベルシステム変更: levelThresholds をレベル15まで拡張
-    const levelThresholds=[
-        0,   30,  80, 150,  250,  // Level 1-5 (既存)
-      350, 450, 550, 650,  750,  // Level 6-10 (+100ずつ)
+    const levelThresholds=[ // レベルアップに必要なスコアをレベル15まで定義
+        0,   30,  80, 150,  250,  // Level 1-5 (既存のまま)
+      350, 450, 550, 650,  750,  // Level 6-10 (250から+100ずつ)
       850, 950,1050,1150, 1250   // Level 11-15 (+100ずつ)
     ]; 
+    // ★★★★★ レベルシステム変更箇所ここまで ★★★★★
+
     let itemSpawnerId,gameBgParticleInterval,outerEffectInterval, gameTimerId;
     let isPowerUpActive=false,powerUpEndTime=0;
     let characterX,powerUpTimerId=null;
@@ -355,17 +356,16 @@
     let isCharacterStunned = false; 
     let stunTimeoutId = null;       
 
-    // ★フィーバー追加: フィーバー関連変数
     let isFeverModeActive = false;
     let feverModeEndTime = 0;
     let feverModeTimerId = null;
-    let originalBGMVolume = 0.4; // BGMの元の音量を保存
+    let originalBGMVolume = 0.4; 
     let feverBGM;
-    let seFeverStart; // フィーバー開始効果音 (任意)
+    let seFeverStart; 
     let feverSpawnedLevel2 = false;
-    let feverSpawnedLevel5 = false; // この変数は後でフィーバー条件変更時に見直します
-    const FEVER_DURATION = 6000; // フィーバーモード持続時間 (ミリ秒)
-    let characterSpeedMultiplier = 1; // キャラクター移動速度の倍率
+    let feverSpawnedLevel5 = false; // この行はフィーバー条件変更時に見直します
+    const FEVER_DURATION = 6000; 
+    let characterSpeedMultiplier = 1; 
 
     let seEggCollect,bgm,seTimePlus,seBomb,sePowerUp,seHelperMG, seHelperIkehaya, seHelperRoad, seLightning, seMakimonoGet;
     try{
@@ -378,19 +378,17 @@
       seHelperIkehaya = new Audio("mg_chan_effect.mp3"); 
       seHelperRoad    = new Audio("mg_chan_effect.mp3"); 
       seLightning     = new Audio("lightning_strike.mp3");
-      // ★フィーバー追加: オーディオ初期化
-      feverBGM = new Audio("fever_bgm.mp3"); // ★フィーバーBGMファイル名
-      seFeverStart = new Audio("powerupGet.mp3"); // ★フィーバー開始SEファイル名 (任意)
-      seMakimonoGet = new Audio("powerupGet.mp3"); // ★巻物取得音 (仮にパワーアップ取得音を流用)
+      feverBGM = new Audio("fever_bgm.mp3"); 
+      seFeverStart = new Audio("powerupGet.mp3"); 
+      seMakimonoGet = new Audio("powerupGet.mp3"); 
 
       bgm.loop=true;bgm.volume=.3;
-      feverBGM.loop = true; feverBGM.volume = 0.35; // フィーバーBGM設定
+      feverBGM.loop = true; feverBGM.volume = 0.35; 
     }catch(e){
       console.error("Audio init error:",e);
-      const dummy={play:()=>{return Promise.resolve();},currentTime:0, pause:()=>{}}; // playがPromiseを返すように修正
+      const dummy={play:()=>{return Promise.resolve();},currentTime:0, pause:()=>{}}; 
       seEggCollect=seTimePlus=seBomb=sePowerUp=seHelperMG=seHelperIkehaya=seHelperRoad=seLightning=seMakimonoGet=dummy;
       bgm={play:()=>Promise.resolve(),pause:()=>{},loop:true,volume:.3};
-      // ★フィーバー追加: ダミーオーディオ
       feverBGM = {play:()=>Promise.resolve(),pause:()=>{},loop:true,volume:0.35};
       seFeverStart = {play:()=>{return Promise.resolve();}};
     }
@@ -401,28 +399,25 @@
     function createOuterShellParticle(){ /* 実装済み */ }
     function createInGameTwinkleStars(count = 50) {
       if (!gameContainer) return;
-      // 古い星を削除 (フィーバー切り替え時に再生成するため)
       const existingStars = gameContainer.querySelectorAll('.game-bg-star');
       existingStars.forEach(star => star.remove());
-
       for (let i = 0; i < count; i++) {
         const starEl = document.createElement('div');
         starEl.className = 'game-bg-star';
         starEl.style.top = Math.random() * gameContainer.offsetHeight + 'px';
         starEl.style.left = Math.random() * gameContainer.offsetWidth + 'px';
-        const size = 1 + Math.random() * (isFeverModeActive ? 2.5 : 2); // フィーバー中は少し大きくても良い
+        const size = 1 + Math.random() * (isFeverModeActive ? 2.5 : 2); 
         starEl.style.width = starEl.style.height = size + 'px';
         starEl.style.animationDelay = Math.random() * 4 + 's';
-        // フィーバー中は星のアニメーション速度も変える (CSS側で .fever-active .game-bg-star にて設定済)
         starEl.style.animationDuration = (isFeverModeActive ? 1.5 + Math.random() * 1.5 : 3 + Math.random() * 3) + 's';
-        if (isFeverModeActive) { // CSS変数でフィーバー時の星のスケールをランダムに設定
+        if (isFeverModeActive) { 
             starEl.style.setProperty('--fever-star-scale', (0.6 + Math.random() * 0.5).toFixed(2));
         }
         gameContainer.appendChild(starEl);
       }
     }
 
-    // calcLevel は MAX_LEVEL と levelThresholds の更新により、レベル15まで対応済み
+    // calcLevelはMAX_LEVELとlevelThresholdsの更新により、レベル15まで対応済みです
     const calcLevel=()=>Math.min(levelThresholds.filter(t=>score>=t).length,MAX_LEVEL);
     const spawnRate =()=>Math.max(150, (isFeverModeActive ? 400 : 700) - level * 40 ); 
 
@@ -437,12 +432,11 @@
       scoreDisplay.textContent=score;
       comboCountDisplay.textContent=combo;
       const prev=level;level=calcLevel();levelDisplay.textContent=level;
-      // ★レベルシステム変更: MAX_LEVEL が 15 になっているので、到達メッセージも適切に表示される
+      // MAX_LEVELが15になっているため、メッセージも適切に表示されます
       if(level>prev)showLevelUp(level===MAX_LEVEL?`MAX LEVEL ${MAX_LEVEL} 到達!`:`LEVEL ${level}!`);
       if(combo>1)showComboPopup();
       if(pt>=5 && (type==="egg golden" || type === "feverBombPoints"))showSpecialEffect();
       if(combo>maxCombo)maxCombo=combo;
-
       checkAndSpawnFeverItem(); 
     }
     const resetCombo=()=>{
@@ -673,7 +667,7 @@
     }
 
     function startGame(){
-      characterX= (gameContainer && gameContainer.offsetWidth) ? gameContainer.offsetWidth/2 : 150; // nullチェックとフォールバック
+      characterX= (gameContainer && gameContainer.offsetWidth) ? gameContainer.offsetWidth/2 : 150;
       if (character) character.style.left=characterX+"px";
       isCharacterStunned = false; 
       if (stunTimeoutId) clearTimeout(stunTimeoutId); stunTimeoutId = null;
@@ -687,7 +681,7 @@
       isFeverModeActive = false;
       if (feverModeTimerId) clearInterval(feverModeTimerId); feverModeTimerId = null;
       feverSpawnedLevel2 = false;
-      feverSpawnedLevel5 = false; // ★この行は次のステップでフィーバー条件変更時に見直します
+      feverSpawnedLevel5 = false; 
       characterSpeedMultiplier = 1;
       if (gameContainer) gameContainer.classList.remove("fever-active");
       if (character) character.classList.remove("fever-character");
@@ -756,26 +750,24 @@
       if(returnToSelectBtn) returnToSelectBtn.onclick=()=>location.href="character_select.html"; 
     }
 
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-    // ★ 修正: startMove, stopMove, moveInt の定義をリスナー登録より前に移動 ★
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    // ★★★★★ 修正箇所: startMove, stopMove, moveInt の定義をリスナー登録より前に移動 ★★★★★
     let moveInt=null;
     const startMove=dir=>{
       if(moveInt||timeLeft<=0 || isCharacterStunned)return;
-      const w=character ? character.offsetWidth : 100;
+      const w=character ? character.offsetWidth : 100; // characterのnullチェックを追加
       const baseMoveSpeed = 15;
       const moveAmount = baseMoveSpeed * characterSpeedMultiplier; 
       moveInt=setInterval(()=>{
         characterX+=(dir==="left"?-moveAmount:moveAmount);
-        characterX = Math.max(w/2, Math.min((gameContainer ? gameContainer.offsetWidth : 380) - w/2, characterX));
+        characterX = Math.max(w/2, Math.min((gameContainer ? gameContainer.offsetWidth : 380) - w/2, characterX)); // gameContainerのnullチェックを追加
         if(character) character.style.left=characterX+"px";
       },30);
     };
-    const stopMove=()=>{ // ★引数なしに修正
+    const stopMove=()=>{ // 引数なしに修正
         if(moveInt) clearInterval(moveInt); 
         moveInt=null
     };
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    // ★★★★★ 修正箇所ここまで ★★★★★
 
 
     document.addEventListener("keydown",e=>{
@@ -790,11 +782,11 @@
     });
 
     function jump(){ 
-      if(!character || character.classList.contains("jump")||timeLeft<=0 || isCharacterStunned)return; // character nullチェック追加
+      if(!character || character.classList.contains("jump")||timeLeft<=0 || isCharacterStunned)return; 
       character.style.setProperty('--current-scale', getCurrentCharacterScale()); 
       character.classList.add("jump"); 
       setTimeout(()=>{
-        if(character){ // nullチェック追加
+        if(character){ 
               character.classList.remove("jump");
               character.style.removeProperty('--current-scale');
         }
@@ -804,7 +796,7 @@
 
 
     const leftBtn=document.createElement("button"),rightBtn=document.createElement("button");
-    if(leftBtn && rightBtn && pageWrapper){ // nullチェック追加
+    if(leftBtn && rightBtn && pageWrapper){ 
         leftBtn.textContent="◀";rightBtn.textContent="▶";
         leftBtn.className=rightBtn.className="control-btn";
         leftBtn.style.left="20px";rightBtn.style.right="20px";
@@ -814,13 +806,14 @@
         rightBtn.addEventListener("touchstart",e=>{e.preventDefault();if(!isCharacterStunned)startMove("right")},{passive:false});
         leftBtn.onmousedown=()=>{if(!isCharacterStunned)startMove("left")};
         rightBtn.onmousedown=()=>{if(!isCharacterStunned)startMove("right")};
+        // stopMove がこの時点で定義済みのため、エラーは起きないはず
         ["mouseup","touchend"].forEach(ev=>document.addEventListener(ev,stopMove,{passive:false}));
     }
 
 
     let sx=null,sy=null,thr=30;
-    const relX=clX=>clX-(gameContainer ? gameContainer.getBoundingClientRect().left : 0); // nullチェック
-    if(gameContainer){ // nullチェック追加
+    const relX=clX=>clX-(gameContainer ? gameContainer.getBoundingClientRect().left : 0); 
+    if(gameContainer){ 
         gameContainer.addEventListener("touchstart",e=>{
             if(timeLeft<=0 || isCharacterStunned)return;
             const t=e.changedTouches[0];sx=relX(t.clientX);sy=t.clientY;
@@ -850,13 +843,11 @@
     document.body.addEventListener('click',tryPlay,{once:true});
     document.body.addEventListener('touchstart',tryPlay,{once:true});
 
-    // =============== ★フィーバー追加: フィーバーモード関連関数 ===============
-    function checkAndSpawnFeverItem() { // この関数は次のステップで変更します
+    // =============== ★フィーバー追加: フィーバーモード関連関数 (内容は変更なし) ===============
+    function checkAndSpawnFeverItem() { 
         if (isFeverModeActive || timeLeft <= 0) return;
-
         const conditionsMetLevel2 = (level === 2 && combo >= 15 && !feverSpawnedLevel2);
-        const conditionsMetLevel5 = (level === 5 && combo >= 60 && !feverSpawnedLevel5);
-
+        const conditionsMetLevel5 = (level === 5 && combo >= 60 && !feverSpawnedLevel5); // この条件は次のステップで変更します
         if (conditionsMetLevel2) {
             feverSpawnedLevel2 = true;
             spawnMakimonoItem(); 
@@ -865,8 +856,7 @@
             spawnMakimonoItem(); 
         }
     }
-
-    function activateFeverMode() { // この関数も変更なし
+    function activateFeverMode() { /* 変更なし */ 
         if (isFeverModeActive) return; 
         isFeverModeActive = true;
         feverModeEndTime = Date.now() + FEVER_DURATION;
@@ -906,8 +896,7 @@
         clearInterval(itemSpawnerId);
         itemSpawnerId = setInterval(createItem, spawnRate());
     }
-
-    function deactivateFeverMode(switchToMainBGM = true) { // この関数も変更なし
+    function deactivateFeverMode(switchToMainBGM = true) { /* 変更なし */ 
         if (!isFeverModeActive) return;
         isFeverModeActive = false;
         if(feverModeTimerId) clearInterval(feverModeTimerId);
