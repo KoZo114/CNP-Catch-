@@ -397,12 +397,12 @@
     let isFeverModeActive = false;
     let feverModeEndTime = 0;
     let feverModeTimerId = null;
-    let originalBGMVolume = 0.3; // BGMの元の音量を保存
+    let originalBGMVolume = 0.4; // BGMの元の音量を保存
     let feverBGM;
     let seFeverStart; // フィーバー開始効果音 (任意)
     let feverSpawnedLevel2 = false;
     let feverSpawnedLevel5 = false;
-    const FEVER_DURATION = 15000; // フィーバーモード持続時間 (ミリ秒)
+    const FEVER_DURATION = 6000; // フィーバーモード持続時間 (ミリ秒)
     let characterSpeedMultiplier = 1; // キャラクター移動速度の倍率
 
     let seEggCollect,bgm,seTimePlus,seBomb,sePowerUp,seHelperMG, seHelperIkehaya, seHelperRoad, seLightning, seMakimonoGet;
@@ -418,7 +418,7 @@
       seLightning     = new Audio("lightning_strike.mp3");
       // ★フィーバー追加: オーディオ初期化
       feverBGM = new Audio("fever_bgm.mp3"); // ★フィーバーBGMファイル名
-      seFeverStart = new Audio("powerupGet.mp3.mp3"); // ★フィーバー開始SEファイル名 (任意)
+      seFeverStart = new Audio("powerupGet.mp3"); // ★フィーバー開始SEファイル名 (任意)
       seMakimonoGet = new Audio("powerupGet.mp3"); // ★巻物取得音 (仮にパワーアップ取得音を流用)
 
       bgm.loop=true;bgm.volume=.3;
