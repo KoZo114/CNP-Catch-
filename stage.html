@@ -410,8 +410,10 @@ let stunTimeoutId = null;
     let originalBGMVolume = 0.5; // BGMの元の音量を保存
     let feverBGM;
     let seFeverStart; // フィーバー開始効果音 (任意)
-    let feverSpawnedLevel2 = false;
-    let feverSpawnedLevel5 = false;
+    // ... 他の変数宣言 ...
+　　　　　　　let feverSpawnedLevel2 = false;
+　　　　　　　// let feverSpawnedLevel5 = false; // ← もしあれば削除またはコメントアウト
+　　　　　　　let feverSpawnedByCombo60 = false; // ← これを新たに追加（またはfeverSpawnedLevel5から名称変更）
     const FEVER_DURATION = 8000; // フィーバーモード持続時間 (ミリ秒)
     let characterSpeedMultiplier = 1; // キャラクター移動速度の倍率
 
@@ -836,7 +838,8 @@ let stunTimeoutId = null;
       if (feverModeTimerId) clearInterval(feverModeTimerId);
       feverModeTimerId = null;
       feverSpawnedLevel2 = false;
-      feverSpawnedLevel5 = false;
+       // feverSpawnedLevel5 = false; // ← もしあれば削除またはコメントアウト
+    　　　　feverSpawnedByCombo60 = false; // ← これを追加
       characterSpeedMultiplier = 1;
       gameContainer.classList.remove("fever-active");
       character.classList.remove("fever-character");
@@ -972,21 +975,23 @@ let stunTimeoutId = null;
     document.body.addEventListener('touchstart',tryPlay,{once:true});
 
     // =============== ★フィーバー追加: フィーバーモード関連関数 ===============
-    function checkAndSpawnFeverItem() {
-        if (isFeverModeActive || timeLeft <= 0) return;
+    function checkAndSpawnFeverItem() { 
+    if (isFeverModeActive || timeLeft <= 0) return; // フィーバー中やゲーム終了時は何もしない 
 
-        const conditionsMetLevel2 = (level === 2 && combo >= 15 && !feverSpawnedLevel2);
-        const conditionsMetLevel5 = (level === 5 && combo >= 60 && !feverSpawnedLevel5);
-
-        if (conditionsMetLevel2) {
-            feverSpawnedLevel2 = true;
-            spawnMakimonoItem(); // 巻物アイテムをスポーン
-        } else if (conditionsMetLevel5) {
-            feverSpawnedLevel5 = true;
-            spawnMakimonoItem(); // 巻物アイテムをスポーン
-        }
-    }
-
+    // 条件1: レベル2 で 15コンボ達成 (1ゲーム中1回のみ) 
+    if (level === 2 && combo >= 15 && !feverSpawnedLevel2) { 
+        feverSpawnedLevel2 = true;  // レベル2の15コンボ条件での出現フラグを立てる 
+        spawnMakimonoItem(); 
+        return; // 巻物が出たので、この関数の処理はここで終了 
+    }  
+     
+    // 条件2: レベル10以上 で 60コンボ達成 (1ゲーム中1回のみ) 
+    if (combo >= 60 && !feverSpawnedByCombo60) {  
+        feverSpawnedByCombo60 = true; // 60コンボ条件での出現フラグを立てる 
+        spawnMakimonoItem(); 
+        return; // 巻物が出たので、この関数の処理はここで終了 
+    } 
+}
     function activateFeverMode() {
         if (isFeverModeActive) return; // 重複発動防止
 
