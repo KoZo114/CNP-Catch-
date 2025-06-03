@@ -170,7 +170,7 @@
     .makimono {
       width: 55px;
       height: 55px;
-      background-image: url("makamio.webp"); /* 画像パス注意 */
+      background-image: url("makimono.webp"); /* 画像パス注意 */
       animation-name: fall-powerup; /* 既存アニメーション流用 or 専用作成 */
       filter: drop-shadow(0 0 10px #ffd700) drop-shadow(0 0 15px #ff8c00) drop-shadow(0 0 5px #ffffff);
       z-index: 45; /* 他のアイテムより少し手前など */
@@ -418,7 +418,7 @@
       seLightning     = new Audio("lightning_strike.mp3");
       // ★フィーバー追加: オーディオ初期化
       feverBGM = new Audio("fever_bgm.mp3"); // ★フィーバーBGMファイル名
-      seFeverStart = new Audio("fever_start_sound.mp3"); // ★フィーバー開始SEファイル名 (任意)
+      seFeverStart = new Audio("powerupGet.mp3.mp3"); // ★フィーバー開始SEファイル名 (任意)
       seMakimonoGet = new Audio("powerupGet.mp3"); // ★巻物取得音 (仮にパワーアップ取得音を流用)
 
       bgm.loop=true;bgm.volume=.3;
