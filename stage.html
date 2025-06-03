@@ -529,7 +529,7 @@ let stunTimeoutId = null;
       powerUpTimerId=setInterval(()=>{
         const remain=Math.ceil((powerUpEndTime-Date.now())/1000);
         if(remain<=0){deactivatePowerUp();clearInterval(powerUpTimerId)}
-        else powerEffect.textContent=`🥚スコア２倍！(${remain}s)`;
+        else powerEffect.textContent=`🤩スコア２倍！(${remain}s)`;
       },100);
     }
 
