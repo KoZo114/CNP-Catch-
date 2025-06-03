@@ -474,17 +474,22 @@ let stunTimeoutId = null;
     const calcLevel=()=>Math.min(levelThresholds.filter(t=>score>=t).length,MAX_LEVEL);
     // グローバル変数や他の関数の定義がある場所に、この spawnRate 関数を記述（または既存のものを置き換え）
 　　　　const spawnRate = () => {
-  let baseIntervalNormal = 800; // 通常時の基本出現間隔 (ミリ秒) - 例: 800ms
-  let baseIntervalFever = 500;  // フィーバー中の基本出現間隔 - 例: 500ms
+  let baseIntervalNormal = 800; 
+  let baseIntervalFever = 200;  // ★フィーバー中の基本出現間隔を短く（例: 200ms）
   
-  let reductionPerLevel = 20;   // 1レベル上がるごとに短縮される間隔 - 例: 20ms
-  let minInterval = 300;        // これ以上は短くならない最小出現間隔 - 例: 300ms
+  let reductionPerLevel = 20;   
+  let minIntervalNormal = 300;
+  let minIntervalFever = 100; // ★フィーバー中の最小出現間隔も短く（例: 100ms）
 
   let currentBaseInterval = isFeverModeActive ? baseIntervalFever : baseIntervalNormal;
+  let currentMinInterval = isFeverModeActive ? minIntervalFever : minIntervalNormal;
   
-  let interval = currentBaseInterval - (level - 1) * reductionPerLevel; // (level - 1) にしてレベル1では減少しないように
+  // フィーバー中はレベルによる出現間隔の短縮をさらに緩やかにするか、固定値にしても良いです。
+  // ここではレベルによる短縮も適用しつつ、ベースと最小値をアグレッシブにしています。
+  let intervalReduction = isFeverModeActive ? (level - 1) * 10 : (level - 1) * reductionPerLevel; // フィーバー中のレベル影響を少し減らす
+  let interval = currentBaseInterval - intervalReduction; 
 
-  return Math.max(minInterval, interval);
+  return Math.max(currentMinInterval, interval);
 };
     function updateScore(pt=1,type){
       // ★フィーバー修正: フィーバー中のスコアアップ
@@ -671,132 +676,124 @@ let stunTimeoutId = null;
         }
     }
 
-
-    // 元のコードの createItem 関数を探して、内容を以下のように修正・確認してください。
-
-function createItem () {
+　　　　　　　　function createItem () {
   if (timeLeft <= 0) return;
 
-  const r = Math.random();
+  let type; // スポーンするアイテムのタイプを格納する変数
 
-  // --- ★★★ アイテム出現確率の動的調整 スタート ★★★ ---
-  let currentLevel = level; // 現在のレベルを取得
-  let bombProb, timePlusProb, lightningProb, powerUpProb;
-
-  // 1. ボムの出現確率調整
   if (isFeverModeActive) {
-    bombProb = 0; // フィーバー中はボムなし
-  } else if (currentLevel >= 13) { // レベル13～15
-    bombProb = 0.08; // 少し減らす
-  } else if (currentLevel >= 10) { // レベル10～12
-    bombProb = 0.10; // さらに少し減らす
-  } else if (currentLevel >= 2) { // レベル2～9
-    bombProb = Math.min(0.05 + (currentLevel - 2) * 0.025, 0.12); // 増加率を少し抑え、上限も設定
-  } else { // レベル1
-    bombProb = 0;
-  }
-
-  // 2. タイマーアイテムの出現確率調整
-  if (currentLevel >= 15) { // レベル15
-    timePlusProb = 0; // タイマー出現なし
-  } else if (currentLevel >= 13) { // レベル13～14
-    timePlusProb = 0.02; // 大幅に減らす
-  } else if (currentLevel >= 10) { // レベル10～12
-    timePlusProb = 0.04; // 減らす
-  } else { // レベル1～9
-    timePlusProb = 0.08; // 通常の確率
-  }
-
-  // 3. カミナリアイテムの出現確率調整
-  if (isFeverModeActive) {
-    lightningProb = 0.02; // フィーバー中は低確率
-  } else if (currentLevel >= 13) { // レベル13～15
-    lightningProb = 0.04; // 少し減らす
-  } else if (currentLevel >= 10) { // レベル10～12
-    lightningProb = 0.06; // 維持または微減
-  } else if (currentLevel >= 2) { // レベル2～9
-    lightningProb = Math.min(0.05 + (currentLevel - 2) * 0.01, 0.08); // 従来通りか、上限を少し下げる
-  } else { // レベル1
-    lightningProb = 0.05; // 初期確率
-  }
-
-  // 4. パワーアップアイテムの出現確率
-  if (currentLevel >= 2) {
-    powerUpProb = 0.07;
+    // --- ★★★ フィーバーモード中は金の星のみ ★★★ ---
+    type = "egg golden"; 
+    // --- フィーバーモード中のアイテムタイプ決定ここまで ---
   } else {
-    powerUpProb = 0;
+    // --- 通常モード中のアイテム出現ロジック (前回調整したもの、変更なし) ---
+    const r = Math.random(); // 通常モードでのみ乱数を使用
+    let currentLevel = level;
+    let bombProb, timePlusProb, lightningProb, powerUpProb;
+
+    // (ボム、タイマー、カミナリ、パワーアップの確率計算 - 前回と同じ)
+    if (currentLevel >= 13) { bombProb = 0.08; } 
+    else if (currentLevel >= 10) { bombProb = 0.10; } 
+    else if (currentLevel >= 2) { bombProb = Math.min(0.05 + (currentLevel - 2) * 0.025, 0.12); } 
+    else { bombProb = 0; }
+
+    if (currentLevel >= 15) { timePlusProb = 0; } 
+    else if (currentLevel >= 13) { timePlusProb = 0.02; } 
+    else if (currentLevel >= 10) { timePlusProb = 0.04; } 
+    else { timePlusProb = 0.08; }
+
+    if (isFeverModeActive) { lightningProb = 0.02; } // このelseブロックではisFeverModeActiveはfalseのはず
+    else if (currentLevel >= 13) { lightningProb = 0.04; } 
+    else if (currentLevel >= 10) { lightningProb = 0.06; } 
+    else if (currentLevel >= 2) { lightningProb = Math.min(0.05 + (currentLevel - 2) * 0.01, 0.08); } 
+    else { lightningProb = 0.05; }
+    
+    powerUpProb = (currentLevel >= 2) ? 0.07 : 0;
+
+    const normalProbabilities = {
+      bomb: bombProb,
+      timePlus: timePlusProb,
+      powerup: powerUpProb,
+      helper: 0.06,       
+      lightning: lightningProb,
+      "egg golden": 0.10,  // 通常モードでも金の星は出る
+      "egg special": 0.15,
+      normalEgg: 0 
+    };
+    
+    let totalDefinedProb = 0;
+    for (const key in normalProbabilities) {
+      if (key !== "normalEgg") { 
+        totalDefinedProb += normalProbabilities[key];
+      }
+    }
+    normalProbabilities.normalEgg = Math.max(0, 1.0 - totalDefinedProb); 
+
+    let cumulativeProb = 0;
+    let pickedNormalItem = false;
+    const normalPickOrder = ["bomb", "lightning", "powerup", "helper", "timePlus", "egg special", "egg golden", "normalEgg"];
+
+    for (const itemKey of normalPickOrder) {
+      if (normalProbabilities.hasOwnProperty(itemKey)) {
+        cumulativeProb += normalProbabilities[itemKey];
+        if (r < cumulativeProb) {
+          type = itemKey;
+          pickedNormalItem = true;
+          break;
+        }
+      }
+    }
+    if (!pickedNormalItem) { 
+       type = "normalEgg"; 
+    }
+    // --- 通常モード中のアイテム出現ロジックここまで ---
   }
 
-  // 更新された確率で prob オブジェクトを定義
-  const prob = { 
-    bomb: bombProb, 
-    timePlus: timePlusProb, 
-    powerUp: powerUpProb, 
-    helper: 0.06,         // ヘルパーは固定 (必要なら調整可)
-    gold: 0.10,           // 金卵も固定 (必要なら調整可)
-    special: 0.15,        // スペシャル卵も固定 (必要なら調整可)
-    lightning: lightningProb
-  };
-  // --- ★★★ アイテム出現確率の動的調整 エンド ★★★ ---
-
-  let sum  = 0;
-  let type = "normalEgg";
-  const pick = (p, t) => { sum += p; if(r < sum && type === "normalEgg") type = t; return r < sum; };
-
-  // pickロジックは変更なし (新しいprobオブジェクトを使用)
-  pick(prob.bomb,   "bomb"      ) ||
-  pick(prob.timePlus,"timePlus") ||
-  pick(prob.powerUp,"powerup"   ) ||
-  pick(prob.helper, "helper"    ) ||
-  pick(prob.lightning, "lightning") ||
-  pick(prob.gold,   "egg golden") ||
-  pick(prob.special,"egg special");
-
+  // --- 以下、アイテム生成の共通処理 (変更なし) ---
   const item = document.createElement("div");
   let w;
-  let currentHelperType = "";
+  let itemClassName;
+  let itemPoints = 0;
+  let itemAnimationName = "fall-egg"; 
 
-  if (type === "helper") {
+  let finalType = type; 
+  if (type === "helper") { 
     const helpers = ["helperIkehaya", "helperRoad"];
     lastHelperIndex = (lastHelperIndex + 1) % helpers.length;
-    currentHelperType = helpers[lastHelperIndex];
-    type = currentHelperType;
+    finalType = helpers[lastHelperIndex]; 
   }
 
-  if (isFeverModeActive) {
-    if (type === "normalEgg") { type = "egg special"; } 
-    else if (type === "egg special") { type = "egg golden"; } 
+  switch (finalType) {
+    case "bomb": itemClassName = "bomb"; itemPoints = -10; w = 40; itemAnimationName = "fall-bomb"; break;
+    case "timePlus": itemClassName = "time-plus"; itemPoints = 0; w = 40; itemAnimationName = "fall-time-plus"; break;
+    case "powerup": itemClassName = "power-up"; itemPoints = 0; w = 45; itemAnimationName = "fall-powerup"; break;
+    case "helperIkehaya": itemClassName = "helper-ikehaya"; itemPoints = 25; w = 60; itemAnimationName = "fall-helper"; break;
+    case "helperRoad": itemClassName = "helper-road"; itemPoints = 25; w = 60; itemAnimationName = "fall-helper"; break;
+    case "lightning": itemClassName = "lightning"; itemPoints = 0; w = 45; itemAnimationName = "fall-bomb"; break;
+    case "egg golden": itemClassName = "egg golden"; itemPoints = 5; w = 46; itemAnimationName = "fall-golden-egg"; break;
+    case "egg special": itemClassName = "egg special"; itemPoints = 2; w = 38; itemAnimationName = "fall-special-egg"; break;
+    default: 
+        itemClassName = "egg"; itemPoints = 1; w = 30; itemAnimationName = "fall-egg"; finalType = "normalEgg";
   }
+  item.className = itemClassName;
+  item.dataset.points = String(itemPoints);
+  item.dataset.type = finalType; 
 
-  switch (type) {
-    case "bomb"         : item.className = "bomb";            item.dataset.points = "-10"; w = 40; break;
-    case "timePlus"     : item.className = "time-plus";      item.dataset.points = "0";   w = 40; break;
-    case "powerup"      : item.className = "power-up";       item.dataset.points = "0";   w = 45; break;
-    case "helperIkehaya": item.className = "helper-ikehaya"; item.dataset.points = "25";  w = 60; break;
-    case "helperRoad"   : item.className = "helper-road";    item.dataset.points = "25";  w = 60; break;
-    case "lightning"    : item.className = "lightning";      item.dataset.points = "0";   w = 45; break;
-    case "egg golden"   : item.className = "egg golden";     item.dataset.points = "5";   w = 46; break;
-    case "egg special"  : item.className = "egg special";    item.dataset.points = "2";   w = 38; break;
-    default             : item.className = "egg";            item.dataset.points = "1";   w = 30; type = "normalEgg"; 
-  }
-  item.dataset.type = type; 
-
-  if (isFeverModeActive && type !== "makimono") { 
+  if (isFeverModeActive && finalType === "egg golden") { // フィーバー中は金の星にグローエフェクト
     item.classList.add("fever-item-glow");
   }
-  const dur = Math.max(1.5, 2.5 + Math.random() * 2 - level * 0.15); // 落下速度はレベルで少し速くなる
+
+  // ... (残りの createItem 関数の共通処理は変更なし) ...
+  const dur = Math.max(1.5, 2.5 + Math.random() * 2 - level * 0.15);
   item.style.left            = Math.random() * (gameContainer.offsetWidth - w) + "px";
   item.style.animationDuration = dur + "s";
-  item.style.animationName =
-        type === "egg special" ? "fall-special-egg" :
-        type === "egg golden"  ? "fall-golden-egg"  :
-        type.startsWith("helper") ? "fall-helper" :
-        type === "lightning" ? "fall-bomb" : 
-        "fall-egg";
+  item.style.animationName = itemAnimationName;
+
   item.style.setProperty("--start-rot-z",  ((Math.random() - .5) * 60).toFixed(1) + "deg");
   item.style.setProperty("--end-rot-z",    ((Math.random() - .5) * 90).toFixed(1) + "deg");
   item.style.setProperty("--random-rotate",      ((Math.random() - .5) * 70).toFixed(1) + "deg");
   item.style.setProperty("--random-rotate-half", ((Math.random() - .5) * 35).toFixed(1) + "deg");
+
   gameContainer.appendChild(item);
 
   const hit = setInterval(() => {
@@ -818,6 +815,7 @@ function createItem () {
     clearInterval(hit);
   }, dur * 1000 + 300);
 }
+    
     function startGame(){
       characterX=gameContainer.offsetWidth/2;character.style.left=characterX+"px";
       isCharacterStunned = false; 
