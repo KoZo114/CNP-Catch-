@@ -304,6 +304,11 @@
   <div id="scoreboard">スコア:<span id="score">0</span><br>ハイスコア:<span id="highscore">0</span><br>残り:<span id="timer">60</span>秒<br>コンボ:<span id="combo">0</span></div>
   <div id="level-display">レベル:<span id="level">1</span></div>
   <script>
+    // ★デバッグログ出力用 (問題解決後に削除推奨)
+    function log(message) {
+        console.log(`[GAME LOG] ${new Date().toLocaleTimeString()}: ${message}`);
+    }
+
     document.addEventListener('contextmenu',e=>{e.preventDefault()},{passive:false});
     document.addEventListener('selectstart',e=>{e.preventDefault()},{passive:false});
     document.addEventListener('dragstart',e=>{e.preventDefault()},{passive:false});
@@ -336,14 +341,12 @@
     }
 
     let score=0,highscore=0,timeLeft=60;
-    // ★レベル変更: MAX_LEVELを15に変更
     const MAX_TIME_LEFT=90,MAX_LEVEL=15; 
     let level=1,combo=0,maxCombo=0;
-    // ★レベル変更: levelThresholdsをレベル15まで拡張 (レベル5以降は+100ずつ)
     const levelThresholds=[
-        0,   30,  80, 150,  250, // Level 1-5 (既存)
-      350, 450, 550, 650,  750, // Level 6-10 (+100ずつ)
-      850, 950,1050,1150, 1250  // Level 11-15 (+100ずつ)
+        0,   30,  80, 150,  250, 
+      350, 450, 550, 650,  750, 
+      850, 950,1050,1150, 1250  
     ]; 
     let itemSpawnerId,gameBgParticleInterval,outerEffectInterval, gameTimerId;
     let isPowerUpActive=false,powerUpEndTime=0;
@@ -359,7 +362,6 @@
     let feverBGM;
     let seFeverStart; 
     let feverSpawnedLevel2 = false;
-    // ★フィーバー条件変更: feverSpawnedLevel5 を削除し、feverSpawnedByCombo60 を追加
     let feverSpawnedByCombo60 = false; 
     const FEVER_DURATION = 6000; 
     let characterSpeedMultiplier = 1; 
@@ -383,6 +385,7 @@
       feverBGM.loop = true; feverBGM.volume = 0.35; 
     }catch(e){
       console.error("Audio init error:",e);
+      log("Audio init error: " + e.message); // ★デバッグログ
       const dummy={play:()=>{return Promise.resolve();},currentTime:0, pause:()=>{}}; 
       seEggCollect=seTimePlus=seBomb=sePowerUp=seHelperMG=seHelperIkehaya=seHelperRoad=seLightning=seMakimonoGet=dummy;
       bgm={play:()=>Promise.resolve(),pause:()=>{},loop:true,volume:.3};
@@ -395,46 +398,57 @@
     function createBgBubbleParticle(){ /* 実装済み */ }
     function createOuterShellParticle(){ /* 実装済み */ }
     function createInGameTwinkleStars(count = 50) {
-      if (!gameContainer) return;
-      const existingStars = gameContainer.querySelectorAll('.game-bg-star');
-      existingStars.forEach(star => star.remove());
-      for (let i = 0; i < count; i++) {
-        const starEl = document.createElement('div');
-        starEl.className = 'game-bg-star';
-        starEl.style.top = Math.random() * gameContainer.offsetHeight + 'px';
-        starEl.style.left = Math.random() * gameContainer.offsetWidth + 'px';
-        const size = 1 + Math.random() * (isFeverModeActive ? 2.5 : 2); 
-        starEl.style.width = starEl.style.height = size + 'px';
-        starEl.style.animationDelay = Math.random() * 4 + 's';
-        starEl.style.animationDuration = (isFeverModeActive ? 1.5 + Math.random() * 1.5 : 3 + Math.random() * 3) + 's';
-        if (isFeverModeActive) { 
-            starEl.style.setProperty('--fever-star-scale', (0.6 + Math.random() * 0.5).toFixed(2));
-        }
-        gameContainer.appendChild(starEl);
-      }
+      try { // ★デバッグ: try-catch追加
+        if (!gameContainer) {
+            log("createInGameTwinkleStars: gameContainer is null!");
+            return;
+        }
+        const existingStars = gameContainer.querySelectorAll('.game-bg-star');
+        existingStars.forEach(star => star.remove());
+        for (let i = 0; i < count; i++) {
+            const starEl = document.createElement('div');
+            starEl.className = 'game-bg-star';
+            starEl.style.top = Math.random() * gameContainer.offsetHeight + 'px';
+            starEl.style.left = Math.random() * gameContainer.offsetWidth + 'px';
+            const size = 1 + Math.random() * (isFeverModeActive ? 2.5 : 2); 
+            starEl.style.width = starEl.style.height = size + 'px';
+            starEl.style.animationDelay = Math.random() * 4 + 's';
+            starEl.style.animationDuration = (isFeverModeActive ? 1.5 + Math.random() * 1.5 : 3 + Math.random() * 3) + 's';
+            if (isFeverModeActive) { 
+                starEl.style.setProperty('--fever-star-scale', (0.6 + Math.random() * 0.5).toFixed(2));
+            }
+            gameContainer.appendChild(starEl);
+        }
+      } catch (error) {
+          log(`Error in createInGameTwinkleStars: ${error.message}`);
+          console.error("Error in createInGameTwinkleStars: ", error);
+      }
     }
 
-    // calcLevel は変更なしでOK (levelThresholds と MAX_LEVEL の更新で対応)
     const calcLevel=()=>Math.min(levelThresholds.filter(t=>score>=t).length,MAX_LEVEL);
     const spawnRate =()=>Math.max(150, (isFeverModeActive ? 400 : 700) - level * 40 ); 
 
     function updateScore(pt=1,type){
-      if (isFeverModeActive) {
-          pt = Math.ceil(pt * 2.5); 
-      } else if(isPowerUpActive) {
-        pt*=2;
-      }
-      score+=pt;
-      combo++;
-      scoreDisplay.textContent=score;
-      comboCountDisplay.textContent=combo;
-      const prev=level;level=calcLevel();levelDisplay.textContent=level;
-      // ★レベル変更: MAX_LEVELに到達した際のメッセージも適切に表示される
-      if(level>prev)showLevelUp(level===MAX_LEVEL?`MAX LEVEL ${MAX_LEVEL} 到達!`:`LEVEL ${level}!`);
-      if(combo>1)showComboPopup();
-      if(pt>=5 && (type==="egg golden" || type === "feverBombPoints"))showSpecialEffect();
-      if(combo>maxCombo)maxCombo=combo;
-      checkAndSpawnFeverItem(); 
+      try { // ★デバッグ: try-catch追加
+        if (isFeverModeActive) {
+            pt = Math.ceil(pt * 2.5); 
+        } else if(isPowerUpActive) {
+            pt*=2;
+        }
+        score+=pt;
+        combo++;
+        scoreDisplay.textContent=score;
+        comboCountDisplay.textContent=combo;
+        const prev=level;level=calcLevel();levelDisplay.textContent=level;
+        if(level>prev)showLevelUp(level===MAX_LEVEL?`MAX LEVEL ${MAX_LEVEL} 到達!`:`LEVEL ${level}!`);
+        if(combo>1)showComboPopup();
+        if(pt>=5 && (type==="egg golden" || type === "feverBombPoints"))showSpecialEffect();
+        if(combo>maxCombo)maxCombo=combo;
+        checkAndSpawnFeverItem(); 
+      } catch (error) {
+          log(`Error in updateScore: ${error.message}`);
+          console.error("Error in updateScore: ", error);
+      }
     }
     const resetCombo=()=>{
         if (!isFeverModeActive) {
@@ -453,326 +467,410 @@
     }
 
     function activatePowerUp(){
-      if(isPowerUpActive){
-        powerUpEndTime+=10000; 
-        clearInterval(powerUpTimerId); 
-      } else {
-        isPowerUpActive=true;
-        powerUpEndTime=Date.now()+10000;
-        character.classList.add("powerup");
-        if (isFeverModeActive) character.classList.add("fever-character");
-        powerEffect.style.display='block';
-      }
-      powerUpTimerId=setInterval(()=>{
-        const remain=Math.ceil((powerUpEndTime-Date.now())/1000);
-        if(remain<=0){deactivatePowerUp();clearInterval(powerUpTimerId)}
-        else powerEffect.textContent=`🥚スコア２倍！(${remain}s)`;
-      },100);
+      try { // ★デバッグ: try-catch追加
+        if(isPowerUpActive){
+            powerUpEndTime+=10000; 
+            clearInterval(powerUpTimerId); 
+        } else {
+            isPowerUpActive=true;
+            powerUpEndTime=Date.now()+10000;
+            if (character) character.classList.add("powerup");
+            if (isFeverModeActive && character) character.classList.add("fever-character");
+            if (powerEffect) powerEffect.style.display='block';
+        }
+        if (powerUpTimerId) clearInterval(powerUpTimerId); // 重複を避けるために一度クリア
+        powerUpTimerId=setInterval(()=>{
+            const remain=Math.ceil((powerUpEndTime-Date.now())/1000);
+            if(remain<=0){deactivatePowerUp(); /* clearIntervalはdeactivatePowerUp内でも行う */}
+            else if (powerEffect) powerEffect.textContent=`🥚スコア２倍！(${remain}s)`;
+        },100);
+      } catch (error) {
+          log(`Error in activatePowerUp: ${error.message}`);
+          console.error("Error in activatePowerUp: ", error);
+      }
     }
 
     function deactivatePowerUp(){
-      isPowerUpActive=false;
-      character.classList.remove("powerup"); 
-      powerEffect.style.display='none';
-      clearInterval(powerUpTimerId);
-       if (!character.classList.contains("electrocuted")) {
-         character.style.transform = ''; 
-      }
+      try { // ★デバッグ: try-catch追加
+        isPowerUpActive=false;
+        if (character) character.classList.remove("powerup"); 
+        if (powerEffect) powerEffect.style.display='none';
+        if (powerUpTimerId) clearInterval(powerUpTimerId);
+        powerUpTimerId = null; //クリア後にnullを代入
+        if (character && !character.classList.contains("electrocuted")) {
+            character.style.transform = ''; 
+        }
+      } catch (error) {
+          log(`Error in deactivatePowerUp: ${error.message}`);
+          console.error("Error in deactivatePowerUp: ", error);
+      }
     }
 
     function spawnMakimonoItem() {
-        if (timeLeft <= 0) return;
-        const item = document.createElement("div");
-        item.className = "makimono"; 
-        item.dataset.type = "makimono"; 
-        const w = 55; 
-        const dur = Math.max(2.5, 3.5 + Math.random() * 1.5 - level * 0.1); 
-        item.style.left = Math.random() * (gameContainer.offsetWidth - w) + "px";
-        item.style.animationDuration = dur + "s";
-        item.style.animationName = "fall-powerup"; 
-        gameContainer.appendChild(item);
-        const hit = setInterval(() => {
-            if (!item.parentNode || timeLeft <= 0) {
-                clearInterval(hit);
-                if (item.parentNode) item.remove();
-                return;
-            }
-            const a = item.getBoundingClientRect();
-            const b = character.getBoundingClientRect();
-            if (a.top < b.bottom && a.bottom > b.top && a.left < b.right && a.right > b.left) {
-                handleItemCollection(item); 
-                item.remove(); 
-                clearInterval(hit);
-            }
-        }, 30);
-        setTimeout(() => {
-            if (item.parentNode) item.remove();
-            clearInterval(hit);
-        }, dur * 1000 + 300);
+      try { // ★デバッグ: try-catch追加
+        if (timeLeft <= 0) return;
+        const item = document.createElement("div");
+        item.className = "makimono"; 
+        item.dataset.type = "makimono"; 
+        const w = 55; 
+        const dur = Math.max(2.5, 3.5 + Math.random() * 1.5 - level * 0.1); 
+        item.style.left = Math.random() * (gameContainer.offsetWidth - w) + "px";
+        item.style.animationDuration = dur + "s";
+        item.style.animationName = "fall-powerup"; 
+        gameContainer.appendChild(item);
+        const hit = setInterval(() => {
+            if (!item || !item.parentNode || timeLeft <= 0) { // itemの存在もチェック
+                clearInterval(hit);
+                if (item && item.parentNode) item.remove();
+                return;
+            }
+            const a = item.getBoundingClientRect();
+            const b = character.getBoundingClientRect();
+            if (a.top < b.bottom && a.bottom > b.top && a.left < b.right && a.right > b.left) {
+                handleItemCollection(item); 
+                if(item.parentNode) item.remove(); // remove前に存在確認
+                clearInterval(hit);
+            }
+        }, 30);
+        setTimeout(() => {
+            if (item && item.parentNode) item.remove();
+            clearInterval(hit);
+        }, dur * 1000 + 300);
+      } catch (error) {
+          log(`Error in spawnMakimonoItem: ${error.message}`);
+          console.error("Error in spawnMakimonoItem: ", error);
+      }
     }
     
     function handleItemCollection(itemElement) {
-        const pts = parseInt(itemElement.dataset.points) || 0;
-        const itemType = itemElement.dataset.type;
-        switch (itemType) {
-            case "bomb":
-                if (isFeverModeActive) { 
-                    updateScore(15, "feverBombPoints"); 
-                    seEggCollect?.play().catch(e => console.error("Audio play error:", e));
-                } else {
-                    score = Math.max(0, score + pts);
-                    scoreDisplay.textContent = score;
-                    resetCombo();
-                    seBomb?.play().catch(e => console.error("Audio play error:", e));
-                    gameContainer.style.backgroundColor = "rgba(150,50,50,.7)"; 
-                    setTimeout(() => { gameContainer.style.backgroundColor = isFeverModeActive ? "" : "#000";}, 150); 
-                }
-                break;
-            case "timePlus":
-                timeLeft = Math.min(timeLeft + 5, MAX_TIME_LEFT);
-                timerDisplay.textContent = timeLeft;
-                seTimePlus?.play().catch(e => console.error("Audio play error:", e));
-                break;
-            case "powerup":
-                sePowerUp?.play().catch(e => console.error("Audio play error:", e));
-                activatePowerUp();
-                break;
-            case "helperIkehaya":
-            case "helperRoad":
-                updateScore(pts, itemType);
-                seHelperMG?.play().catch(e => console.error("Audio play error:", e));
-                if (!isFeverModeActive) {
-                    [...gameContainer.querySelectorAll(".bomb")].slice(0, 2).forEach(b => b.remove());
-                }
-                break;
-            case "lightning":
-                seLightning?.play().catch(e => console.error("Audio play error:", e));
-                if (!isCharacterStunned && !isFeverModeActive) { 
-                    isCharacterStunned = true;
-                    character.style.setProperty('--current-scale', getCurrentCharacterScale());
-                    character.classList.add("electrocuted");
-                    if (stunTimeoutId) clearTimeout(stunTimeoutId);
-                    stunTimeoutId = setTimeout(() => {
-                        isCharacterStunned = false;
-                        character.classList.remove("electrocuted");
-                        character.style.removeProperty('--current-scale');
-                         character.style.transform = ''; 
-                    }, 3000);
-                } else if (isFeverModeActive) { 
-                    updateScore(20, "feverLightningBonus");
-                    seEggCollect?.play().catch(e => console.error("Audio play error:", e));
-                }
-                break;
-            case "makimono": 
-                if (!isFeverModeActive) { 
-                    seMakimonoGet?.play().catch(e => console.error("Audio play error:", e));
-                    activateFeverMode();
-                }
-                break;
-            case "feverBombPoints": 
-                 updateScore(pts, itemType); 
-                 seEggCollect?.play().catch(e => console.error("Audio play error:", e));
-                 break;
-            default: 
-                updateScore(pts, itemType);
-                seEggCollect?.play().catch(e => console.error("Audio play error:", e));
-        }
+      try { // ★デバッグ: try-catch追加
+        if (!itemElement || !itemElement.dataset) {
+             log("handleItemCollection: Invalid itemElement or dataset");
+             return;
+        }
+        const pts = parseInt(itemElement.dataset.points) || 0;
+        const itemType = itemElement.dataset.type;
+
+        switch (itemType) {
+            case "bomb":
+                if (isFeverModeActive) { 
+                    updateScore(15, "feverBombPoints"); 
+                    seEggCollect?.play().catch(e => {log("Audio play error (seEggCollect): "+e.message); console.error("Audio play error:", e)});
+                } else {
+                    score = Math.max(0, score + pts);
+                    scoreDisplay.textContent = score;
+                    resetCombo();
+                    seBomb?.play().catch(e => {log("Audio play error (seBomb): "+e.message); console.error("Audio play error:", e)});
+                    if(gameContainer) gameContainer.style.backgroundColor = "rgba(150,50,50,.7)"; 
+                    setTimeout(() => { if(gameContainer) gameContainer.style.backgroundColor = isFeverModeActive ? "" : "#000";}, 150); 
+                }
+                break;
+            case "timePlus":
+                timeLeft = Math.min(timeLeft + 5, MAX_TIME_LEFT);
+                timerDisplay.textContent = timeLeft;
+                seTimePlus?.play().catch(e => {log("Audio play error (seTimePlus): "+e.message); console.error("Audio play error:", e)});
+                break;
+            case "powerup":
+                sePowerUp?.play().catch(e => {log("Audio play error (sePowerUp): "+e.message); console.error("Audio play error:", e)});
+                activatePowerUp();
+                break;
+            case "helperIkehaya":
+            case "helperRoad":
+                updateScore(pts, itemType);
+                seHelperMG?.play().catch(e => {log("Audio play error (seHelperMG): "+e.message); console.error("Audio play error:", e)});
+                if (!isFeverModeActive && gameContainer) {
+                    [...gameContainer.querySelectorAll(".bomb")].slice(0, 2).forEach(b => b.remove());
+                }
+                break;
+            case "lightning":
+                seLightning?.play().catch(e => {log("Audio play error (seLightning): "+e.message); console.error("Audio play error:", e)});
+                if (!isCharacterStunned && !isFeverModeActive) { 
+                    isCharacterStunned = true;
+                    if(character) {
+                        character.style.setProperty('--current-scale', getCurrentCharacterScale());
+                        character.classList.add("electrocuted");
+                    }
+                    if (stunTimeoutId) clearTimeout(stunTimeoutId);
+                    stunTimeoutId = setTimeout(() => {
+                        isCharacterStunned = false;
+                        if(character) {
+                            character.classList.remove("electrocuted");
+                            character.style.removeProperty('--current-scale');
+                            character.style.transform = ''; 
+                        }
+                    }, 3000);
+                } else if (isFeverModeActive) { 
+                    updateScore(20, "feverLightningBonus");
+                    seEggCollect?.play().catch(e => {log("Audio play error (seEggCollect): "+e.message); console.error("Audio play error:", e)});
+                }
+                break;
+            case "makimono": 
+                if (!isFeverModeActive) { 
+                    seMakimonoGet?.play().catch(e => {log("Audio play error (seMakimonoGet): "+e.message); console.error("Audio play error:", e)});
+                    activateFeverMode();
+                }
+                break;
+            case "feverBombPoints": 
+               updateScore(pts, itemType); 
+               seEggCollect?.play().catch(e => {log("Audio play error (seEggCollect): "+e.message); console.error("Audio play error:", e)});
+               break;
+            default: 
+                updateScore(pts, itemType);
+                seEggCollect?.play().catch(e => {log("Audio play error (seEggCollect): "+e.message); console.error("Audio play error:", e)});
+        }
+      } catch (error) {
+          log(`Error in handleItemCollection (type: ${itemElement?.dataset?.type}): ${error.message}`);
+          console.error("Error in handleItemCollection: ", error);
+      }
     }
 
     function createItem () {
-      if (timeLeft <= 0) return;
-      const r = Math.random();
-      let bombProb = (level >= 2) ? Math.min(.05 + (level - 2) * .03, .14) : 0;
-      if (isFeverModeActive) {
-          bombProb = 0;
-      }
-      const prob = { bomb: bombProb, timePlus: .08, powerUp: .0, helper: .06, gold: .10, special: .15, lightning: .05 };
-      if (level >= 2) {
-        prob.powerUp = .07;
-        prob.lightning = (isFeverModeActive? 0.02 : Math.min(.05 + (level - 2) * .01, .08)); 
-      }
-      let sum  = 0;
-      let type = "normalEgg";
-      const pick = (p, t) => { sum += p; if(r < sum && type === "normalEgg") type = t; return r < sum; };
-      pick(prob.bomb,   "bomb"      ) ||
-      pick(prob.timePlus,"timePlus") ||
-      pick(prob.powerUp,"powerup"   ) ||
-      pick(prob.helper, "helper"    ) ||
-      pick(prob.lightning, "lightning") ||
-      pick(prob.gold,   "egg golden") ||
-      pick(prob.special,"egg special");
+      try { // ★デバッグ: try-catch追加
+        if (timeLeft <= 0) return;
+        const r = Math.random();
+        let bombProb = (level >= 2) ? Math.min(.05 + (level - 2) * .03, .14) : 0;
+        if (isFeverModeActive) {
+            bombProb = 0;
+        }
+        const prob = { bomb: bombProb, timePlus: .08, powerUp: .0, helper: .06, gold: .10, special: .15, lightning: .05 };
+        if (level >= 2) {
+            prob.powerUp = .07;
+            prob.lightning = (isFeverModeActive? 0.02 : Math.min(.05 + (level - 2) * .01, .08)); 
+        }
+        let sum  = 0;
+        let type = "normalEgg";
+        const pick = (p, t) => { sum += p; if(r < sum && type === "normalEgg") type = t; return r < sum; };
+        pick(prob.bomb,   "bomb"      ) ||
+        pick(prob.timePlus,"timePlus") ||
+        pick(prob.powerUp,"powerup"   ) ||
+        pick(prob.helper, "helper"    ) ||
+        pick(prob.lightning, "lightning") ||
+        pick(prob.gold,   "egg golden") ||
+        pick(prob.special,"egg special");
 
-      const item = document.createElement("div");
-      let w;
-      let currentHelperType = "";
-      if (type === "helper") {
-        const helpers = ["helperIkehaya", "helperRoad"];
-        lastHelperIndex = (lastHelperIndex + 1) % helpers.length;
-        currentHelperType = helpers[lastHelperIndex];
-        type = currentHelperType;
-      }
-      if (isFeverModeActive) {
-          if (type === "normalEgg") { type = "egg special"; } 
-          else if (type === "egg special") { type = "egg golden"; } 
-      }
-      switch (type) {
-        case "bomb"         : item.className = "bomb";            item.dataset.points = "-10"; w = 40; break;
-        case "timePlus"     : item.className = "time-plus";      item.dataset.points = "0";   w = 40; break;
-        case "powerup"      : item.className = "power-up";       item.dataset.points = "0";   w = 45; break;
-        case "helperIkehaya": item.className = "helper-ikehaya"; item.dataset.points = "25";  w = 60; break;
-        case "helperRoad"   : item.className = "helper-road";    item.dataset.points = "25";  w = 60; break;
-        case "lightning"    : item.className = "lightning";      item.dataset.points = "0";   w = 45; break;
-        case "egg golden"   : item.className = "egg golden";     item.dataset.points = "5";   w = 46; break;
-        case "egg special"  : item.className = "egg special";    item.dataset.points = "2";   w = 38; break;
-        default             : item.className = "egg";            item.dataset.points = "1";   w = 30; type = "normalEgg"; 
-      }
-      item.dataset.type = type; 
-      if (isFeverModeActive && type !== "makimono") { 
-          item.classList.add("fever-item-glow");
-      }
-      const dur = Math.max(1.5, 2.5 + Math.random() * 2 - level * 0.15);
-      item.style.left            = Math.random() * (gameContainer.offsetWidth - w) + "px";
-      item.style.animationDuration = dur + "s";
-      item.style.animationName =
-            type === "egg special" ? "fall-special-egg" :
-            type === "egg golden"  ? "fall-golden-egg"  :
-            type.startsWith("helper") ? "fall-helper" :
-            type === "lightning" ? "fall-bomb" : 
-            "fall-egg";
-      item.style.setProperty("--start-rot-z",  ((Math.random() - .5) * 60).toFixed(1) + "deg");
-      item.style.setProperty("--end-rot-z",    ((Math.random() - .5) * 90).toFixed(1) + "deg");
-      item.style.setProperty("--random-rotate",      ((Math.random() - .5) * 70).toFixed(1) + "deg");
-      item.style.setProperty("--random-rotate-half", ((Math.random() - .5) * 35).toFixed(1) + "deg");
-      gameContainer.appendChild(item);
-      const hit = setInterval(() => {
-        if (!item.parentNode || timeLeft <= 0) { clearInterval(hit); if(item.parentNode)item.remove(); return; }
-        const a = item.getBoundingClientRect();
-        const b = character.getBoundingClientRect();
-        if (a.top < b.bottom && a.bottom > b.top && a.left < b.right && a.right > b.left) {
-          handleItemCollection(item); 
-          item.remove(); 
-          clearInterval(hit);
-        }
-      }, 30);
-      setTimeout(() => {
-        if (item.parentNode) {
-          item.remove();
-          if (item.classList.contains("egg") && !isFeverModeActive) resetCombo();
-        }
-        clearInterval(hit);
-      }, dur * 1000 + 300);
+        const item = document.createElement("div");
+        let w;
+        let currentHelperType = "";
+        if (type === "helper") {
+            const helpers = ["helperIkehaya", "helperRoad"];
+            lastHelperIndex = (lastHelperIndex + 1) % helpers.length;
+            currentHelperType = helpers[lastHelperIndex];
+            type = currentHelperType;
+        }
+        if (isFeverModeActive) {
+            if (type === "normalEgg") { type = "egg special"; } 
+            else if (type === "egg special") { type = "egg golden"; } 
+        }
+        switch (type) {
+            case "bomb"         : item.className = "bomb";            item.dataset.points = "-10"; w = 40; break;
+            case "timePlus"     : item.className = "time-plus";      item.dataset.points = "0";   w = 40; break;
+            case "powerup"      : item.className = "power-up";       item.dataset.points = "0";   w = 45; break;
+            case "helperIkehaya": item.className = "helper-ikehaya"; item.dataset.points = "25";  w = 60; break;
+            case "helperRoad"   : item.className = "helper-road";    item.dataset.points = "25";  w = 60; break;
+            case "lightning"    : item.className = "lightning";      item.dataset.points = "0";   w = 45; break;
+            case "egg golden"   : item.className = "egg golden";     item.dataset.points = "5";   w = 46; break;
+            case "egg special"  : item.className = "egg special";    item.dataset.points = "2";   w = 38; break;
+            default             : item.className = "egg";            item.dataset.points = "1";   w = 30; type = "normalEgg"; 
+        }
+        item.dataset.type = type; 
+        if (isFeverModeActive && type !== "makimono" && item) { 
+            item.classList.add("fever-item-glow");
+        }
+        const dur = Math.max(1.5, 2.5 + Math.random() * 2 - level * 0.15);
+        item.style.left            = Math.random() * (gameContainer.offsetWidth - w) + "px";
+        item.style.animationDuration = dur + "s";
+        item.style.animationName =
+                type === "egg special" ? "fall-special-egg" :
+                type === "egg golden"  ? "fall-golden-egg"  :
+                type.startsWith("helper") ? "fall-helper" :
+                type === "lightning" ? "fall-bomb" : 
+                "fall-egg";
+        item.style.setProperty("--start-rot-z",  ((Math.random() - .5) * 60).toFixed(1) + "deg");
+        item.style.setProperty("--end-rot-z",    ((Math.random() - .5) * 90).toFixed(1) + "deg");
+        item.style.setProperty("--random-rotate",      ((Math.random() - .5) * 70).toFixed(1) + "deg");
+        item.style.setProperty("--random-rotate-half", ((Math.random() - .5) * 35).toFixed(1) + "deg");
+        
+        if(gameContainer) gameContainer.appendChild(item); // gameContainer存在確認
+
+        const hit = setInterval(() => {
+            if (!item || !item.parentNode || timeLeft <= 0) { // itemの存在もチェック
+                clearInterval(hit); 
+                if(item && item.parentNode) item.remove(); 
+                return; 
+            }
+            const a = item.getBoundingClientRect();
+            const b = character.getBoundingClientRect();
+            if (a.top < b.bottom && a.bottom > b.top && a.left < b.right && a.right > b.left) {
+                handleItemCollection(item); 
+                if(item.parentNode) item.remove(); 
+                clearInterval(hit);
+            }
+        }, 30);
+        setTimeout(() => {
+            if (item && item.parentNode) {
+                item.remove();
+                if (item.classList.contains("egg") && !isFeverModeActive) resetCombo();
+            }
+            clearInterval(hit);
+        }, dur * 1000 + 300);
+      } catch (error) {
+          log(`Error in createItem: ${error.message}`);
+          console.error("Error in createItem: ", error);
+      }
     }
 
     function startGame(){
-      characterX=gameContainer.offsetWidth/2;character.style.left=characterX+"px";
-      isCharacterStunned = false; 
-      if (stunTimeoutId) clearTimeout(stunTimeoutId); 
-      character.classList.remove("electrocuted"); 
-      character.style.removeProperty('--current-scale'); 
-      character.classList.remove("powerup");
-      character.style.transform = ''; 
+      try { // ★デバッグ: try-catch追加
+        log("startGame called");
+        characterX = gameContainer && gameContainer.offsetWidth ? gameContainer.offsetWidth / 2 : 150; // 初期値設定
+        if(character) character.style.left=characterX+"px";
+        isCharacterStunned = false; 
+        if (stunTimeoutId) clearTimeout(stunTimeoutId); 
+        if(character) {
+            character.classList.remove("electrocuted"); 
+            character.style.removeProperty('--current-scale'); 
+            character.classList.remove("powerup");
+            character.style.transform = ''; 
+        }
 
-      isFeverModeActive = false;
-      if (feverModeTimerId) clearInterval(feverModeTimerId);
-      feverModeTimerId = null;
-      feverSpawnedLevel2 = false;
-      // ★フィーバー条件変更: feverSpawnedByCombo60 をリセット
-      feverSpawnedByCombo60 = false; 
-      characterSpeedMultiplier = 1;
-      gameContainer.classList.remove("fever-active");
-      character.classList.remove("fever-character");
-      if (feverBGM && typeof feverBGM.pause === 'function' && !feverBGM.paused) {
-          feverBGM.pause();
-          feverBGM.currentTime = 0;
-      }
-      originalBGMVolume = bgm.volume; 
+        isFeverModeActive = false;
+        if (feverModeTimerId) clearInterval(feverModeTimerId);
+        feverModeTimerId = null;
+        feverSpawnedLevel2 = false;
+        feverSpawnedByCombo60 = false; 
+        characterSpeedMultiplier = 1;
+        if(gameContainer) gameContainer.classList.remove("fever-active");
+        if(character) character.classList.remove("fever-character");
+        if (feverBGM && typeof feverBGM.pause === 'function' && !feverBGM.paused) {
+            feverBGM.pause();
+            feverBGM.currentTime = 0;
+        }
+        if(bgm) originalBGMVolume = bgm.volume; 
 
-      bgm.currentTime = 0; 
-      bgm.play().catch(e => console.error("BGM play error:", e));
-      createInGameTwinkleStars(isFeverModeActive ? 80 : 50); 
-      itemSpawnerId=setInterval(createItem,spawnRate());
-      gameBgParticleInterval=setInterval(createBgBubbleParticle,700);
-      outerEffectInterval=setInterval(createOuterShellParticle,500);
-      gameTimerId=setInterval(()=>{
-        if(timeLeft<=0){
-          clearInterval(gameTimerId);clearInterval(itemSpawnerId);
-          clearInterval(gameBgParticleInterval);clearInterval(outerEffectInterval);
-          if(powerUpTimerId)clearInterval(powerUpTimerId);
-          if (stunTimeoutId) clearTimeout(stunTimeoutId);
-          if (feverModeTimerId) clearInterval(feverModeTimerId); 
-          endGame();return;
-        }
-        timeLeft--;timerDisplay.textContent=timeLeft;
-        if (!isCharacterStunned) {
-            clearInterval(itemSpawnerId);itemSpawnerId=setInterval(createItem,spawnRate());
-        }
-      },1000);
+        if(bgm) {
+            bgm.currentTime = 0; 
+            bgm.play().catch(e => {log("BGM play error: "+e.message); console.error("BGM play error:", e)});
+        }
+        createInGameTwinkleStars(isFeverModeActive ? 80 : 50); 
+        
+        if (itemSpawnerId) clearInterval(itemSpawnerId);
+        itemSpawnerId=setInterval(createItem,spawnRate());
+        
+        if (gameBgParticleInterval) clearInterval(gameBgParticleInterval);
+        gameBgParticleInterval=setInterval(createBgBubbleParticle,700);
+
+        if (outerEffectInterval) clearInterval(outerEffectInterval);
+        outerEffectInterval=setInterval(createOuterShellParticle,500);
+        
+        if (gameTimerId) clearInterval(gameTimerId);
+        gameTimerId=setInterval(()=>{
+            if(timeLeft<=0){
+                if (gameTimerId) clearInterval(gameTimerId); // 自分自身をクリア
+                if (itemSpawnerId) clearInterval(itemSpawnerId);
+                if (gameBgParticleInterval) clearInterval(gameBgParticleInterval);
+                if (outerEffectInterval) clearInterval(outerEffectInterval);
+                if(powerUpTimerId)clearInterval(powerUpTimerId);
+                if (stunTimeoutId) clearTimeout(stunTimeoutId);
+                if (feverModeTimerId) clearInterval(feverModeTimerId); 
+                endGame();return;
+            }
+            timeLeft--;
+            if(timerDisplay) timerDisplay.textContent=timeLeft;
+            if (!isCharacterStunned) {
+                if (itemSpawnerId) clearInterval(itemSpawnerId); // 再設定前にクリア
+                itemSpawnerId=setInterval(createItem,spawnRate());
+            }
+        },1000);
+        log("startGame finished");
+      } catch (error) {
+          log(`Error in startGame: ${error.message}`);
+          console.error("Error in startGame: ", error);
+      }
     }
     function endGame(){
-      bgm.pause();
-      if (isFeverModeActive) {
-          deactivateFeverMode(false); 
-      }
-      if (feverBGM && typeof feverBGM.pause === 'function' && !feverBGM.paused) {
-          feverBGM.pause();
-          feverBGM.currentTime = 0;
-      }
-      finalScore.textContent=score;finalLevel.textContent=level;
-      gameover.style.display="block";
-      if(score>highscore){highscore=score;localStorage.setItem("rebornCatchHighscore",highscore);highscoreDisplay.textContent=highscore}
-      
-      const gameStars = gameContainer.querySelectorAll('.game-bg-star');
-      gameStars.forEach(star => star.remove());
-      [...gameContainer.children].forEach(c=>{
-        if(!["character","gameover","combo-display-popup","level-up-effect","power-effect", "fever-mode-display"].includes(c.id)){ 
-          if(c.classList.contains("egg")||c.classList.contains("bomb")||c.classList.contains("power-up")||c.classList.contains("time-plus")||c.classList.contains("helper-mgchan")||c.classList.contains("helper-ikehaya")||c.classList.contains("helper-road")||c.classList.contains("lightning")||c.classList.contains("makimono")||c.classList.contains("bg-bubble-particle"))c.remove();
-        }
-      });
-      pageWrapper.querySelectorAll('.outer-shell-particle').forEach(e=>e.remove());
-      returnToSelectBtn.onclick=()=>location.href="character_select.html"; 
+      try { // ★デバッグ: try-catch追加
+        log("endGame called");
+        if(bgm) bgm.pause();
+        if (isFeverModeActive) {
+            deactivateFeverMode(false); 
+        }
+        if (feverBGM && typeof feverBGM.pause === 'function' && !feverBGM.paused) {
+            feverBGM.pause();
+            feverBGM.currentTime = 0;
+        }
+        if(finalScore) finalScore.textContent=score;
+        if(finalLevel) finalLevel.textContent=level;
+        if(gameover) gameover.style.display="block";
+        if(score>highscore){highscore=score;localStorage.setItem("rebornCatchHighscore",highscore);if(highscoreDisplay)highscoreDisplay.textContent=highscore}
+        
+        if(gameContainer) {
+            const gameStars = gameContainer.querySelectorAll('.game-bg-star');
+            gameStars.forEach(star => star.remove());
+            [...gameContainer.children].forEach(c=>{
+                if(c && !["character","gameover","combo-display-popup","level-up-effect","power-effect", "fever-mode-display"].includes(c.id)){ 
+                    if(c.classList.contains("egg")||c.classList.contains("bomb")||c.classList.contains("power-up")||c.classList.contains("time-plus")||c.classList.contains("helper-mgchan")||c.classList.contains("helper-ikehaya")||c.classList.contains("helper-road")||c.classList.contains("lightning")||c.classList.contains("makimono")||c.classList.contains("bg-bubble-particle"))c.remove();
+                }
+            });
+        }
+        if(pageWrapper) {
+            pageWrapper.querySelectorAll('.outer-shell-particle').forEach(e=>e.remove());
+        }
+        if(returnToSelectBtn) returnToSelectBtn.onclick=()=>location.href="character_select.html"; 
+        log("endGame finished");
+      } catch (error) {
+          log(`Error in endGame: ${error.message}`);
+          console.error("Error in endGame: ", error);
+      }
     }
 
     document.addEventListener("keydown",e=>{
       if(timeLeft<=0 || isCharacterStunned)return;
-      const w=character.offsetWidth||120;
+      const w=character ? character.offsetWidth : 100; // nullチェック
       const moveAmount = 30 * characterSpeedMultiplier; 
       if(e.key==="ArrowLeft"){characterX-=moveAmount}
       else if(e.key==="ArrowRight"){characterX+=moveAmount}
       else if(e.key===" "||e.key==="ArrowUp"){e.preventDefault();jump()}
-      characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX));
-      character.style.left=characterX+"px";
+      characterX = Math.max(w/2, Math.min((gameContainer ? gameContainer.offsetWidth : 380) - w/2, characterX)); // nullチェック
+      if(character) character.style.left=characterX+"px";
     });
 
     function jump(){ 
-      if(character.classList.contains("jump")||timeLeft<=0 || isCharacterStunned)return;
-      character.style.setProperty('--current-scale', getCurrentCharacterScale()); 
-      character.classList.add("jump"); 
-      setTimeout(()=>{
-          character.classList.remove("jump");
-          character.style.removeProperty('--current-scale');
-      },600);
+      try { // ★デバッグ: try-catch追加
+        if(!character || character.classList.contains("jump")||timeLeft<=0 || isCharacterStunned)return;
+        character.style.setProperty('--current-scale', getCurrentCharacterScale()); 
+        character.classList.add("jump"); 
+        setTimeout(()=>{
+            if(character) {
+                character.classList.remove("jump");
+                character.style.removeProperty('--current-scale');
+            }
+        },600);
+      } catch (error) {
+          log(`Error in jump: ${error.message}`);
+          console.error("Error in jump: ", error);
+      }
     }
-    character.addEventListener("click",e=>{if(timeLeft>0 && !isCharacterStunned){e.preventDefault();jump()}},{passive:false});
+    if(character) character.addEventListener("click",e=>{if(timeLeft>0 && !isCharacterStunned){e.preventDefault();jump()}},{passive:false});
 
     const leftBtn=document.createElement("button"),rightBtn=document.createElement("button");
     leftBtn.textContent="◀";rightBtn.textContent="▶";
     leftBtn.className=rightBtn.className="control-btn";
     leftBtn.style.left="20px";rightBtn.style.right="20px";
-    pageWrapper.append(leftBtn,rightBtn);
+    if(pageWrapper) pageWrapper.append(leftBtn,rightBtn);
 
     let moveInt=null;
     const startMove=dir=>{
       if(moveInt||timeLeft<=0 || isCharacterStunned)return;
-      const w=character.offsetWidth||120;
+      const w=character ? character.offsetWidth : 100;
       const baseMoveSpeed = 15;
       const moveAmount = baseMoveSpeed * characterSpeedMultiplier; 
       moveInt=setInterval(()=>{
         characterX+=(dir==="left"?-moveAmount:moveAmount);
-        characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX));
-        character.style.left=characterX+"px";
+        characterX = Math.max(w/2, Math.min((gameContainer ? gameContainer.offsetWidth : 380) - w/2, characterX));
+        if(character) character.style.left=characterX+"px";
       },30);
     };
-    const stopMove=()=>{clearInterval(moveInt);moveInt=null};
+    const stopMove=()=>{if(moveInt)clearInterval(moveInt);moveInt=null};
     leftBtn.addEventListener("touchstart",e=>{e.preventDefault();if(!isCharacterStunned)startMove("left")},{passive:false});
     rightBtn.addEventListener("touchstart",e=>{e.preventDefault();if(!isCharacterStunned)startMove("right")},{passive:false});
     leftBtn.onmousedown=()=>{if(!isCharacterStunned)startMove("left")};
@@ -780,109 +878,147 @@
     ["mouseup","touchend"].forEach(ev=>document.addEventListener(ev,stopMove,{passive:false}));
 
     let sx=null,sy=null,thr=30;
-    const relX=cl=>cl-gameContainer.getBoundingClientRect().left;
-    gameContainer.addEventListener("touchstart",e=>{
-      if(timeLeft<=0 || isCharacterStunned)return;
-      const t=e.changedTouches[0];sx=relX(t.clientX);sy=t.clientY;
-    },{passive:true});
-    gameContainer.addEventListener("touchmove",e=>{
-      const swipeMultiplier = isFeverModeActive ? 1.2 : 1; 
-      if(timeLeft<=0||sx==null || isCharacterStunned)return;
-      const x=relX(e.changedTouches[0].clientX),dx=(x-sx) * swipeMultiplier; characterX+=dx;sx=x;
-      const w=character.offsetWidth||120;
-      characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX));
-      character.style.left=characterX+"px";
-    },{passive:true});
-    gameContainer.addEventListener("touchend",e=>{
-      if(timeLeft<=0||sx==null||sy==null || isCharacterStunned){sx=sy=null;return}
-      const dx=relX(e.changedTouches[0].clientX)-sx,dy=e.changedTouches[0].clientY-sy;
-      if(Math.abs(dy)>Math.abs(dx)&&dy<-thr)jump();
-      sx=sy=null;
-    },{passive:true});
+    const relX=clX=>clX-(gameContainer ? gameContainer.getBoundingClientRect().left : 0); // nullチェック
+    if(gameContainer) {
+        gameContainer.addEventListener("touchstart",e=>{
+            if(timeLeft<=0 || isCharacterStunned)return;
+            const t=e.changedTouches[0];sx=relX(t.clientX);sy=t.clientY;
+        },{passive:true});
+        gameContainer.addEventListener("touchmove",e=>{
+            const swipeMultiplier = isFeverModeActive ? 1.2 : 1; 
+            if(timeLeft<=0||sx==null || isCharacterStunned)return;
+            const x=relX(e.changedTouches[0].clientX),dx=(x-sx) * swipeMultiplier; characterX+=dx;sx=x;
+            const w=character ? character.offsetWidth : 100;
+            characterX = Math.max(w/2, Math.min((gameContainer ? gameContainer.offsetWidth : 380) - w/2, characterX));
+            if(character) character.style.left=characterX+"px";
+        },{passive:true});
+        gameContainer.addEventListener("touchend",e=>{
+            if(timeLeft<=0||sx==null||sy==null || isCharacterStunned){sx=sy=null;return}
+            const dx=relX(e.changedTouches[0].clientX)-sx,dy=e.changedTouches[0].clientY-sy;
+            if(Math.abs(dy)>Math.abs(dx)&&dy<-thr)jump();
+            sx=sy=null;
+        },{passive:true});
+    }
 
-    window.addEventListener('resize',()=>{ const w=character.offsetWidth||120; characterX=Math.max(w/2,Math.min(gameContainer.offsetWidth-w/2,characterX)); character.style.left=characterX+"px"; });
-    const tryPlay=()=>{ bgm.play().then(()=>{ document.body.removeEventListener('click',tryPlay); document.body.removeEventListener('touchstart',tryPlay); }).catch(()=>{}); };
+    window.addEventListener('resize',()=>{ 
+        const w=character ? character.offsetWidth : 100; 
+        characterX = Math.max(w/2, Math.min((gameContainer ? gameContainer.offsetWidth : 380) - w/2, characterX)); 
+        if(character) character.style.left=characterX+"px"; 
+    });
+    const tryPlay=()=>{ if(bgm) bgm.play().then(()=>{ document.body.removeEventListener('click',tryPlay); document.body.removeEventListener('touchstart',tryPlay); }).catch(()=>{}); };
     document.body.addEventListener('click',tryPlay,{once:true});
     document.body.addEventListener('touchstart',tryPlay,{once:true});
 
-    // =============== ★フィーバー条件変更: checkAndSpawnFeverItem 関数のロジック変更 ===============
     function checkAndSpawnFeverItem() {
-        if (isFeverModeActive || timeLeft <= 0) return; // フィーバー中やゲーム終了時は何もしない
-
-        // 条件1: レベル2到達後、コンボ15回でフィーバーアイテム (1回のみ)
-        if (level === 2 && combo >= 15 && !feverSpawnedLevel2) {
-            feverSpawnedLevel2 = true;
-            spawnMakimonoItem();
-            return; // アイテムをスポーンしたら他の条件はチェックしない
-        } 
-        
-        // 条件2: (レベル不問) コンボ60回でフィーバーアイテム (1回のみ)
-        // level === 5 の縛りをなくし、新しいフラグ feverSpawnedByCombo60 で管理
-        if (combo >= 60 && !feverSpawnedByCombo60) {
-            feverSpawnedByCombo60 = true;
+      try { // ★デバッグ: try-catch追加
+        if (isFeverModeActive || timeLeft <= 0) return; 
+        if (level === 2 && combo >= 15 && !feverSpawnedLevel2) { 
+            feverSpawnedLevel2 = true;
+            log("Spawning makimono for Level 2, Combo 15");
             spawnMakimonoItem();
-            return; // アイテムをスポーンしたら他の条件はチェックしない
+            return; 
+        } 
+        if (combo >= 60 && !feverSpawnedByCombo60) { 
+            feverSpawnedByCombo60 = true;
+            log("Spawning makimono for Combo 60");
+            spawnMakimonoItem();
+            return; 
         }
+      } catch (error) {
+          log(`Error in checkAndSpawnFeverItem: ${error.message}`);
+          console.error("Error in checkAndSpawnFeverItem: ", error);
+      }
     }
 
     function activateFeverMode() {
-        if (isFeverModeActive) return; 
-        isFeverModeActive = true;
-        feverModeEndTime = Date.now() + FEVER_DURATION;
-        seFeverStart?.play().catch(e => console.error("Audio play error:", e));
-        bgm.pause();
-        feverBGM.currentTime = 0;
-        feverBGM.play().catch(e => console.error("Fever BGM play error:", e));
-        gameContainer.classList.add("fever-active");
-        character.classList.add("fever-character");
-        character.style.transform = `translateX(-50%) scale(${getCurrentCharacterScale()})`; 
-        feverModeDisplay.style.display = 'block';
-        setTimeout(() => {
-            if (feverModeDisplay) feverModeDisplay.style.display = 'none';
-        }, 2500); 
-        createInGameTwinkleStars(isFeverModeActive ? 80 : 50); 
-        characterSpeedMultiplier = 1.6; 
-        const existingBombs = gameContainer.querySelectorAll(".bomb");
-        existingBombs.forEach(bombNode => {
-            bombNode.className = "egg golden fever-item-glow"; 
-            bombNode.dataset.points = "10"; 
-            bombNode.dataset.type = "feverBombPoints";
-            if (bombNode.firstChild && bombNode.firstChild.nodeType === Node.ELEMENT_NODE && bombNode.firstChild.tagName === '::before') {
-            } else {
-                 bombNode.innerHTML = ''; 
-            }
-            const dur = Math.max(1.5, 2.5 + Math.random() * 2 - level * 0.15);
-            bombNode.style.animationDuration = dur + "s";
-            bombNode.style.animationName = "fall-golden-egg"; 
-        });
-        feverModeTimerId = setInterval(() => {
-            const timeLeftFever = Math.ceil((feverModeEndTime - Date.now()) / 1000);
-            if (timeLeftFever <= 0 || timeLeft <= 0) {
-                deactivateFeverMode();
-            }
-        }, 100);
-        clearInterval(itemSpawnerId);
-        itemSpawnerId = setInterval(createItem, spawnRate());
+      try { // ★デバッグ: try-catch追加
+        log("activateFeverMode called");
+        if (isFeverModeActive) {
+            log("Fever mode already active, returning.");
+            return;
+        }
+        isFeverModeActive = true;
+        feverModeEndTime = Date.now() + FEVER_DURATION;
+
+        seFeverStart?.play().catch(e => {log("Audio play error (seFeverStart): "+e.message); console.error("Audio play error:", e)});
+        if(bgm) bgm.pause();
+        if(feverBGM) {
+            feverBGM.currentTime = 0;
+            feverBGM.play().catch(e => {log("Fever BGM play error: "+e.message); console.error("Fever BGM play error:", e)});
+        }
+        if(gameContainer) gameContainer.classList.add("fever-active");
+        if(character) {
+            character.classList.add("fever-character");
+            character.style.transform = `translateX(-50%) scale(${getCurrentCharacterScale()})`; 
+        }
+        if(feverModeDisplay) feverModeDisplay.style.display = 'block';
+        setTimeout(() => {
+            if (feverModeDisplay) feverModeDisplay.style.display = 'none';
+        }, 2500); 
+        createInGameTwinkleStars(isFeverModeActive ? 80 : 50); 
+        characterSpeedMultiplier = 1.6; 
+        if(gameContainer) {
+            const existingBombs = gameContainer.querySelectorAll(".bomb");
+            existingBombs.forEach(bombNode => {
+                bombNode.className = "egg golden fever-item-glow"; 
+                bombNode.dataset.points = "10"; 
+                bombNode.dataset.type = "feverBombPoints";
+                bombNode.innerHTML = ''; // 💣を消す
+                const dur = Math.max(1.5, 2.5 + Math.random() * 2 - level * 0.15);
+                bombNode.style.animationDuration = dur + "s";
+                bombNode.style.animationName = "fall-golden-egg"; 
+            });
+        }
+        if(feverModeTimerId) clearInterval(feverModeTimerId);
+        feverModeTimerId = setInterval(() => {
+            const timeLeftFever = Math.ceil((feverModeEndTime - Date.now()) / 1000);
+            if (timeLeftFever <= 0 || timeLeft <= 0) {
+                deactivateFeverMode();
+            }
+        }, 100);
+        
+        if(itemSpawnerId) clearInterval(itemSpawnerId);
+        itemSpawnerId = setInterval(createItem, spawnRate());
+        log("activateFeverMode finished");
+      } catch (error) {
+          log(`Error in activateFeverMode: ${error.message}`);
+          console.error("Error in activateFeverMode: ", error);
+      }
     }
 
     function deactivateFeverMode(switchToMainBGM = true) {
-        if (!isFeverModeActive) return;
-        isFeverModeActive = false;
-        if(feverModeTimerId) clearInterval(feverModeTimerId);
-        feverModeTimerId = null;
-        if (switchToMainBGM) {
-            feverBGM.pause();
-            bgm.volume = originalBGMVolume;
-            bgm.currentTime = 0; 
-            bgm.play().catch(e => console.error("Main BGM resume error:", e));
-        }
-        gameContainer.classList.remove("fever-active");
-        character.classList.remove("fever-character");
-        character.style.transform = `translateX(-50%) scale(${getCurrentCharacterScale()})`; 
-        createInGameTwinkleStars(50);
-        characterSpeedMultiplier = 1;
-        clearInterval(itemSpawnerId);
-        itemSpawnerId = setInterval(createItem, spawnRate());
+      try { // ★デバッグ: try-catch追加
+        log("deactivateFeverMode called");
+        if (!isFeverModeActive) {
+            log("Fever mode not active, returning.");
+            return;
+        }
+        isFeverModeActive = false;
+        if(feverModeTimerId) clearInterval(feverModeTimerId);
+        feverModeTimerId = null; //クリア後にnullを代入
+        if (switchToMainBGM) {
+            if(feverBGM) feverBGM.pause();
+            if(bgm) {
+                bgm.volume = originalBGMVolume;
+                bgm.currentTime = 0; 
+                bgm.play().catch(e => {log("Main BGM resume error: "+e.message); console.error("Main BGM resume error:", e)});
+            }
+        }
+        if(gameContainer) gameContainer.classList.remove("fever-active");
+        if(character) {
+            character.classList.remove("fever-character");
+            character.style.transform = `translateX(-50%) scale(${getCurrentCharacterScale()})`; 
+        }
+        createInGameTwinkleStars(50);
+        characterSpeedMultiplier = 1;
+        
+        if(itemSpawnerId) clearInterval(itemSpawnerId); // 再設定前にクリア
+        itemSpawnerId = setInterval(createItem, spawnRate());
+        log("deactivateFeverMode finished");
+      } catch (error) {
+          log(`Error in deactivateFeverMode: ${error.message}`);
+          console.error("Error in deactivateFeverMode: ", error);
+      }
     }
     startGame();
   </script>
