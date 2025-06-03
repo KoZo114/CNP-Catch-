@@ -381,17 +381,27 @@
       character.src = "Leeleeg.webp"; 
       character.alt = "Leelee";    
     }
+    // 元のコードの該当部分を探して、以下の内容に置き換えてください。
 
-    let score=0,highscore=0,timeLeft=60;
-    const MAX_TIME_LEFT=90,MAX_LEVEL=5;
-    let level=1,combo=0,maxCombo=0;
-    const levelThresholds=[0,30,80,150,250]; //レベルアップに必要なスコア
-    let itemSpawnerId,gameBgParticleInterval,outerEffectInterval, gameTimerId;
-    let isPowerUpActive=false,powerUpEndTime=0;
-    let characterX,powerUpTimerId=null;
-    let lastHelperIndex = -1;
-    let isCharacterStunned = false; 
-    let stunTimeoutId = null;       
+let score=0,highscore=0,timeLeft=60;
+// ★★★★★ レベルシステム変更箇所 ★★★★★
+const MAX_TIME_LEFT=90, MAX_LEVEL=15; // 最大レベルを15に変更
+let level=1,combo=0,maxCombo=0;
+const levelThresholds=[ // レベルアップに必要なスコアをレベル15まで定義
+    0,   30,  80, 150,  250,  // Level 1-5 (既存のまま)
+  350, 450, 550, 650,  750,  // Level 6-10 (250から+100ずつ)
+  850, 950,1050,1150, 1250   // Level 11-15 (+100ずつ)
+]; 
+// ★★★★★ レベルシステム変更箇所ここまで ★★★★★
+let itemSpawnerId,gameBgParticleInterval,outerEffectInterval, gameTimerId;
+let isPowerUpActive=false,powerUpEndTime=0;
+let characterX,powerUpTimerId=null;
+let lastHelperIndex = -1;
+let isCharacterStunned = false; 
+let stunTimeoutId = null;
+
+
+      
 
     // ★フィーバー追加: フィーバー関連変数
     let isFeverModeActive = false;
