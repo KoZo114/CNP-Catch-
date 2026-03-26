@@ -1,20 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>Opening – CNPCATCH</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<style>
+@font-face{
+  font-family:'VerdanaBold';
+  src:url('Verdana Bold.ttf') format('truetype');
+  font-weight:700;
+}
+
+/* ================= 基本 ================= */
+html,body{
+  margin:0;
+  height:100%;
+  overflow:hidden;
+  background:#000;
+  font-family:"Zen Kaku Gothic New",sans-serif;
+}
+
+#opening-stage{
+  position:relative;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+}
+
+/* ================= タイトル ================= */
+#game-title{
+  position:absolute;
+  top:36%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  font-size:71px;
+  letter-spacing:.05em;
+  color:#fff;
+  font-family:'VerdanaBold','Zen Kaku Gothic New',sans-serif;
+  text-shadow:0 0 12px rgba(255,255,255,.7);
+  z-index:15;
+}
+
+/* ================= ボタン ================= */
+#start-btn{
+  position:absolute;
+  left:50%;
+  top:60%;
+  transform:translate(-50%,-50%);
+  padding:16px 48px;
+  font-size:28px;
+  color:#fff;
+  background:rgba(0,0,0,.55);
+  border:2px solid #fff;
+  border-radius:14px;
+  cursor:pointer;
+  z-index:20;
+  transition:.3s;
+}
+
+#start-btn:hover{
+  background:rgba(255,255,255,.15);
+  transform:translate(-50%,-50%) scale(1.05);
+}
+
+#start-btn:active{
+  transform:translate(-50%,-50%) scale(.96);
+}
+
+/* ================= キャラ ================= */
+.char{
+  position:absolute;
+  width:10vw;
+  min-width:100px;
+  max-width:180px;
+  pointer-events:none;
+  animation:float linear forwards;
+}
+
+.char img{
+  width:100%;
+  animation:bob 3s ease-in-out infinite;
+}
+
+/* ================= アニメーション ================= */
+@keyframes bob{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-1vw)}
+}
+
+@keyframes float{
+  from{
+    transform:translate(var(--startX),var(--startY));
+    opacity:0;
+  }
+  5%{opacity:1;}
+  to{
+    transform:translate(var(--endX),var(--endY));
+    opacity:0;
+  }
+}
+
+/* ================= 星 ================= */
+.star{
+  position:fixed;
+  width:4px;
+  height:4px;
+  border-radius:50%;
+  background:#fff;
+  animation:twinkle 4.5s linear infinite;
+}
+
+@keyframes twinkle{
+  0%,100%{opacity:0;}
+  50%{opacity:1;}
+}
+
+/* ================= スマホ ================= */
+@media (max-width:600px){
+  #game-title{
+    font-size:7vw;
+    top:40%;
+  }
+  #start-btn{
+    font-size:22px;
+    padding:12px 32px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<audio id="bgm" src="CNP Catch.mp3" preload="auto" loop></audio>
+
+<div id="opening-stage">
+  <h1 id="game-title">CNP CATCH</h1>
+  <button id="start-btn">START</button>
+</div>
+
 <script>
-// ==============================
-// 設定（ここだけ見れば全体が分かる）
-// ==============================
+// ================= 設定 =================
 const CONFIG = {
   MAX_CHARS: 6,
   SPAWN_INTERVAL: 900,
-  REMOVE_DELAY_BUFFER: 2000,
   MIN_DISTANCE: 200,
   EDGE_OFFSET: 150,
   ANIMATION_MIN: 5,
   ANIMATION_RANGE: 4
 };
 
-// ==============================
-// キャラクター画像
-// ==============================
+// ================= 画像 =================
 const charImages = [
   "ikehaya.webp","leelee.webp","Leeleeg.webp","luna.webp",
   "makamih.webp","makamio.webp","mitamag.webp","mitaman.webp",
@@ -22,9 +158,7 @@ const charImages = [
   "Road.webp","runa.webp","setuna.webp","towa.webp","yama.webp","yamar.webp"
 ];
 
-// ==============================
-// 状態管理
-// ==============================
+// ================= 状態 =================
 const activeCharacters = new Set();
 let currentCount = 0;
 
@@ -32,164 +166,114 @@ const stage = document.getElementById("opening-stage");
 const bgm = document.getElementById("bgm");
 const startBtn = document.getElementById("start-btn");
 
-// ==============================
-// オーディオ制御
-// ==============================
-function fadeInVolume() {
-  let volume = 0;
-  bgm.volume = 0;
-
-  const id = setInterval(() => {
-    volume += 0.05;
-    bgm.volume = Math.min(volume, 1);
-
-    if (volume >= 1) clearInterval(id);
-  }, 100);
+// ================= 音 =================
+function fadeInVolume(){
+  let v=0;
+  bgm.volume=0;
+  const id=setInterval(()=>{
+    v+=0.05;
+    bgm.volume=Math.min(v,1);
+    if(v>=1) clearInterval(id);
+  },100);
 }
 
-function attemptPlay() {
-  if (!bgm.paused) return;
-
-  bgm.play()
-    .then(fadeInVolume)
-    .catch(() => {});
+function attemptPlay(){
+  if(!bgm.paused) return;
+  bgm.play().then(fadeInVolume).catch(()=>{});
 }
 
-window.addEventListener("load", attemptPlay);
-stage.addEventListener("click", attemptPlay);
-stage.addEventListener("touchstart", attemptPlay, { passive: true });
+window.addEventListener("load",attemptPlay);
+stage.addEventListener("click",attemptPlay);
 
-// ==============================
-// ユーティリティ
-// ==============================
-const getStageWidth = () => stage.clientWidth;
-const getStageHeight = () => stage.clientHeight;
+// ================= ユーティリティ =================
+const stageW=()=>stage.clientWidth;
+const stageH=()=>stage.clientHeight;
 
-function getRandomEdgePosition() {
-  const edge = Math.floor(Math.random() * 4);
-
-  switch (edge) {
-    case 0: return { x: Math.random() * getStageWidth(), y: -CONFIG.EDGE_OFFSET };
-    case 1: return { x: getStageWidth() + CONFIG.EDGE_OFFSET, y: Math.random() * getStageHeight() };
-    case 2: return { x: Math.random() * getStageWidth(), y: getStageHeight() + CONFIG.EDGE_OFFSET };
-    default: return { x: -CONFIG.EDGE_OFFSET, y: Math.random() * getStageHeight() };
+function randomEdge(){
+  const e=Math.floor(Math.random()*4);
+  switch(e){
+    case 0: return {x:Math.random()*stageW(),y:-CONFIG.EDGE_OFFSET};
+    case 1: return {x:stageW()+CONFIG.EDGE_OFFSET,y:Math.random()*stageH()};
+    case 2: return {x:Math.random()*stageW(),y:stageH()+CONFIG.EDGE_OFFSET};
+    default:return {x:-CONFIG.EDGE_OFFSET,y:Math.random()*stageH()};
   }
 }
 
-function isTooClose(start, end) {
-  return (
-    Math.abs(start.x - end.x) < CONFIG.MIN_DISTANCE &&
-    Math.abs(start.y - end.y) < CONFIG.MIN_DISTANCE
-  );
+function isClose(a,b){
+  return Math.abs(a.x-b.x)<CONFIG.MIN_DISTANCE &&
+         Math.abs(a.y-b.y)<CONFIG.MIN_DISTANCE;
 }
 
-function getRandomImage() {
-  const available = charImages.filter(src => !activeCharacters.has(src));
-  const pool = available.length ? available : charImages;
-
-  return pool[Math.floor(Math.random() * pool.length)];
+function getImage(){
+  const pool=charImages.filter(i=>!activeCharacters.has(i));
+  const list=pool.length?pool:charImages;
+  return list[Math.floor(Math.random()*list.length)];
 }
 
-// ==============================
-// DOM生成
-// ==============================
-function createCharacterElement(src) {
-  const wrapper = document.createElement("div");
-  wrapper.className = "char";
+// ================= メイン =================
+function spawn(){
+  const src=getImage();
 
-  const img = document.createElement("img");
-  img.src = src;
+  const wrap=document.createElement("div");
+  wrap.className="char";
 
-  wrapper.appendChild(img);
-  return wrapper;
-}
+  const img=document.createElement("img");
+  img.src=src;
+  wrap.appendChild(img);
 
-function applyAnimation(wrapper, start, end) {
-  wrapper.style.setProperty("--startX", `${start.x}px`);
-  wrapper.style.setProperty("--startY", `${start.y}px`);
-  wrapper.style.setProperty("--endX", `${end.x}px`);
-  wrapper.style.setProperty("--endY", `${end.y}px`);
+  const start=randomEdge();
+  let end=randomEdge();
 
-  const duration = CONFIG.ANIMATION_MIN + Math.random() * CONFIG.ANIMATION_RANGE;
-  wrapper.style.animationDuration = `${duration}s`;
-
-  return duration;
-}
-
-// ==============================
-// メイン処理
-// ==============================
-function spawnCharacter() {
-  const src = getRandomImage();
-  const element = createCharacterElement(src);
-
-  const start = getRandomEdgePosition();
-  let end = getRandomEdgePosition();
-
-  while (isTooClose(start, end)) {
-    end = getRandomEdgePosition();
+  while(isClose(start,end)){
+    end=randomEdge();
   }
 
-  const duration = applyAnimation(element, start, end);
+  wrap.style.setProperty("--startX",start.x+"px");
+  wrap.style.setProperty("--startY",start.y+"px");
+  wrap.style.setProperty("--endX",end.x+"px");
+  wrap.style.setProperty("--endY",end.y+"px");
 
-  stage.appendChild(element);
+  const duration=CONFIG.ANIMATION_MIN + Math.random()*CONFIG.ANIMATION_RANGE;
+  wrap.style.animationDuration=duration+"s";
+
+  stage.appendChild(wrap);
   activeCharacters.add(src);
 
-  setTimeout(() => {
-    element.remove();
+  setTimeout(()=>{
+    wrap.remove();
     activeCharacters.delete(src);
-  }, duration * 1000);
+  },duration*1000);
 }
 
-// ==============================
-// ループ制御
-// ==============================
-setInterval(() => {
-  if (currentCount < CONFIG.MAX_CHARS) {
-    spawnCharacter();
+// ================= ループ =================
+setInterval(()=>{
+  if(currentCount<CONFIG.MAX_CHARS){
+    spawn();
     currentCount++;
 
-    setTimeout(() => {
-      currentCount--;
-    }, CONFIG.REMOVE_DELAY_BUFFER + CONFIG.ANIMATION_MIN * 1000);
+    setTimeout(()=>currentCount--,7000);
   }
-}, CONFIG.SPAWN_INTERVAL);
+},CONFIG.SPAWN_INTERVAL);
 
-// ==============================
-// 星生成（そのままでもOK）
-// ==============================
-(function createStars() {
-  const colors = ["c1", "c2", "c3"];
-  const COUNT = 60;
+// ================= 星 =================
+for(let i=0;i<60;i++){
+  const s=document.createElement("div");
+  s.className="star";
+  s.style.top=Math.random()*100+"vh";
+  s.style.left=Math.random()*100+"vw";
+  document.body.appendChild(s);
+}
 
-  for (let i = 0; i < COUNT; i++) {
-    const star = document.createElement("div");
-    star.className = `star ${colors[i % colors.length]}`;
-
-    star.style.top = Math.random() * 100 + "vh";
-    star.style.left = Math.random() * 100 + "vw";
-
-    const size = 3 + Math.random() * 3;
-    star.style.width = star.style.height = size + "px";
-
-    star.style.animationDelay = Math.random() * 4 + "s";
-    star.style.animationDuration = 4 + Math.random() * 3 + "s";
-
-    document.body.appendChild(star);
-  }
-})();
-
-// ==============================
-// スタートボタン
-// ==============================
-startBtn.addEventListener("click", () => {
+// ================= ボタン =================
+startBtn.addEventListener("click",()=>{
   attemptPlay();
+  startBtn.style.opacity="0";
 
-  startBtn.style.pointerEvents = "none";
-  startBtn.style.opacity = "0";
-
-  setTimeout(() => {
-    location.href = "character_select.html";
-  }, 500);
+  setTimeout(()=>{
+    location.href="character_select.html";
+  },500);
 });
 </script>
+
+</body>
+</html>
